@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import { User, BookOpen, GraduationCap, DollarSign, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
+import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -77,184 +77,205 @@ const DashboardPage = () => {
     };
 
     return (
-        <div className="space-y-6 md:space-y-8 p-4 md:p-10 animate-in fade-in duration-700">
-            {/* Header / Welcome */}
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-                <div>
-                    <h1 className="text-xl md:text-3xl font-black text-gray-800 flex items-center gap-2">
-                        Bienvenido, {user?.name}
+        <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
+            {/* Header / Welcome - Compact on Mobile */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
+                <div className="space-y-1">
+                    <h1 className="text-2xl md:text-4xl font-black text-gray-800 tracking-tight leading-tight">
+                        <span className="block md:inline text-blue-600 opacity-90">Hola,</span> {user?.name.split(' ')[0]}
                     </h1>
-                    <p className="text-xs md:text-gray-500 font-bold flex items-center gap-2">
-                        <School size={16} className="text-blue-500" />
+                    <p className="text-[10px] md:text-sm text-gray-400 font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tenant?.theme?.secondaryColor || '#3b82f6' }}></div>
                         Portal: {tenant?.name || 'Maritimo 4.0'}
                     </p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className={`px-4 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest
-                        ${isSuperAdmin ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                <div className="flex items-center">
+                    <span className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border
+                        ${isSuperAdmin ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
                         {user?.role}
                     </span>
                 </div>
             </div>
 
-            {/* Stats Cards (Role Conditional) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Stats Cards - Grid optimized for touch */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
                 {canManageStudents && (
-                    <div className="bg-white p-6 rounded-2xl shadow-xl shadow-blue-500/5 border-l-8 border-blue-500 active:scale-[0.98] transition-all">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-blue-50 rounded-lg"><GraduationCap className="text-blue-500" /></div>
-                            <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Estudiantes</h3>
+                    <div className="bg-white p-5 md:p-8 rounded-[2rem] shadow-xl shadow-blue-500/5 border-b-4 border-blue-500 hover:translate-y-[-4px] transition-all">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-blue-50 rounded-xl"><GraduationCap size={20} className="text-blue-500" /></div>
+                            <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Estudiantes</h3>
                         </div>
-                        <p className="text-4xl font-black text-gray-800">{stats.studentCount.toLocaleString()}</p>
+                        <p className="text-2xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                        <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Estudiantes</p>
                     </div>
                 )}
 
                 {(isSuperAdmin || user?.role === 'teacher') && (
-                    <div className="bg-white p-6 rounded-2xl shadow-xl shadow-emerald-500/5 border-l-8 border-emerald-500 active:scale-[0.98] transition-all">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-emerald-50 rounded-lg"><BookOpen className="text-emerald-500" /></div>
-                            <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Cursos Activos</h3>
+                    <div className="bg-white p-5 md:p-8 rounded-[2rem] shadow-xl shadow-emerald-500/5 border-b-4 border-emerald-500 hover:translate-y-[-4px] transition-all">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2.5 bg-emerald-50 rounded-xl"><BookOpen size={20} className="text-emerald-500" /></div>
+                            <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Cursos</h3>
                         </div>
-                        <p className="text-4xl font-black text-gray-800">{stats.courseCount}</p>
+                        <p className="text-2xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.courseCount}</p>
+                        <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Cursos</p>
                     </div>
                 )}
 
-                <div className="bg-white p-6 rounded-2xl shadow-xl shadow-amber-500/5 border-l-8 border-amber-500 active:scale-[0.98] transition-all">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-amber-50 rounded-lg"><DollarSign className="text-amber-500" /></div>
-                        <h3 className="text-sm font-black text-gray-500 uppercase tracking-widest">Estado</h3>
+                <div className="hidden md:block bg-white p-8 rounded-[2rem] shadow-xl shadow-amber-500/5 border-b-4 border-amber-500 hover:translate-y-[-4px] transition-all">
+                    <div className="flex items-center gap-3 mb-4">
+                        <div className="p-2.5 bg-amber-50 rounded-xl"><School size={20} className="text-amber-500" /></div>
+                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</h3>
                     </div>
                     <p className="text-lg font-black text-emerald-600 uppercase italic">Institución Activa</p>
                 </div>
             </div>
 
-            {/* Notifications & Events Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Notifications & Events Section - Stacked on Mobile */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
                 {/* Upcoming Events */}
-                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden group">
                     <div
-                        className="px-6 py-4 flex items-center justify-between"
+                        className="px-8 py-6 flex items-center justify-between"
                         style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                     >
-                        <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-2">
-                            <Calendar size={18} className="text-blue-300" /> Eventos
+                        <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
+                            <Calendar size={18} className="text-blue-300" /> EVENTOS PRÓXIMOS
                         </h2>
-                        <a href="/events" className="text-xs font-black text-blue-200 hover:text-white uppercase">Ver todos</a>
+                        <a href="/events" className="text-[10px] font-black text-blue-200/80 hover:text-white uppercase transition-all">Ver todos</a>
                     </div>
-                    <div className="p-6 space-y-4">
+                    <div className="p-6 md:p-8 space-y-5">
                         {upcomingEvents.map((event: any) => (
-                            <div key={event._id} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-2xl transition-colors border-b last:border-0 border-dashed">
+                            <div key={event._id} className="flex items-center gap-5 p-2 group/item">
                                 <div
-                                    className="p-3 rounded-2xl text-white text-center min-w-[60px]"
-                                    style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a', opacity: 0.9 }}
+                                    className="p-3.5 rounded-2xl text-white text-center min-w-[65px] shadow-lg transition-transform group-hover/item:scale-110"
+                                    style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a', opacity: 0.95 }}
                                 >
-                                    <span className="block text-[10px] font-black uppercase text-blue-200">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
-                                    <span className="block text-xl font-black">{new Date(event.date).getDate()}</span>
+                                    <span className="block text-[10px] font-black uppercase text-blue-200 leading-none mb-1">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
+                                    <span className="block text-2xl font-black leading-none">{new Date(event.date).getDate()}</span>
                                 </div>
-                                <div className="py-1">
-                                    <h4 className="font-black text-gray-800 uppercase text-sm tracking-tight">{event.title}</h4>
-                                    <p className="text-xs text-gray-400 font-bold flex items-center gap-1 mt-1">
-                                        <MapPin size={12} /> {event.location}
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="font-extrabold text-gray-800 uppercase text-sm md:text-base tracking-tight truncate">{event.title}</h4>
+                                    <p className="text-xs text-gray-400 font-bold flex items-center gap-1.5 mt-1.5 opacity-70">
+                                        <MapPin size={14} className="text-blue-400" /> {event.location || 'Todo el colegio'}
                                     </p>
                                 </div>
                             </div>
                         ))}
-                        {upcomingEvents.length === 0 && <p className="text-sm text-gray-400 font-bold p-10 text-center uppercase tracking-widest">No hay eventos próximos.</p>}
+                        {upcomingEvents.length === 0 && (
+                            <div className="py-12 text-center">
+                                <Calendar size={48} className="mx-auto text-gray-100 mb-4" />
+                                <p className="text-gray-300 font-black uppercase tracking-widest text-[10px]">Agenda despejada</p>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Academic Notifications (Placeholders for now) */}
+                {/* Academic Notifications */}
                 {(user?.role === 'student' || user?.role === 'apoderado') && (
-                    <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                         <div
-                            className="px-6 py-4 flex items-center justify-between"
+                            className="px-8 py-6"
                             style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                         >
-                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-2">
-                                <AlertCircle size={18} className="text-red-300" /> Académico
+                            <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
+                                <AlertCircle size={18} className="text-rose-300" /> ACTIVIDAD ACADÉMICA
                             </h2>
                         </div>
-                        <div className="p-6 space-y-3">
+                        <div className="p-6 md:p-8 space-y-4">
                             {recentGrades.map((grade: any) => (
-                                <div key={grade._id} className="flex items-center gap-3 p-3 hover:bg-gray-50 rounded-2xl transition-colors border shadow-sm">
-                                    <FileText className="text-emerald-500" size={18} />
-                                    <div className="flex-1">
-                                        <p className="text-xs font-black text-gray-400 uppercase">Nueva Calificación</p>
-                                        <p className="text-sm font-bold">{grade.evaluationId?.title || 'Evaluación'}</p>
+                                <div key={grade._id} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-[1.5rem] transition-all border-2 border-transparent hover:border-slate-100 group">
+                                    <div className="bg-emerald-50 p-2.5 rounded-xl group-hover:scale-110 transition-transform">
+                                        <FileText className="text-emerald-500" size={20} />
                                     </div>
-                                    <span className="text-lg font-black text-emerald-600">{grade.score}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Calificación Nueva</p>
+                                        <p className="text-sm font-black text-slate-700 truncate">{grade.evaluationId?.title || 'Evaluación'}</p>
+                                    </div>
+                                    <span className="text-2xl font-black text-emerald-600 tracking-tighter">{grade.score}</span>
                                 </div>
                             ))}
                             {recentGrades.length === 0 && (
-                                <p className="text-sm text-gray-400 font-bold p-10 text-center uppercase tracking-widest">Sin novedades recientes.</p>
+                                <div className="py-12 text-center">
+                                    <AlertCircle size={48} className="mx-auto text-gray-100 mb-4" />
+                                    <p className="text-gray-300 font-black uppercase tracking-widest text-[10px]">Sin novedades</p>
+                                </div>
                             )}
                         </div>
                     </div>
                 )}
             </div>
 
-            {/* Profile Management Section */}
+            {/* Profile Management Section - Collapsed on smaller screens by design or just responsive */}
             {canEditProfile && (
-                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                     <div
-                        className="px-6 py-4 flex items-center gap-2"
+                        className="px-8 py-6 flex items-center gap-3"
                         style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                     >
-                        <User className="text-white w-5 h-5 shadow-sm" />
-                        <h2 className="text-white font-black uppercase tracking-widest">Mi Perfil</h2>
+                        <User className="text-white w-5 h-5" />
+                        <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm">CONFIGURACIÓN DE CUENTA</h2>
                     </div>
 
-                    <div className="p-8">
+                    <div className="p-6 md:p-10">
                         {msg.text && (
-                            <div className={`mb-6 p-4 rounded-2xl font-bold flex items-center gap-2 ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
-                                <AlertCircle size={18} />
-                                {msg.text}
+                            <div className={`mb-8 p-5 rounded-2xl font-black flex items-center gap-3 animate-in slide-in-from-top-2 ${msg.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-rose-50 text-rose-700 border border-rose-100'}`}>
+                                <AlertCircle size={20} />
+                                <span className="text-xs uppercase tracking-tight">{msg.text}</span>
                             </div>
                         )}
 
-                        <form onSubmit={handleUpdateProfile} className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {/* Read Only Fields */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">RUT (Identificador)</label>
-                                    <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-100 text-gray-600 font-bold">{profileData.rut || 'No registrado'}</div>
+                        <form onSubmit={handleUpdateProfile} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                                <div className="space-y-6">
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">NOMBRE COMPLETO</label>
+                                        <input
+                                            type="text"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-extrabold text-slate-700 shadow-inner group-focus-within:shadow-blue-500/5"
+                                            value={profileData.name}
+                                            onChange={e => setProfileData({ ...profileData, name: e.target.value })}
+                                        />
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 ml-1">CORREO ELECTRÓNICO</label>
+                                        <input
+                                            type="email"
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-extrabold text-blue-600 shadow-inner group-focus-within:shadow-blue-500/5"
+                                            value={profileData.email}
+                                            onChange={e => setProfileData({ ...profileData, email: e.target.value })}
+                                        />
+                                    </div>
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Rol en el Sistema</label>
-                                    <div className="bg-gray-50 p-3 rounded-xl border-2 border-gray-100 text-[#11355a] font-black capitalize tracking-tight">{user?.role}</div>
+
+                                <div className="space-y-6">
+                                    <div className="bg-slate-50/50 p-6 rounded-3xl border-2 border-dashed border-slate-100">
+                                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Detalles del Sistema</h4>
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-slate-500 uppercase">Identificador</span>
+                                                <span className="font-mono text-xs font-black text-slate-800 bg-white px-2 py-1 rounded-lg border">{profileData.rut || 'N/A'}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-xs font-bold text-slate-500 uppercase">Rol</span>
+                                                <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg border border-blue-100 uppercase tracking-tighter">{user?.role}</span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
-                            {/* Editable Fields */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Nombre Completo</label>
-                                    <input
-                                        type="text"
-                                        className="w-full p-3 bg-white border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/10 transition-all outline-none font-bold"
-                                        value={profileData.name}
-                                        onChange={e => setProfileData({ ...profileData, name: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 ml-1">Correo Electrónico</label>
-                                    <input
-                                        type="email"
-                                        className="w-full p-3 bg-white border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-bold"
-                                        value={profileData.email}
-                                        onChange={e => setProfileData({ ...profileData, email: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="md:col-span-2 flex justify-end">
+                            <div className="flex justify-center md:justify-end pt-4">
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="bg-[#11355a] text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-blue-900 shadow-xl active:scale-95 transition-all flex items-center gap-2 disabled:bg-gray-400"
+                                    className="w-full md:w-auto bg-[#11355a] text-white px-12 py-5 rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-xs hover:bg-blue-900 shadow-2xl hover:shadow-blue-900/40 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:bg-gray-300"
                                 >
-                                    <Save className="w-5 h-5" />
-                                    {loading ? 'GUARDANDO...' : 'GUARDAR PERFIL'}
+                                    {loading ? 'MODIFICANDO...' : (
+                                        <>
+                                            <Save size={20} />
+                                            CONFIRMAR CAMBIOS
+                                        </>
+                                    )}
                                 </button>
                             </div>
                         </form>

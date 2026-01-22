@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, Mail, School, Printer } from 'lucide-react';
+import { Plus, Trash2, Search, Mail, School, Printer } from 'lucide-react';
 
 interface Student {
     _id: string;
@@ -162,12 +162,20 @@ const StudentsPage = () => {
     );
 
     return (
-        <div className="p-4 md:p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
-                <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <School className="text-[#11355a]" />
-                    Estudiantes
-                </h1>
+        <div className="p-4 md:p-10 space-y-6 md:space-y-10 animate-in fade-in duration-700">
+            {/* Page Header */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                <div>
+                    <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100/50">
+                            <School size={32} className="text-[#11355a] md:w-10 md:h-10" />
+                        </div>
+                        Estudiantes
+                    </h1>
+                    <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 ml-1">
+                        Gestión académica y expedientes
+                    </p>
+                </div>
                 {canManageStudents && (
                     <button
                         onClick={() => {
@@ -175,168 +183,229 @@ const StudentsPage = () => {
                             setCurrentStudent({});
                             setShowModal(true);
                         }}
-                        className="w-full md:w-auto bg-[#11355a] text-white px-4 py-3 md:py-2 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition font-bold"
+                        className="w-full md:w-auto bg-[#11355a] text-white px-8 py-4 px-10 rounded-[1.5rem] flex items-center justify-center gap-3 hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 font-black uppercase text-xs tracking-widest"
                     >
-                        <Plus size={18} /> Nuevo Alumno
+                        <Plus size={20} /> NUEVO ALUMNO
                     </button>
                 )}
             </div>
 
-            {/* Search Bar */}
-            <div className="bg-white p-4 rounded-lg shadow-sm mb-6 flex items-center gap-2 border">
-                <Search className="text-gray-400" />
+            {/* Enhanced Search Bar */}
+            <div className="bg-white p-2 rounded-[1.5rem] shadow-xl shadow-blue-900/5 border border-slate-50 flex items-center gap-2 group focus-within:ring-4 focus-within:ring-blue-500/5 transition-all">
+                <div className="p-4 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                    <Search size={22} />
+                </div>
                 <input
                     type="text"
-                    placeholder="Buscar por nombre o correo..."
-                    className="flex-1 outline-none text-gray-700"
+                    placeholder="Buscar alumnos por nombre, RUT o correo electrónico..."
+                    className="flex-1 outline-none text-slate-700 font-extrabold text-sm md:text-base bg-transparent py-4 placeholder:text-slate-300 placeholder:font-bold"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                 />
             </div>
 
-            {/* List */}
+            {/* List - Premium Grid */}
             {loading ? (
-                <p>Cargando...</p>
+                <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+                    <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sincronizando expedientes...</p>
+                </div>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {filteredStudents.map(student => (
-                        <div key={student._id} className="bg-white p-5 rounded-lg shadow border hover:shadow-md transition">
-                            <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="bg-blue-100 p-3 rounded-full text-blue-800 font-bold">
-                                        {student.nombres.charAt(0)}{student.apellidos.charAt(0)}
+                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {filteredStudents.map((student, idx) => (
+                        <div
+                            key={student._id}
+                            className="bg-white p-6 rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-slate-50 hover:translate-y-[-5px] transition-all group relative overflow-hidden"
+                            style={{ animationDelay: `${idx * 50}ms` }}
+                        >
+                            {/* Decorative Background Element */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -translate-y-1/2 translate-x-1/2 -z-0 opacity-50 group-hover:scale-150 transition-transform"></div>
+
+                            <div className="relative z-10 flex flex-col h-full">
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-black text-2xl shadow-lg border-4 border-white">
+                                            {student.nombres.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[150px]">
+                                                {student.nombres} {student.apellidos}
+                                            </h3>
+                                            <div className="flex items-center gap-1.5 text-blue-500 font-black text-[10px] uppercase tracking-wider mt-0.5">
+                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                                {student.grado || 'SIN GRADO'}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-gray-800">{student.nombres} {student.apellidos}</h3>
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                            <Mail size={12} /> {student.email}
-                                        </p>
-                                        <p className="text-xs text-gray-400 mt-1 uppercase tracking-wide">
-                                            {student.grado || 'Sin grado'}
-                                        </p>
-                                        <p className="text-[10px] font-mono text-gray-400 bg-gray-50 px-1 mt-1 inline-block rounded">
-                                            ID: {student.matricula || student.rut || 'S/N'}
-                                        </p>
+                                    <div className="flex gap-1">
+                                        <button
+                                            onClick={() => handlePrint(student._id)}
+                                            className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                            title="Imprimir Ficha"
+                                        >
+                                            <Printer size={18} />
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
+
+                                <div className="space-y-3 bg-slate-50/50 p-5 rounded-[1.5rem] border border-slate-100/50 mb-6 flex-1">
+                                    <div className="flex items-center gap-3 text-slate-500 font-extrabold text-xs">
+                                        <Mail size={14} className="text-slate-300" />
+                                        <span className="truncate">{student.email}</span>
+                                    </div>
+                                    <div className="flex items-center gap-3 text-slate-400 font-mono text-[10px] bg-white px-3 py-1.5 rounded-lg border border-slate-100 w-fit">
+                                        <span className="font-black text-slate-300 mr-1 opacity-50">EXP:</span>
+                                        {student.matricula || student.rut || 'NO REGISTRADO'}
+                                    </div>
+                                </div>
+
+                                {canManageStudents && (
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100">
+                                        <button
+                                            onClick={() => {
+                                                setModalMode('edit');
+                                                setCurrentStudent(student);
+                                                setShowModal(true);
+                                            }}
+                                            className="flex-1 py-3 bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white rounded-xl transition-all font-black text-[10px] uppercase tracking-widest border border-blue-100"
+                                        >
+                                            EDITAR
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(student._id)}
+                                            className="px-4 py-3 bg-rose-50 text-rose-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all border border-rose-100"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <div className="md:hidden flex gap-2 pt-2">
                                     <button
-                                        onClick={() => handlePrint(student._id)}
-                                        className="text-gray-500 hover:text-[#11355a] p-1 rounded hover:bg-gray-100"
-                                        title="Imprimir Ficha"
+                                        onClick={() => {
+                                            setModalMode('edit');
+                                            setCurrentStudent(student);
+                                            setShowModal(true);
+                                        }}
+                                        className="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-blue-100"
                                     >
-                                        <Printer size={18} />
+                                        EDITAR
                                     </button>
-                                    {canManageStudents && (
-                                        <>
-                                            <button
-                                                onClick={() => {
-                                                    setModalMode('edit');
-                                                    setCurrentStudent(student);
-                                                    setShowModal(true);
-                                                }}
-                                                className="text-gray-500 hover:text-blue-600 p-1 rounded hover:bg-gray-100"
-                                            >
-                                                <Edit size={18} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(student._id)}
-                                                className="text-gray-500 hover:text-red-600 p-1 rounded hover:bg-gray-100"
-                                            >
-                                                <Trash2 size={18} />
-                                            </button>
-                                        </>
-                                    )}
                                 </div>
                             </div>
                         </div>
                     ))}
+                    {filteredStudents.length === 0 && !loading && (
+                        <div className="col-span-full py-20 text-center bg-slate-50 rounded-[3rem] border-4 border-dashed border-slate-100">
+                            <Search size={64} className="mx-auto text-slate-200 mb-6" />
+                            <h3 className="text-xl font-black text-slate-400 uppercase tracking-widest">No hay resultados</h3>
+                            <p className="text-xs font-bold text-slate-300 mt-2">Intenta con otros términos de búsqueda.</p>
+                        </div>
+                    )}
                 </div>
             )}
 
-            {/* Modal */}
+            {/* Refined Premium Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h2 className="text-xl font-bold mb-4">
-                            {modalMode === 'create' ? 'Nuevo Estudiante' : 'Editar Estudiante'}
-                        </h2>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Nombres</label>
-                                <input
-                                    required
-                                    maxLength={50}
-                                    className="w-full border p-2 rounded font-bold"
-                                    value={currentStudent.nombres || ''}
-                                    onChange={e => setCurrentStudent({ ...currentStudent, nombres: e.target.value })}
-                                />
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
+                        <div
+                            className="p-10 text-white relative overflow-hidden"
+                            style={{ backgroundColor: '#11355a' }}
+                        >
+                            <div className="relative z-10">
+                                <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
+                                    {modalMode === 'create' ? 'Matricular Alumno' : 'Actualizar Ficha'}
+                                </h2>
+                                <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
+                                    {modalMode === 'create' ? 'ALTA DE NUEVO ESTUDIANTE' : 'MODIFICACIÓN DE EXPEDIENTE'}
+                                </p>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Apellidos</label>
-                                <input
-                                    required
-                                    maxLength={50}
-                                    className="w-full border p-2 rounded font-bold"
-                                    value={currentStudent.apellidos || ''}
-                                    onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">RUT</label>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                        </div>
+
+                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
+                            <div className="space-y-6">
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRES DEL ESTUDIANTE</label>
                                     <input
-                                        className="w-full border p-2 rounded font-mono"
-                                        maxLength={12}
-                                        pattern="^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$"
-                                        title="Formato: 12.345.678-9"
-                                        value={currentStudent.rut || ''}
-                                        onChange={e => setCurrentStudent({ ...currentStudent, rut: e.target.value.trim() })}
-                                        placeholder="12.345.678-9"
+                                        required
+                                        maxLength={50}
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: Juan Antonio"
+                                        value={currentStudent.nombres || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, nombres: e.target.value })}
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Matrícula</label>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">APELLIDOS DEL ESTUDIANTE</label>
                                     <input
-                                        className="w-full border p-2 rounded"
-                                        value={currentStudent.matricula || ''}
-                                        onChange={e => setCurrentStudent({ ...currentStudent, matricula: e.target.value })}
-                                        placeholder="Auto/Manual"
+                                        required
+                                        maxLength={50}
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: Pérez González"
+                                        value={currentStudent.apellidos || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">RUT / DNI</label>
+                                        <input
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 font-mono"
+                                            maxLength={12}
+                                            placeholder="12.345.678-9"
+                                            value={currentStudent.rut || ''}
+                                            onChange={e => setCurrentStudent({ ...currentStudent, rut: e.target.value.trim() })}
+                                        />
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1"># MATRÍCULA</label>
+                                        <input
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            placeholder="2024-001"
+                                            value={currentStudent.matricula || ''}
+                                            onChange={e => setCurrentStudent({ ...currentStudent, matricula: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EMAIL INSTITUCIONAL</label>
+                                    <input
+                                        required
+                                        type="email"
+                                        maxLength={100}
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-400 transition-all outline-none font-black text-blue-600"
+                                        placeholder="alumno@colegio.cl"
+                                        value={currentStudent.email || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value.trim().toLowerCase() })}
+                                    />
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">GRADO / NIVEL ACADÉMICO</label>
+                                    <input
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: 1° Medio A"
+                                        value={currentStudent.grado || ''}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Email</label>
-                                <input
-                                    required
-                                    type="email"
-                                    maxLength={100}
-                                    className="w-full border p-2 rounded font-bold text-blue-600"
-                                    value={currentStudent.email || ''}
-                                    onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value.trim().toLowerCase() })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Grado/Curso</label>
-                                <input
-                                    className="w-full border p-2 rounded"
-                                    value={currentStudent.grado || ''}
-                                    onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
-                                />
-                            </div>
-                            <div className="flex justify-end gap-2 mt-6">
+
+                            <div className="pt-8 flex flex-col md:flex-row gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded"
+                                    className="flex-1 py-5 text-slate-400 font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-widest text-xs"
                                 >
-                                    Cancelar
+                                    DESCARTAR
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 bg-[#11355a] text-white rounded hover:opacity-90"
+                                    className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
                                 >
-                                    Guardar
+                                    <Plus size={18} />
+                                    {modalMode === 'create' ? 'CONFIRMAR MATRÍCULA' : 'GUARDAR CAMBIOS'}
                                 </button>
                             </div>
                         </form>
