@@ -90,10 +90,6 @@ const AnnotationsPage = () => {
         return matchesSearch;
     });
 
-    const getStudentName = (id: any) => {
-        const s = students.find(x => x._id === id);
-        return s ? `${s.nombres} ${s.apellidos}` : 'Error: Estudiante no encontrado';
-    };
 
     return (
         <div className="p-6">
@@ -105,7 +101,7 @@ const AnnotationsPage = () => {
                     </h1>
                     <p className="text-gray-500 text-sm">Bitácora de comportamiento y méritos académicos.</p>
                 </div>
-                {permissions.canEditAnnotations && (
+                {permissions.isStaff && permissions.user?.role !== 'student' && (
                     <button
                         onClick={() => setShowForm(!showForm)}
                         className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg ${showForm ? 'bg-gray-100 text-gray-600' : 'bg-[#11355a] text-white hover:bg-blue-800 active:scale-95'}`}
@@ -115,7 +111,8 @@ const AnnotationsPage = () => {
                 )}
             </div>
 
-            {showForm && (
+            {/* Student sees no search filters for others */}
+            {permissions.user?.role !== 'student' && showForm && (
                 <div className="bg-white p-8 rounded-2xl shadow-2xl border-2 border-blue-50 mb-8 animate-in zoom-in duration-300">
                     <h3 className="text-xl font-bold mb-6 text-[#11355a] flex items-center gap-2 border-b pb-4">
                         <BookOpen size={20} />
@@ -271,7 +268,7 @@ const AnnotationsPage = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="bg-gray-100 p-2 rounded-full text-gray-500"><User size={18} /></div>
-                                                <div className="text-sm font-bold text-gray-800">{getStudentName(anotacion.estudianteId)}</div>
+                                                <div className="text-sm font-bold text-gray-800">{(anotacion.estudianteId as any)?.nombres} {(anotacion.estudianteId as any)?.apellidos}</div>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

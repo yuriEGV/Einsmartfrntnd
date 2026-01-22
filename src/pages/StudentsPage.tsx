@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, Mail, School } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Mail, School, Printer } from 'lucide-react';
 
 interface Student {
     _id: string;
@@ -41,6 +41,95 @@ const StudentsPage = () => {
         }
     };
 
+    const handlePrint = async (studentId: string) => {
+        try {
+            const response = await api.get(`/reports/student/${studentId}`);
+            const data = response.data;
+
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Reporte - ${data.student.nombres}</title>
+                            <style>
+                                body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #333; line-height: 1.6; }
+                                .header { border-bottom: 3px solid #11355a; margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center;}
+                                .header h1 { margin: 0; color: #11355a; }
+                                .section { margin-bottom: 40px; }
+                                .section h2 { border-bottom: 1px solid #eee; padding-bottom: 10px; color: #11355a; font-size: 1.2rem; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                                th, td { border: 1px solid #eee; padding: 12px; text-align: left; }
+                                th { background: #f8fafc; font-weight: bold; }
+                                .stats-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 20px; margin-top: 15px; }
+                                .stat-card { background: #f8fafc; padding: 15px; border-radius: 8px; text-align: center; }
+                                .stat-val { display: block; font-size: 1.5rem; font-weight: bold; color: #11355a; }
+                                .stat-lab { font-size: 0.8rem; color: #666; text-transform: uppercase; }
+                                .negativa { color: #e11d48; }
+                                .positiva { color: #10b981; }
+                                @media print { .no-print { display: none; } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <div>
+                                    <h1>Ficha del Estudiante</h1>
+                                    <p>Generado el: ${new Date().toLocaleString()}</p>
+                                </div>
+                                <div style="text-align: right">
+                                    <h2 style="margin:0">${data.student.nombres} ${data.student.apellidos}</h2>
+                                    <p style="margin:0">RUT: ${data.student.rut || 'N/A'} | Curso: ${data.student.grado || 'N/A'}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="section">
+                                <h2>Calificaciones</h2>
+                                <table>
+                                    <thead><tr><th>Evaluación</th><th>Puntaje</th><th>Fecha</th></tr></thead>
+                                    <tbody>
+                                        ${data.grades.length ? data.grades.map((g: any) => `
+                                            <tr><td>${g.title}</td><td>${g.score}/${g.maxScore}</td><td>${new Date(g.date).toLocaleDateString()}</td></tr>
+                                        `).join('') : '<tr><td colspan="3">No hay calificaciones registradas</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="section">
+                                <h2>Asistencia</h2>
+                                <div class="stats-grid">
+                                    <div class="stat-card"><span class="stat-val">${data.attendance.total}</span><span class="stat-lab">Días Totales</span></div>
+                                    <div class="stat-card"><span class="stat-val">${data.attendance.present}</span><span class="stat-lab">Presente</span></div>
+                                    <div class="stat-card"><span class="stat-val">${data.attendance.absent}</span><span class="stat-lab">Ausente</span></div>
+                                    <div class="stat-card"><span class="stat-val">${data.attendance.total ? ((data.attendance.present / data.attendance.total) * 100).toFixed(1) : 0}%</span><span class="stat-lab">% Asistencia</span></div>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h2>Observaciones y Anotaciones</h2>
+                                ${data.annotations.length ? data.annotations.map((a: any) => `
+                                    <div style="border-left: 4px solid ${a.tipo === 'negativa' ? '#e11d48' : '#10b981'}; padding: 10px 15px; background: #fafafa; margin-bottom: 10px;">
+                                        <div style="display: flex; justify-content: space-between">
+                                            <strong class="${a.tipo}">${a.titulo} (${a.tipo.toUpperCase()})</strong>
+                                            <span style="font-size: 0.8rem; color: #888">${new Date(a.fecha).toLocaleDateString()}</span>
+                                        </div>
+                                        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">${a.descripcion}</p>
+                                        <span style="font-size: 0.7rem; color: #aaa">Registrado por: ${a.autor || 'Sistema'}</span>
+                                    </div>
+                                `).join('') : '<p>No hay anotaciones registradas.</p>'}
+                            </div>
+
+                            <button class="no-print" onclick="window.print()" style="padding: 10px 20px; background: #11355a; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir ahora</button>
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            }
+        } catch (error) {
+            console.error('Error printing student report:', error);
+            alert('Error al generar el reporte imprimible.');
+        }
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -73,11 +162,11 @@ const StudentsPage = () => {
     );
 
     return (
-        <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+        <div className="p-4 md:p-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                <h1 className="text-xl md:text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <School className="text-[#11355a]" />
-                    Gestión de Estudiantes
+                    Estudiantes
                 </h1>
                 {canManageStudents && (
                     <button
@@ -86,9 +175,9 @@ const StudentsPage = () => {
                             setCurrentStudent({});
                             setShowModal(true);
                         }}
-                        className="bg-[#11355a] text-white px-4 py-2 rounded flex items-center gap-2 hover:opacity-90 transition"
+                        className="w-full md:w-auto bg-[#11355a] text-white px-4 py-3 md:py-2 rounded-xl flex items-center justify-center gap-2 hover:opacity-90 transition font-bold"
                     >
-                        <Plus size={18} /> Nuevo Estudiante
+                        <Plus size={18} /> Nuevo Alumno
                     </button>
                 )}
             </div>
@@ -130,26 +219,35 @@ const StudentsPage = () => {
                                         </p>
                                     </div>
                                 </div>
-                                {canManageStudents && (
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                setModalMode('edit');
-                                                setCurrentStudent(student);
-                                                setShowModal(true);
-                                            }}
-                                            className="text-gray-500 hover:text-blue-600"
-                                        >
-                                            <Edit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(student._id)}
-                                            className="text-gray-500 hover:text-red-600"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handlePrint(student._id)}
+                                        className="text-gray-500 hover:text-[#11355a] p-1 rounded hover:bg-gray-100"
+                                        title="Imprimir Ficha"
+                                    >
+                                        <Printer size={18} />
+                                    </button>
+                                    {canManageStudents && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    setModalMode('edit');
+                                                    setCurrentStudent(student);
+                                                    setShowModal(true);
+                                                }}
+                                                className="text-gray-500 hover:text-blue-600 p-1 rounded hover:bg-gray-100"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(student._id)}
+                                                className="text-gray-500 hover:text-red-600 p-1 rounded hover:bg-gray-100"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
@@ -168,7 +266,8 @@ const StudentsPage = () => {
                                 <label className="block text-sm font-medium mb-1">Nombres</label>
                                 <input
                                     required
-                                    className="w-full border p-2 rounded"
+                                    maxLength={50}
+                                    className="w-full border p-2 rounded font-bold"
                                     value={currentStudent.nombres || ''}
                                     onChange={e => setCurrentStudent({ ...currentStudent, nombres: e.target.value })}
                                 />
@@ -177,7 +276,8 @@ const StudentsPage = () => {
                                 <label className="block text-sm font-medium mb-1">Apellidos</label>
                                 <input
                                     required
-                                    className="w-full border p-2 rounded"
+                                    maxLength={50}
+                                    className="w-full border p-2 rounded font-bold"
                                     value={currentStudent.apellidos || ''}
                                     onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
                                 />
@@ -186,9 +286,12 @@ const StudentsPage = () => {
                                 <div>
                                     <label className="block text-sm font-medium mb-1">RUT</label>
                                     <input
-                                        className="w-full border p-2 rounded"
+                                        className="w-full border p-2 rounded font-mono"
+                                        maxLength={12}
+                                        pattern="^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$"
+                                        title="Formato: 12.345.678-9"
                                         value={currentStudent.rut || ''}
-                                        onChange={e => setCurrentStudent({ ...currentStudent, rut: e.target.value })}
+                                        onChange={e => setCurrentStudent({ ...currentStudent, rut: e.target.value.trim() })}
                                         placeholder="12.345.678-9"
                                     />
                                 </div>
@@ -207,9 +310,10 @@ const StudentsPage = () => {
                                 <input
                                     required
                                     type="email"
-                                    className="w-full border p-2 rounded"
+                                    maxLength={100}
+                                    className="w-full border p-2 rounded font-bold text-blue-600"
                                     value={currentStudent.email || ''}
-                                    onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value })}
+                                    onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value.trim().toLowerCase() })}
                                 />
                             </div>
                             <div>

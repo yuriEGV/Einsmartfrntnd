@@ -11,6 +11,7 @@ export interface Permissions {
     canEditGrades: boolean;
     canViewSensitiveData: boolean;
     isSuperAdmin: boolean;
+    isStaff: boolean;
     canManageCourses: boolean;
     // Added missing permissions
     canManageSubjects: boolean;
@@ -39,6 +40,7 @@ export const usePermissions = (): Permissions => {
         canEditGrades: isStaff,
         canViewSensitiveData: isAdmin,
         isSuperAdmin,
+        isStaff,
         canManageCourses: isAdmin,
         // New permissions
         canManageSubjects: isAdmin || isTeacher,

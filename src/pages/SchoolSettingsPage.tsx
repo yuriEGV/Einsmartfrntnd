@@ -14,6 +14,8 @@ const SchoolSettingsPage = () => {
         address: '',
         phone: '',
         contactEmail: '',
+        annualFee: 0,
+        academicYear: new Date().getFullYear().toString(),
         theme: {
             primaryColor: '#11355a',
             secondaryColor: '#3b82f6'
@@ -27,6 +29,8 @@ const SchoolSettingsPage = () => {
                 address: tenant.address || '',
                 phone: tenant.phone || '',
                 contactEmail: tenant.contactEmail || '',
+                annualFee: tenant.annualFee || 0,
+                academicYear: tenant.academicYear || new Date().getFullYear().toString(),
                 theme: {
                     primaryColor: tenant.theme?.primaryColor || '#11355a',
                     secondaryColor: tenant.theme?.secondaryColor || '#3b82f6'
@@ -57,11 +61,11 @@ const SchoolSettingsPage = () => {
     return (
         <div className="p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
             <header className="mb-8">
-                <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                    <Building2 size={32} />
-                    Configuración de la Institución
+                <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3 text-wrap">
+                    <Building2 size={28} className="md:w-8 md:h-8 shrink-0" />
+                    Configuración Institucional
                 </h1>
-                <p className="text-gray-500 text-lg">Personaliza la identidad visual y datos de contacto de tu colegio.</p>
+                <p className="text-gray-500 text-sm md:text-lg mt-1">Identidad visual y datos de contacto.</p>
             </header>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">

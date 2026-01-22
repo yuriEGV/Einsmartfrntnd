@@ -16,6 +16,8 @@ interface Tenant {
     address?: string;
     phone?: string;
     contactEmail?: string;
+    annualFee?: number;
+    academicYear?: string;
 }
 
 interface TenantContextType {

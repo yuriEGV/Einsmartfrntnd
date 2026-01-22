@@ -63,7 +63,7 @@ const AnalyticsPage = () => {
                 </div>
                 <div className="p-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {topStudents.map((student: any, index: number) => (
+                        {topStudents.length > 0 ? topStudents.map((student: any, index: number) => (
                             <div
                                 key={student._id}
                                 className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl border-2 border-blue-100 hover:shadow-lg transition-all"
@@ -92,7 +92,12 @@ const AnalyticsPage = () => {
                                     <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Promedio</div>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="col-span-2 p-12 text-center text-gray-400 font-bold border-4 border-dashed rounded-3xl">
+                                <Trophy size={48} className="mx-auto mb-4 opacity-20" />
+                                No hay suficientes datos para generar el ranking aún.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -108,7 +113,7 @@ const AnalyticsPage = () => {
                         </h2>
                     </div>
                     <div className="p-6 space-y-3">
-                        {annotationRankings?.mostPositive.map((student: any, index: number) => (
+                        {annotationRankings?.mostPositive.length > 0 ? annotationRankings.mostPositive.map((student: any, index: number) => (
                             <div key={student._id} className="flex items-center gap-3 p-3 bg-green-50 rounded-xl border border-green-100">
                                 <div className="w-10 h-10 bg-green-600 text-white rounded-full flex items-center justify-center font-black">
                                     {index + 1}
@@ -122,7 +127,11 @@ const AnalyticsPage = () => {
                                     <span className="font-black">{student.positiveCount}</span>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="p-10 text-center text-gray-400 text-sm font-bold border-2 border-dashed rounded-2xl">
+                                Sin anotaciones registradas.
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -135,7 +144,7 @@ const AnalyticsPage = () => {
                         </h2>
                     </div>
                     <div className="p-6 space-y-3">
-                        {annotationRankings?.mostNegative.map((student: any, index: number) => (
+                        {annotationRankings?.mostNegative.length > 0 ? annotationRankings.mostNegative.map((student: any, index: number) => (
                             <div key={student._id} className="flex items-center gap-3 p-3 bg-rose-50 rounded-xl border border-rose-100">
                                 <div className="w-10 h-10 bg-rose-600 text-white rounded-full flex items-center justify-center font-black">
                                     {index + 1}
@@ -149,7 +158,11 @@ const AnalyticsPage = () => {
                                     <span className="font-black">{student.negativeCount}</span>
                                 </div>
                             </div>
-                        ))}
+                        )) : (
+                            <div className="p-10 text-center text-gray-400 text-sm font-bold border-2 border-dashed rounded-2xl">
+                                Todo en orden. Sin registros negativos.
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

@@ -16,9 +16,13 @@ const RegisterPage: React.FC = () => {
     const navigate = useNavigate();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        let value = e.target.value;
+        if (e.target.name === 'email') value = value.trim().toLowerCase();
+        if (e.target.name === 'rut') value = value.trim();
+
         setFormData({
             ...formData,
-            [e.target.name]: e.target.value
+            [e.target.name]: value
         });
     };
 
@@ -53,7 +57,8 @@ const RegisterPage: React.FC = () => {
                             type="text"
                             name="name"
                             required
-                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a]"
+                            maxLength={100}
+                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a] font-bold"
                             value={formData.name}
                             onChange={handleChange}
                         />
@@ -64,7 +69,11 @@ const RegisterPage: React.FC = () => {
                         <input
                             type="text"
                             name="rut"
-                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a]"
+                            maxLength={12}
+                            required
+                            pattern="^\d{1,2}\.\d{3}\.\d{3}-[\dkK]$"
+                            title="Formato: 12.345.678-9"
+                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a] font-mono"
                             value={formData.rut}
                             onChange={handleChange}
                         />
@@ -99,8 +108,9 @@ const RegisterPage: React.FC = () => {
                             type="text"
                             name="tenantId"
                             required
+                            maxLength={50}
                             placeholder="Solicita esto a tu administrador"
-                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a]"
+                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-[#11355a] font-mono text-xs uppercase"
                             value={formData.tenantId}
                             onChange={handleChange}
                         />

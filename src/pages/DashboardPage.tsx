@@ -77,16 +77,16 @@ const DashboardPage = () => {
     };
 
     return (
-        <div className="space-y-8 p-6 lg:p-10 animate-in fade-in duration-700">
+        <div className="space-y-6 md:space-y-8 p-4 md:p-10 animate-in fade-in duration-700">
             {/* Header / Welcome */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-gray-800 flex items-center gap-2">
+                    <h1 className="text-xl md:text-3xl font-black text-gray-800 flex items-center gap-2">
                         Bienvenido, {user?.name}
                     </h1>
-                    <p className="text-gray-500 font-bold flex items-center gap-2">
+                    <p className="text-xs md:text-gray-500 font-bold flex items-center gap-2">
                         <School size={16} className="text-blue-500" />
-                        Portal Institucional: {tenant?.name || 'Maritimo 4.0'}
+                        Portal: {tenant?.name || 'Maritimo 4.0'}
                     </p>
                 </div>
                 <div className="flex items-center gap-2">

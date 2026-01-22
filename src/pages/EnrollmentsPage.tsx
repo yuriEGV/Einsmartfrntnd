@@ -2,19 +2,34 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, Filter, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
+import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
 
 interface Course {
     _id: string;
     name: string;
 }
 
+interface Enrollment {
+    _id: string;
+    estudianteId: { nombres: string; apellidos: string };
+    courseId: { name: string; code: string };
+    period: string;
+    status: string;
+    fee: number;
+    createdAt: string;
+}
+
 const EnrollmentsPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
     const [courses, setCourses] = useState<Course[]>([]);
+    const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
     const [loading, setLoading] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const [searchTermStudent, setSearchTermStudent] = useState('');
+    const [students, setStudents] = useState<any[]>([]);
 
     // State for toggle
     const [isNewStudent, setIsNewStudent] = useState(false);
@@ -35,8 +50,29 @@ const EnrollmentsPage = () => {
     useEffect(() => {
         if (permissions.canManageEnrollments) {
             fetchCourses();
+            fetchEnrollments();
+            fetchStudents();
         }
     }, [permissions.canManageEnrollments]);
+
+    useEffect(() => {
+        if (tenant) {
+            setFormData(prev => ({
+                ...prev,
+                period: tenant.academicYear || prev.period,
+                fee: tenant.annualFee || prev.fee
+            }));
+        }
+    }, [tenant]);
+
+    const fetchStudents = async () => {
+        try {
+            const res = await api.get('/estudiantes');
+            setStudents(res.data);
+        } catch (err) {
+            console.error('Error fetching students:', err);
+        }
+    };
 
     const fetchCourses = async () => {
         try {
@@ -47,13 +83,25 @@ const EnrollmentsPage = () => {
         }
     };
 
+    const fetchEnrollments = async () => {
+        setLoading(true);
+        try {
+            const res = await api.get('/enrollments');
+            setEnrollments(res.data);
+        } catch (err) {
+            console.error('Error fetching enrollments:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleEnroll = async (e: React.FormEvent) => {
         e.preventDefault();
 
         // Validation for New Student
         if (isNewStudent) {
-            if (!formData.newStudent.nombres || !formData.newStudent.rut || !formData.newGuardian.correo) {
-                alert('Por favor complete los datos obligatorios del alumno nuevo y su apoderado (incluyendo correo).');
+            if (!formData.newStudent.nombres.trim() || !formData.newStudent.rut.trim()) {
+                alert('Por favor complete el nombre y RUT del alumno.');
                 return;
             }
         } else if (!formData.studentId) {
@@ -70,7 +118,19 @@ const EnrollmentsPage = () => {
         try {
             await api.post('/enrollments', formData);
             alert('¡Matrícula exitosa!');
+            setFormData({
+                studentId: '',
+                courseId: '',
+                period: new Date().getFullYear().toString(),
+                status: 'activo',
+                fee: 0,
+                notes: '',
+                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
+                newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
+            });
+            setSearchTermStudent('');
             setActiveTab('list');
+            fetchEnrollments();
         } catch (err: any) {
             console.error(err);
             alert(err.response?.data?.message || 'Error en matrícula');
@@ -78,6 +138,15 @@ const EnrollmentsPage = () => {
             setLoading(false);
         }
     };
+
+    const filteredEnrollments = enrollments.filter(e =>
+        (e.estudianteId?.nombres + ' ' + e.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e.courseId?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const filteredStudents = students.filter(s =>
+        (s.nombres + ' ' + s.apellidos + ' ' + (s.rut || '')).toLowerCase().includes(searchTermStudent.toLowerCase())
+    );
 
     if (!permissions.canManageEnrollments) {
         return (
@@ -93,27 +162,27 @@ const EnrollmentsPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-[#11355a] flex items-center gap-3">
-                        <UserPlus size={32} />
-                        Gestión de Matrículas
+                    <h1 className="text-2xl md:text-3xl font-extrabold text-[#11355a] flex items-center gap-3">
+                        <UserPlus size={28} className="md:w-8 md:h-8" />
+                        Matrículas
                     </h1>
-                    <p className="text-gray-500 mt-1 text-lg">Inscribe nuevos alumnos y gestiona sus periodos académicos.</p>
+                    <p className="text-gray-500 mt-1 text-sm md:text-lg">Inscripciones y periodos académicos.</p>
                 </div>
 
-                <div className="flex bg-white rounded-xl shadow-sm border p-1">
+                <div className="flex w-full md:w-auto bg-white rounded-xl shadow-sm border p-1">
                     <button
                         onClick={() => setActiveTab('list')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        Ver Matrículas
+                        LISTADO
                     </button>
                     <button
                         onClick={() => setActiveTab('new')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
                     >
-                        Nueva Matrícula
+                        NUEVA
                     </button>
                 </div>
             </div>
@@ -139,17 +208,40 @@ const EnrollmentsPage = () => {
 
                             {!isNewStudent ? (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Seleccionar Estudiante Existente</label>
+                                    <div className="relative">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Estudiante Existente</label>
                                         <div className="relative">
-                                            <input
-                                                placeholder="Buscar por Nombre o RUT..."
-                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none shadow-inner font-bold"
-                                                value={formData.studentId}
-                                                onChange={e => setFormData({ ...formData, studentId: e.target.value })}
-                                            />
                                             <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                                            <input
+                                                placeholder="Nombre o RUT..."
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none shadow-inner font-bold"
+                                                value={searchTermStudent}
+                                                onChange={e => {
+                                                    setSearchTermStudent(e.target.value);
+                                                    if (formData.studentId) setFormData({ ...formData, studentId: '' });
+                                                }}
+                                            />
                                         </div>
+                                        {searchTermStudent && !formData.studentId && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                                {filteredStudents.length > 0 ? filteredStudents.map(s => (
+                                                    <button
+                                                        key={s._id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData({ ...formData, studentId: s._id });
+                                                            setSearchTermStudent(`${s.nombres} ${s.apellidos}`);
+                                                        }}
+                                                        className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                                                    >
+                                                        <div className="font-bold text-sm">{s.nombres} {s.apellidos}</div>
+                                                        <div className="text-[10px] text-gray-400">{s.rut}</div>
+                                                    </button>
+                                                )) : (
+                                                    <div className="px-4 py-4 text-center text-gray-400 text-sm">No encontrado</div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div>
@@ -159,8 +251,10 @@ const EnrollmentsPage = () => {
                                             value={formData.period}
                                             onChange={e => setFormData({ ...formData, period: e.target.value })}
                                         >
-                                            <option value="2024">2024 (Actual)</option>
-                                            <option value="2025">2025 (Próximo)</option>
+                                            <option value={formData.period}>{formData.period} (Institucional)</option>
+                                            <option value="2024">2024</option>
+                                            <option value="2025">2025</option>
+                                            <option value="2026">2026</option>
                                         </select>
                                     </div>
                                 </div>
@@ -169,28 +263,35 @@ const EnrollmentsPage = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <input
                                             placeholder="Nombres"
+                                            maxLength={50}
+                                            required
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.nombres}
                                             onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nombres: e.target.value } })}
                                         />
                                         <input
                                             placeholder="Apellidos"
+                                            maxLength={50}
+                                            required
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.apellidos}
                                             onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, apellidos: e.target.value } })}
                                         />
                                         <input
                                             placeholder="RUT (ej: 12.345.678-9)"
+                                            maxLength={12}
+                                            required
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.rut}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: e.target.value } })}
+                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: e.target.value.trim() } })}
                                         />
                                         <input
                                             type="email"
                                             placeholder="Email del Alumno"
+                                            required
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.email}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value } })}
+                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
                                         />
                                     </div>
                                 </div>
@@ -205,12 +306,14 @@ const EnrollmentsPage = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         placeholder="Nombre Apoderado"
+                                        maxLength={50}
                                         className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                         value={formData.newGuardian.nombre}
                                         onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, nombre: e.target.value } })}
                                     />
                                     <input
                                         placeholder="Apellidos Apoderado"
+                                        maxLength={50}
                                         className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                         value={formData.newGuardian.apellidos}
                                         onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, apellidos: e.target.value } })}
@@ -220,13 +323,14 @@ const EnrollmentsPage = () => {
                                         placeholder="Email (Recibirá calificaciones)"
                                         className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold text-blue-600"
                                         value={formData.newGuardian.correo}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value } })}
+                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value.trim().toLowerCase() } })}
                                     />
                                     <input
                                         placeholder="Teléfono"
+                                        maxLength={15}
                                         className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                         value={formData.newGuardian.telefono}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value } })}
+                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
                                     />
                                 </div>
                             </div>
@@ -264,6 +368,7 @@ const EnrollmentsPage = () => {
                                         <input
                                             type="number"
                                             min="0"
+                                            max="10000000"
                                             placeholder="Ej: 150000"
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 focus:bg-white transition-all outline-none font-bold"
                                             value={formData.fee || ''}
@@ -273,6 +378,7 @@ const EnrollmentsPage = () => {
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Notas Adicionales</label>
                                         <textarea
+                                            maxLength={500}
                                             className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 focus:bg-white transition-all outline-none"
                                             rows={2}
                                             value={formData.notes}
@@ -287,6 +393,7 @@ const EnrollmentsPage = () => {
                                     <div className="mt-4">
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Notas Adicionales</label>
                                         <textarea
+                                            maxLength={500}
                                             className="w-full px-4 py-2 bg-white border-2 border-blue-100 rounded-xl focus:border-blue-500 transition-all outline-none"
                                             rows={2}
                                             value={formData.notes}
@@ -300,7 +407,7 @@ const EnrollmentsPage = () => {
 
                     {/* Summary / Action Card */}
                     <div className="lg:col-span-1">
-                        <div className="bg-[#11355a] rounded-2xl p-6 text-white shadow-2xl sticky top-8 border-b-8 border-blue-900">
+                        <div className="bg-[#11355a] rounded-2xl p-6 text-white shadow-2xl md:sticky md:top-8 border-b-8 border-blue-900">
                             <h3 className="text-lg font-bold mb-4 flex items-center gap-2 opacity-90 tracking-tighter">
                                 <ChevronRight size={20} />
                                 RESUMEN FINAL
@@ -308,8 +415,8 @@ const EnrollmentsPage = () => {
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between border-b border-blue-800 pb-2">
                                     <span className="text-blue-300 text-xs font-bold uppercase tracking-widest">Estudiante:</span>
-                                    <span className="font-bold text-sm truncate max-w-[120px]">
-                                        {isNewStudent ? (formData.newStudent.nombres || 'PENDIENTE') : (formData.studentId || 'N/A')}
+                                    <span className="font-bold text-sm truncate max-w-[150px]">
+                                        {isNewStudent ? (formData.newStudent.nombres || 'PENDIENTE') : (filteredStudents.find(s => s._id === formData.studentId)?.nombres || 'PDTE')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between border-b border-blue-800 pb-2">
@@ -341,24 +448,96 @@ const EnrollmentsPage = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-20 text-center animate-in slide-in-from-top-4 duration-500">
-                    <div className="max-w-md mx-auto">
-                        <div className="bg-gray-50 p-8 rounded-full inline-block mb-6 border-4 border-white shadow-inner">
-                            <Filter size={64} className="text-gray-200" />
-                        </div>
-                        <h2 className="text-3xl font-black text-gray-800 mb-2 tracking-tighter uppercase">Listado de Inscritos</h2>
-                        <p className="text-gray-400 mb-10 font-medium">Usa esta sección para revisar quiénes ya están matriculados en cada curso.</p>
-
-                        <div className="space-y-3">
-                            {[1, 2, 3].map(i => (
-                                <div key={i} className="h-14 bg-gray-50 rounded-xl animate-pulse border border-gray-100 flex items-center px-4 gap-4">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-1/4 ml-auto"></div>
-                                </div>
-                            ))}
+                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-4 md:p-8 animate-in slide-in-from-top-4 duration-500">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div className="relative w-full md:max-w-md">
+                            <input
+                                type="text"
+                                placeholder="Buscar inscritos..."
+                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                            <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
                         </div>
                     </div>
+
+                    {loading ? (
+                        <div className="space-y-3">
+                            {[1, 2, 3].map(i => (
+                                <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
+                            ))}
+                        </div>
+                    ) : (
+                        <>
+                            {/* Mobile View Card List */}
+                            <div className="md:hidden space-y-4">
+                                {filteredEnrollments.map(enrollment => (
+                                    <div key={enrollment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="font-black text-[#11355a] text-sm">
+                                                    {enrollment.estudianteId ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}` : 'N/A'}
+                                                </div>
+                                                <div className="text-[10px] font-bold text-gray-400 uppercase">{enrollment.courseId?.name || 'S/G'}</div>
+                                            </div>
+                                            <div className="text-sm font-black text-emerald-600">${enrollment.fee.toLocaleString()}</div>
+                                        </div>
+                                        <div className="flex justify-between text-[10px] text-gray-400 font-bold border-t pt-2">
+                                            <span>PERIODO: {enrollment.period}</span>
+                                            <span>{new Date(enrollment.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-xs font-black text-gray-400 uppercase tracking-widest border-b">
+                                            <th className="pb-4 pt-2 px-4">Estudiante</th>
+                                            <th className="pb-4 pt-2 px-4">Curso</th>
+                                            <th className="pb-4 pt-2 px-4">Periodo</th>
+                                            <th className="pb-4 pt-2 px-4">Fecha</th>
+                                            <th className="pb-4 pt-2 px-4 text-right">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {filteredEnrollments.map(enrollment => (
+                                            <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors group">
+                                                <td className="py-4 px-4 font-bold text-gray-800">
+                                                    {enrollment.estudianteId
+                                                        ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
+                                                        : 'Desconocido'}
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">
+                                                        {enrollment.courseId?.name || 'N/A'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-4 text-sm text-gray-500 font-medium">
+                                                    {enrollment.period}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs text-gray-400">
+                                                    {new Date(enrollment.createdAt).toLocaleDateString()}
+                                                </td>
+                                                <td className="py-4 px-4 text-right font-mono font-bold text-emerald-600">
+                                                    ${enrollment.fee.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+
+                    {!loading && filteredEnrollments.length === 0 && (
+                        <div className="py-20 text-center text-gray-400 font-medium italic">
+                            No se encontraron matrículas.
+                        </div>
+                    )}
                 </div>
             )}
         </div>

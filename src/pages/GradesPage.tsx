@@ -14,7 +14,7 @@ import {
 
 interface Grade {
     _id: string;
-    estudianteId: { _id: string; nombre: string; apellido: string };
+    estudianteId: { _id: string; nombres: string; apellidos: string };
     evaluationId: { _id: string; title: string; maxScore: number };
     score: number;
     tenantId: string;
@@ -107,12 +107,12 @@ const GradesPage = () => {
     };
 
     const filteredGrades = grades.filter(g =>
-        (g.estudianteId?.nombre + ' ' + g.estudianteId?.apellido).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (g.estudianteId?.nombres + ' ' + g.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
         g.evaluationId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const filteredStudents = students.filter(s =>
-        (s.nombres + ' ' + s.apellidos + ' ' + s.rut).toLowerCase().includes(studentSearch.toLowerCase())
+        (s.nombres + ' ' + s.apellidos + ' ' + (s.rut || '')).toLowerCase().includes(studentSearch.toLowerCase())
     );
 
     return (
@@ -127,15 +127,17 @@ const GradesPage = () => {
                 </div>
 
                 <div className="flex w-full md:w-auto gap-3">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input
-                            placeholder="Buscar por alumno o evaluación..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    {permissions.user?.role !== 'student' && permissions.user?.role !== 'apoderado' && (
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <input
+                                placeholder="Buscar por alumno o evaluación..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    )}
                     {canManageGrades && (
                         <button
                             onClick={() => {
@@ -159,7 +161,43 @@ const GradesPage = () => {
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="overflow-x-auto">
+                    {/* Mobile Card List */}
+                    <div className="md:hidden divide-y divide-gray-100">
+                        {filteredGrades.map((grade) => (
+                            <div key={grade._id} className="p-4 space-y-3 group relative">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        <div className="text-sm font-black text-gray-800">{grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}</div>
+                                        <div className="text-xs font-bold text-blue-500 uppercase">{grade.evaluationId?.title}</div>
+                                    </div>
+                                    <span className={`px-3 py-1 rounded-lg font-black text-base ${grade.score >= 4 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                        {grade.score.toFixed(1)}
+                                    </span>
+                                </div>
+                                {canManageGrades && (
+                                    <div className="flex gap-2 pt-2">
+                                        <button onClick={() => {
+                                            const stud = students.find(s => s._id === grade.estudianteId?._id);
+                                            setModalMode('edit');
+                                            setFormData({
+                                                _id: grade._id,
+                                                estudianteId: grade.estudianteId?._id,
+                                                evaluationId: grade.evaluationId?._id,
+                                                score: grade.score,
+                                                comments: grade.comments || ''
+                                            });
+                                            setStudentSearch(stud ? `${stud.nombres} ${stud.apellidos}` : '');
+                                            setShowModal(true);
+                                        }} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-[10px] uppercase">Editar</button>
+                                        <button onClick={() => handleDelete(grade._id)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] uppercase">Eliminar</button>
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Desktop Table */}
+                    <div className="hidden md:block overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50/50">
                                 <tr>
@@ -174,7 +212,7 @@ const GradesPage = () => {
                                     <tr key={grade._id} className="hover:bg-blue-50/30 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-bold text-gray-800">
-                                                {grade.estudianteId?.nombre} {grade.estudianteId?.apellido}
+                                                {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">

@@ -25,11 +25,9 @@ interface Student {
 }
 
 const AttendancePage = () => {
-    // const { isTeacher, isSuperAdmin, isSostenedor } = usePermissions();
-    usePermissions(); // Hook call needed if logic depends on it, but here it seems unused? 
-    // Actually, maybe we only need it for protection?
-    // Let's keep the hook call but remove destructured unused vars.
-    // If logic doesn't use them, I'll just remove the destructuring.
+    const permissions = usePermissions();
+    const isStudentOrGuardian = permissions.user?.role === 'student' || permissions.user?.role === 'apoderado';
+
     const [courses, setCourses] = useState<Course[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -43,14 +41,18 @@ const AttendancePage = () => {
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetchCourses();
-    }, []);
-
-    useEffect(() => {
-        if (selectedCourse && selectedDate) {
+        if (!isStudentOrGuardian) {
+            fetchCourses();
+        } else {
             fetchStudentsAndAttendance();
         }
-    }, [selectedCourse, selectedDate]);
+    }, [isStudentOrGuardian]);
+
+    useEffect(() => {
+        if (selectedCourse && selectedDate && !isStudentOrGuardian) {
+            fetchStudentsAndAttendance();
+        }
+    }, [selectedCourse, selectedDate, isStudentOrGuardian]);
 
     const fetchCourses = async () => {
         try {
@@ -64,32 +66,26 @@ const AttendancePage = () => {
     const fetchStudentsAndAttendance = async () => {
         setLoading(true);
         try {
-            // Fetch students for course
-            const studRes = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
-            const studs = studRes.data;
+            let studs = [];
+            if (isStudentOrGuardian) {
+                // Fetch student records (will only return own student)
+                const stdRes = await api.get('/estudiantes');
+                studs = stdRes.data;
+            } else {
+                const studRes = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
+                studs = studRes.data;
+            }
             setStudents(studs);
 
-            // Fetch existing attendance for this date
-            // Note: Our listAttendances API filters by tenant. We might need to filter by date/course on client or server.
-            // Let's assume listAttendances supports ?fecha=... & ?estudianteId=... or we fetch all and filter client side for now if needed.
-            // Better: Add filter support to listAttendance. I added ?fecha support.
-
-            // We need to fetch attendance for ALL students in this course for this date.
-            // Since our backend listAttendances might return ALL attendances for tenant if checks aren't strict,
-            // let's fetch strictly using logic or assumes we get list.
-            // Actually, querying by date is enough if we map by student ID.
             const attRes = await api.get(`/attendance?fecha=${selectedDate}`);
             const existingAtt = attRes.data;
 
-            // Map existing attendance
             const attMap: Record<string, string> = {};
             let p = 0, a = 0, l = 0;
 
             studs.forEach((s: Student) => {
-                // Find record for this student
                 const record = existingAtt.find((r: any) => r.estudianteId?._id === s._id || r.estudianteId === s._id);
-                const status = record ? record.estado : 'presente'; // Default to present if not set? Or empty?
-                // Default to 'presente' makes it easier for teachers (exception based)
+                const status = record ? record.estado : (isStudentOrGuardian ? '-' : 'presente');
                 attMap[s._id] = status;
 
                 if (status === 'presente') p++;
@@ -108,10 +104,10 @@ const AttendancePage = () => {
     };
 
     const handleStatusChange = (studentId: string, status: string) => {
+        if (isStudentOrGuardian) return;
         const newAtt = { ...attendance, [studentId]: status };
         setAttendance(newAtt);
 
-        // Update local stats
         let p = 0, a = 0, l = 0;
         Object.values(newAtt).forEach(val => {
             if (val === 'presente') p++;
@@ -122,6 +118,7 @@ const AttendancePage = () => {
     };
 
     const handleSave = async () => {
+        if (isStudentOrGuardian) return;
         try {
             const payload = {
                 courseId: selectedCourse,
@@ -151,74 +148,93 @@ const AttendancePage = () => {
                 <div>
                     <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
                         <CalendarDays size={32} />
-                        Control de Asistencia
+                        {isStudentOrGuardian ? 'Mi Asistencia' : 'Control de Asistencia'}
                     </h1>
-                    <p className="text-gray-500 font-medium">Registro diario de asistencia por curso.</p>
+                    <p className="text-gray-500 font-medium">
+                        {isStudentOrGuardian ? 'Resumen de asistencia diaria.' : 'Registro diario de asistencia por curso.'}
+                    </p>
                 </div>
 
-                <div className="flex gap-2">
-                    <button
-                        onClick={handlePrint}
-                        disabled={!selectedCourse || students.length === 0}
-                        className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-200 transition-all"
-                    >
-                        <Printer size={20} />
-                        Imprimir Lista
-                    </button>
-                    <button
-                        onClick={handleSave}
-                        disabled={!selectedCourse || students.length === 0}
-                        className="bg-[#11355a] text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
-                    >
-                        <Save size={20} />
-                        Guardar Asistencia
-                    </button>
-                </div>
+                {!isStudentOrGuardian && (
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handlePrint}
+                            disabled={!selectedCourse || students.length === 0}
+                            className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-gray-200 transition-all"
+                        >
+                            <Printer size={20} />
+                            Imprimir Lista
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={!selectedCourse || students.length === 0}
+                            className="bg-[#11355a] text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                        >
+                            <Save size={20} />
+                            Guardar Asistencia
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* Controls */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 grid gap-6 md:grid-cols-3">
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Seleccionar Curso</label>
-                    <select
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-medium text-gray-700"
-                        value={selectedCourse}
-                        onChange={e => setSelectedCourse(e.target.value)}
-                    >
-                        <option value="">-- Curso --</option>
-                        {courses.map(c => (
-                            <option key={c._id} value={c._id}>{c.name}</option>
-                        ))}
-                    </select>
+            {!isStudentOrGuardian ? (
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 grid gap-6 md:grid-cols-3">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Seleccionar Curso</label>
+                        <select
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-medium text-gray-700"
+                            value={selectedCourse}
+                            onChange={e => setSelectedCourse(e.target.value)}
+                        >
+                            <option value="">-- Curso --</option>
+                            {courses.map(c => (
+                                <option key={c._id} value={c._id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Fecha</label>
+                        <input
+                            type="date"
+                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-medium text-gray-700"
+                            value={selectedDate}
+                            onChange={e => setSelectedDate(e.target.value)}
+                        />
+                    </div>
+                    <div className="bg-blue-50/50 rounded-xl p-4 flex items-center justify-between border border-blue-100">
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-green-600">{stats.present}</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Presentes</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-red-500">{stats.absent}</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ausentes</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-yellow-500">{stats.late}</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Justif.</div>
+                        </div>
+                        <div className="text-center">
+                            <div className="text-2xl font-black text-gray-700">{stats.total}</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</div>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">Fecha</label>
-                    <input
-                        type="date"
-                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-medium text-gray-700"
-                        value={selectedDate}
-                        onChange={e => setSelectedDate(e.target.value)}
-                    />
+            ) : (
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-6 flex items-center gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Ver Fecha</label>
+                        <input
+                            type="date"
+                            className="px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none font-medium text-gray-700"
+                            value={selectedDate}
+                            onChange={e => setSelectedDate(e.target.value)}
+                        />
+                    </div>
+                    <p className="text-sm text-gray-500">Consulta el estado de asistencia para una fecha específica.</p>
                 </div>
-                <div className="bg-blue-50/50 rounded-xl p-4 flex items-center justify-between border border-blue-100">
-                    <div className="text-center">
-                        <div className="text-2xl font-black text-green-600">{stats.present}</div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Presentes</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-black text-red-500">{stats.absent}</div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ausentes</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-black text-yellow-500">{stats.late}</div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Justif.</div>
-                    </div>
-                    <div className="text-center">
-                        <div className="text-2xl font-black text-gray-700">{stats.total}</div>
-                        <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total</div>
-                    </div>
-                </div>
-            </div>
+            )}
 
             {/* Grid */}
             {loading ? (
@@ -236,43 +252,54 @@ const AttendancePage = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50/50">
                             <tr>
-                                <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest w-1/2">Estudiante</th>
-                                <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Asistencia</th>
+                                <th className="px-4 md:px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest w-1/3">Estudiante</th>
+                                <th className="px-4 md:px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-100">
                             {students.map(student => (
                                 <tr key={student._id} className="hover:bg-blue-50/10 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="text-sm font-bold text-gray-800">
+                                    <td className="px-4 md:px-6 py-4">
+                                        <div className="text-sm font-bold text-gray-800 line-clamp-1">
                                             {student.nombres} {student.apellidos}
                                         </div>
-                                        <div className="text-xs text-gray-400 font-mono">{student.rut}</div>
+                                        <div className="text-[10px] text-gray-400 font-mono">{student.rut}</div>
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex justify-center gap-2 print:hidden">
-                                            <button
-                                                onClick={() => handleStatusChange(student._id, 'presente')}
-                                                className={`p-2 rounded-lg flex items-center gap-1 transition-all ${attendance[student._id] === 'presente' ? 'bg-green-100 text-green-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
-                                            >
-                                                <CheckCircle2 size={20} />
-                                                <span className="text-xs font-bold">Presente</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusChange(student._id, 'ausente')}
-                                                className={`p-2 rounded-lg flex items-center gap-1 transition-all ${attendance[student._id] === 'ausente' ? 'bg-red-100 text-red-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
-                                            >
-                                                <XCircle size={20} />
-                                                <span className="text-xs font-bold">Ausente</span>
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusChange(student._id, 'justificado')}
-                                                className={`p-2 rounded-lg flex items-center gap-1 transition-all ${attendance[student._id] === 'justificado' ? 'bg-yellow-100 text-yellow-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
-                                            >
-                                                <Clock size={20} />
-                                                <span className="text-xs font-bold">Justif.</span>
-                                            </button>
-                                        </div>
+                                    <td className="px-4 md:px-6 py-4">
+                                        {!isStudentOrGuardian ? (
+                                            <div className="flex flex-col md:flex-row justify-center gap-1 md:gap-2 print:hidden">
+                                                <button
+                                                    onClick={() => handleStatusChange(student._id, 'presente')}
+                                                    className={`p-1.5 md:p-2 rounded-lg flex items-center justify-center gap-1 transition-all ${attendance[student._id] === 'presente' ? 'bg-green-100 text-green-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
+                                                >
+                                                    <CheckCircle2 size={16} className="md:w-5 md:h-5" />
+                                                    <span className="text-[10px] font-bold md:block hidden">Presente</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusChange(student._id, 'ausente')}
+                                                    className={`p-1.5 md:p-2 rounded-lg flex items-center justify-center gap-1 transition-all ${attendance[student._id] === 'ausente' ? 'bg-red-100 text-red-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
+                                                >
+                                                    <XCircle size={16} className="md:w-5 md:h-5" />
+                                                    <span className="text-[10px] font-bold md:block hidden">Ausente</span>
+                                                </button>
+                                                <button
+                                                    onClick={() => handleStatusChange(student._id, 'justificado')}
+                                                    className={`p-1.5 md:p-2 rounded-lg flex items-center justify-center gap-1 transition-all ${attendance[student._id] === 'justificado' ? 'bg-yellow-100 text-yellow-700 shadow-inner' : 'text-gray-400 hover:bg-gray-100'}`}
+                                                >
+                                                    <Clock size={16} className="md:w-5 md:h-5" />
+                                                    <span className="text-[10px] font-bold md:block hidden">Justif.</span>
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center">
+                                                <span className={`px-2 md:px-4 py-1.5 rounded-lg font-black text-[10px] uppercase ${attendance[student._id] === 'presente' ? 'bg-green-100 text-green-700' :
+                                                    attendance[student._id] === 'ausente' ? 'bg-red-100 text-red-700' :
+                                                        attendance[student._id] === 'justificado' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'
+                                                    }`}>
+                                                    {attendance[student._id] || 'Pendiente'}
+                                                </span>
+                                            </div>
+                                        )}
                                         {/* Print View Only */}
                                         <div className="hidden print:block text-center text-sm font-bold border border-gray-300 rounded px-2 py-1">
                                             {attendance[student._id]?.toUpperCase() || 'PRESENTE'}
@@ -291,7 +318,7 @@ const AttendancePage = () => {
                     </table>
                 </div>
             )}
-        </div>
+        </div >
     );
 };
 

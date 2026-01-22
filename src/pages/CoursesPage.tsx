@@ -227,8 +227,9 @@ const CoursesPage = () => {
                                 <label className="block text-sm font-medium mb-1">Nombre del Curso</label>
                                 <input
                                     required
+                                    maxLength={50}
                                     placeholder="Ej: 1° Básico A"
-                                    className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-100 outline-none border-gray-300"
+                                    className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-100 outline-none border-gray-300 font-bold"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 />
@@ -238,6 +239,7 @@ const CoursesPage = () => {
                                 <textarea
                                     required
                                     rows={3}
+                                    maxLength={500}
                                     placeholder="Breve descripción del grupo..."
                                     className="w-full border p-2 rounded focus:ring-2 focus:ring-blue-100 outline-none border-gray-300"
                                     value={formData.description}
