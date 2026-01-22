@@ -39,7 +39,7 @@ const EnrollmentsPage = () => {
         studentId: '',
         courseId: '',
         period: new Date().getFullYear().toString(),
-        status: 'activo',
+        status: 'confirmada',
         fee: 0,
         notes: '',
         // Direct creation data
@@ -122,7 +122,7 @@ const EnrollmentsPage = () => {
                 studentId: '',
                 courseId: '',
                 period: new Date().getFullYear().toString(),
-                status: 'activo',
+                status: 'confirmada',
                 fee: 0,
                 notes: '',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
