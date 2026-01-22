@@ -22,6 +22,15 @@ const TenantsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
+    const [showModal, setShowModal] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        domain: '',
+        paymentType: 'paid' as 'paid' | 'free',
+        address: '',
+        phone: '',
+        contactEmail: ''
+    });
 
     useEffect(() => {
         if (isSuperAdmin) {

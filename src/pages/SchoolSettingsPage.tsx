@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { Building2, Save, Palette, Phone, Mail, MapPin, ShieldCheck, BookOpen } from 'lucide-react';
+import { Building2, Save, Palette, Phone, Mail, MapPin, ShieldCheck } from 'lucide-react';
 
 const SchoolSettingsPage = () => {
     const { tenant, refreshTenant } = useTenant();
