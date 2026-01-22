@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { Building2, Save, Palette, Phone, Mail, MapPin, ShieldCheck } from 'lucide-react';
+import { Building2, Save, Palette, Phone, Mail, MapPin, ShieldCheck, BookOpen } from 'lucide-react';
 
 const SchoolSettingsPage = () => {
     const { tenant, refreshTenant } = useTenant();
@@ -14,6 +14,8 @@ const SchoolSettingsPage = () => {
         address: '',
         phone: '',
         contactEmail: '',
+        annualFee: 0,
+        academicYear: new Date().getFullYear().toString(),
         theme: {
             primaryColor: '#11355a',
             secondaryColor: '#3b82f6'
@@ -27,6 +29,8 @@ const SchoolSettingsPage = () => {
                 address: tenant.address || '',
                 phone: tenant.phone || '',
                 contactEmail: tenant.contactEmail || '',
+                annualFee: tenant.annualFee || 0,
+                academicYear: tenant.academicYear || new Date().getFullYear().toString(),
                 theme: {
                     primaryColor: tenant.theme?.primaryColor || '#11355a',
                     secondaryColor: tenant.theme?.secondaryColor || '#3b82f6'

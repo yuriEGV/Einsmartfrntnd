@@ -36,14 +36,16 @@ const Layout = () => {
                         <span className="font-bold text-sm">Dashboard</span>
                     </Link>
 
-                    {permissions.canManageStudents && (
+                    {(permissions.canManageStudents || user?.role === 'apoderado' || user?.role === 'student') && (
                         <Link to="/students" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
                             <Users size={20} className="text-blue-300 group-hover:text-white" />
-                            <span className="font-bold text-sm">Estudiantes</span>
+                            <span className="font-bold text-sm">
+                                {(user?.role === 'apoderado' || user?.role === 'student') ? 'Perfil Estudiante' : 'Estudiantes'}
+                            </span>
                         </Link>
                     )}
 
-                    {permissions.canManageEnrollments && (
+                    {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
                         <Link to="/enrollments" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
                             <UserPlus size={20} className="text-blue-300 group-hover:text-white" />
                             <span className="font-bold text-sm">Matrículas</span>
@@ -64,7 +66,7 @@ const Layout = () => {
                         </Link>
                     )}
 
-                    {(permissions.canEditGrades || permissions.isSuperAdmin) && (
+                    {permissions.canEditGrades && (
                         <Link to="/evaluations" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
                             <ClipboardList size={20} className="text-blue-300 group-hover:text-white" />
                             <span className="font-bold text-sm">Evaluaciones</span>
@@ -89,6 +91,11 @@ const Layout = () => {
                     <Link to="/events" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
                         <Calendar size={20} className="text-blue-300 group-hover:text-white" />
                         <span className="font-bold text-sm">Calendario</span>
+                    </Link>
+
+                    <Link to="/messages" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
+                        <FileText size={20} className="text-blue-300 group-hover:text-white" />
+                        <span className="font-bold text-sm">Mensajes</span>
                     </Link>
 
                     <div className="pt-4 mt-4 border-t border-blue-900/50">

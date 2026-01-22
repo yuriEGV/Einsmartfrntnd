@@ -20,15 +20,8 @@ const TenantsPage = () => {
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({
-        name: '',
-        domain: '',
-        paymentType: 'paid' as 'paid' | 'free',
-        address: '',
-        phone: '',
-        contactEmail: ''
-    });
+    const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+    const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
 
     useEffect(() => {
         if (isSuperAdmin) {
@@ -47,16 +40,44 @@ const TenantsPage = () => {
         }
     };
 
-    const handleCreate = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/tenants', formData);
+            if (modalMode === 'create') {
+                await api.post('/tenants', formData);
+            } else {
+                await api.put(`/tenants/${currentTenantId}`, formData);
+            }
             setShowModal(false);
             setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
             fetchTenants();
         } catch (err) {
-            alert('Error al crear institución');
+            alert(`Error al ${modalMode === 'create' ? 'crear' : 'actualizar'} institución`);
         }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('¿Estás seguro de eliminar esta institución? Esta acción es irreversible.')) return;
+        try {
+            await api.delete(`/tenants/${id}`);
+            fetchTenants();
+        } catch (err) {
+            alert('Error al eliminar institución');
+        }
+    };
+
+    const openEditModal = (t: Tenant) => {
+        setModalMode('edit');
+        setCurrentTenantId(t._id);
+        setFormData({
+            name: t.name,
+            domain: t.domain || '',
+            paymentType: t.paymentType || 'paid',
+            address: t.address || '',
+            phone: t.phone || '',
+            contactEmail: t.contactEmail || ''
+        });
+        setShowModal(true);
     };
 
     if (!isSuperAdmin) {
@@ -85,7 +106,11 @@ const TenantsPage = () => {
                     <p className="text-gray-500 mt-2 text-lg">Panel de control global para la gestión de la plataforma multi-colegio.</p>
                 </div>
                 <button
-                    onClick={() => setShowModal(true)}
+                    onClick={() => {
+                        setModalMode('create');
+                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
+                        setShowModal(true);
+                    }}
                     className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
                 >
                     <Plus size={24} /> NUEVO COLEGIO
@@ -149,8 +174,18 @@ const TenantsPage = () => {
                                     </td>
                                     <td className="px-8 py-6 text-right">
                                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button className="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"><Edit size={18} /></button>
-                                            <button className="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"><Trash2 size={18} /></button>
+                                            <button
+                                                onClick={() => openEditModal(t)}
+                                                className="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(t._id)}
+                                                className="p-3 bg-gray-100 text-gray-600 rounded-xl hover:bg-rose-600 hover:text-white transition-all"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>
@@ -166,15 +201,19 @@ const TenantsPage = () => {
                     <div className="bg-white rounded-[3rem] p-10 w-full max-w-2xl shadow-2xl border-8 border-white animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
                         <div className="flex items-center gap-4 mb-8">
                             <div className="bg-blue-600 p-4 rounded-3xl text-white shadow-lg shadow-blue-500/30">
-                                <Plus size={32} />
+                                {modalMode === 'create' ? <Plus size={32} /> : <Edit size={32} />}
                             </div>
                             <div>
-                                <h2 className="text-3xl font-black text-gray-800 tracking-tight">Expandir Plataforma</h2>
-                                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">Alta de Nueva Institución</p>
+                                <h2 className="text-3xl font-black text-gray-800 tracking-tight">
+                                    {modalMode === 'create' ? 'Expandir Plataforma' : 'Editar Institución'}
+                                </h2>
+                                <p className="text-gray-400 font-bold uppercase text-xs tracking-widest mt-1">
+                                    {modalMode === 'create' ? 'Alta de Nueva Institución' : 'Modificar Datos Existentes'}
+                                </p>
                             </div>
                         </div>
 
-                        <form onSubmit={handleCreate} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="md:col-span-2">
                                     <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Nombre Legal del Colegio</label>
@@ -257,7 +296,7 @@ const TenantsPage = () => {
                                     type="submit"
                                     className="flex-[2] py-4 bg-blue-600 text-white rounded-2xl font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 uppercase tracking-widest text-sm"
                                 >
-                                    Confirmar Alta
+                                    {modalMode === 'create' ? 'Confirmar Alta' : 'Guardar Cambios'}
                                 </button>
                             </div>
                         </form>

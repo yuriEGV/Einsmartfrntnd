@@ -14,7 +14,7 @@ import {
 
 interface Grade {
     _id: string;
-    estudianteId: { _id: string; nombre: string; apellido: string };
+    estudianteId: { _id: string; nombres: string; apellidos: string };
     evaluationId: { _id: string; title: string; maxScore: number };
     score: number;
     tenantId: string;
@@ -107,12 +107,12 @@ const GradesPage = () => {
     };
 
     const filteredGrades = grades.filter(g =>
-        (g.estudianteId?.nombre + ' ' + g.estudianteId?.apellido).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (g.estudianteId?.nombres + ' ' + g.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
         g.evaluationId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const filteredStudents = students.filter(s =>
-        (s.nombres + ' ' + s.apellidos + ' ' + s.rut).toLowerCase().includes(studentSearch.toLowerCase())
+        (s.nombres + ' ' + s.apellidos + ' ' + (s.rut || '')).toLowerCase().includes(studentSearch.toLowerCase())
     );
 
     return (
@@ -127,15 +127,17 @@ const GradesPage = () => {
                 </div>
 
                 <div className="flex w-full md:w-auto gap-3">
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input
-                            placeholder="Buscar por alumno o evaluación..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    {permissions.user?.role !== 'student' && permissions.user?.role !== 'apoderado' && (
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <input
+                                placeholder="Buscar por alumno o evaluación..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    )}
                     {canManageGrades && (
                         <button
                             onClick={() => {
@@ -174,7 +176,7 @@ const GradesPage = () => {
                                     <tr key={grade._id} className="hover:bg-blue-50/30 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-bold text-gray-800">
-                                                {grade.estudianteId?.nombre} {grade.estudianteId?.apellido}
+                                                {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
