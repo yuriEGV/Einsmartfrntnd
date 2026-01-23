@@ -385,45 +385,47 @@ const EnrollmentsPage = () => {
                                     </div>
                                 </div>
 
-                                {/* School Logo */}
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                        🏫 Logo del Colegio <span className="text-xs text-gray-400">(Vista previa local)</span>
-                                    </label>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => {
-                                                        setFormData({ ...formData, schoolLogo: reader.result as string });
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                }
-                                            }}
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-green-300 rounded-xl outline-none hover:border-green-500 transition-all"
-                                        />
-                                        {formData.schoolLogo && (
-                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-green-500">
-                                                <img
-                                                    src={formData.schoolLogo}
-                                                    alt="Logo Preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, schoolLogo: '' })}
-                                                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        )}
+                                {/* School Logo - Solo para sostenedores */}
+                                {permissions.isSostenedor && (
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                            🏫 Logo del Colegio <span className="text-xs text-gray-400">(Vista previa local)</span>
+                                        </label>
+                                        <div className="space-y-2">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setFormData({ ...formData, schoolLogo: reader.result as string });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-green-300 rounded-xl outline-none hover:border-green-500 transition-all"
+                                            />
+                                            {formData.schoolLogo && (
+                                                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-green-500">
+                                                    <img
+                                                        src={formData.schoolLogo}
+                                                        alt="Logo Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, schoolLogo: '' })}
+                                                        className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
 
                             {/* Guardian Info - CRITICAL for notifications */}

@@ -97,16 +97,6 @@ const LoginPage: React.FC = () => {
                             Ingresar
                         </button>
                     </form>
-
-                    <div className="mt-8 text-center border-t pt-6">
-                        <p className="text-gray-600 mb-4">¿No tienes cuenta?</p>
-                        <Link
-                            to="/register"
-                            className="inline-block border border-[#0066cc] text-[#0066cc] font-semibold py-2 px-6 rounded hover:bg-blue-50 transition duration-300"
-                        >
-                            Registrarse
-                        </Link>
-                    </div>
                 </div>
             </div>
         </div>

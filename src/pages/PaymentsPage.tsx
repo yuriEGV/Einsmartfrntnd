@@ -80,9 +80,15 @@ const PaymentsPage = () => {
             ]);
             setPayments(payRes.data);
             setStudents(studRes.data);
-            setTariffs(tarRes.data && tarRes.data.length > 0 ? tarRes.data : mockTariffs);
+            // Usar mock data si el API no devuelve nada o falla
+            if (tarRes.data && Array.isArray(tarRes.data) && tarRes.data.length > 0) {
+                setTariffs(tarRes.data);
+            } else {
+                setTariffs(mockTariffs);
+            }
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching data:', error);
+            // Si falla cualquier petición, usar mock data para tarifas
             setTariffs(mockTariffs);
         } finally {
             setLoading(false);
@@ -275,7 +281,7 @@ const PaymentsPage = () => {
                                 >
                                     <option value="">-- Seleccionar Tarifa --</option>
                                     {tariffs && tariffs.length > 0 ? (
-                                        tariffs.filter(t => t.active ?? true).map(t => (
+                                        tariffs.filter(t => t.active !== false).map(t => (
                                             <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
                                         ))
                                     ) : (
