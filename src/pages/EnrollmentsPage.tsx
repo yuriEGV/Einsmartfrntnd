@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
+import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert, Users } from 'lucide-react';
 
 interface Course {
     _id: string;
@@ -33,6 +33,9 @@ const EnrollmentsPage = () => {
 
     // State for toggle
     const [isNewStudent, setIsNewStudent] = useState(false);
+    const [useExistingGuardian, setUseExistingGuardian] = useState(false);
+    const [guardians, setGuardians] = useState<any[]>([]);
+    const [searchTermGuardian, setSearchTermGuardian] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -52,6 +55,7 @@ const EnrollmentsPage = () => {
             fetchCourses();
             fetchEnrollments();
             fetchStudents();
+            fetchGuardians();
         }
     }, [permissions.canManageEnrollments]);
 
@@ -71,6 +75,15 @@ const EnrollmentsPage = () => {
             setStudents(res.data);
         } catch (err) {
             console.error('Error fetching students:', err);
+        }
+    };
+
+    const fetchGuardians = async () => {
+        try {
+            const res = await api.get('/apoderados');
+            setGuardians(res.data);
+        } catch (err) {
+            console.error('Error fetching guardians:', err);
         }
     };
 
@@ -299,10 +312,73 @@ const EnrollmentsPage = () => {
 
                             {/* Guardian Info - CRITICAL for notifications */}
                             <div className="mt-8 pt-8 border-t border-dashed">
-                                <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <ShieldAlert size={16} className="text-orange-500" />
-                                    Información del Apoderado (Para Notificaciones)
-                                </h3>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                                        <ShieldAlert size={16} className="text-orange-500" />
+                                        Información del Apoderado (Para Notificaciones)
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUseExistingGuardian(!useExistingGuardian)}
+                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${useExistingGuardian ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                    >
+                                        {useExistingGuardian ? '✓ Usar Existente' : '+ Nuevo Apoderado'}
+                                    </button>
+                                </div>
+
+                                {useExistingGuardian && guardians.length > 0 ? (
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Apoderado Existente</label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                                            <input
+                                                placeholder="Nombre, apellido o email del apoderado..."
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none shadow-inner font-bold"
+                                                value={searchTermGuardian}
+                                                onChange={e => setSearchTermGuardian(e.target.value)}
+                                            />
+                                        </div>
+                                        {searchTermGuardian && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                                {guardians
+                                                    .filter(g =>
+                                                        `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
+                                                    )
+                                                    .slice(0, 5)
+                                                    .map(g => (
+                                                        <button
+                                                            key={g._id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    newGuardian: {
+                                                                        nombre: g.nombre || '',
+                                                                        apellidos: g.apellidos || '',
+                                                                        correo: g.correo || '',
+                                                                        telefono: g.telefono || '',
+                                                                        direccion: g.direccion || '',
+                                                                        parentesco: g.parentesco || 'Padre'
+                                                                    }
+                                                                });
+                                                                setSearchTermGuardian('');
+                                                            }}
+                                                            className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                                                        >
+                                                            <div className="font-bold text-sm">{g.nombre} {g.apellidos}</div>
+                                                            <div className="text-[10px] text-gray-400">{g.correo} | {g.telefono || 'N/A'}</div>
+                                                        </button>
+                                                    ))}
+                                                {guardians.filter(g =>
+                                                    `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
+                                                ).length === 0 && (
+                                                    <div className="px-4 py-4 text-center text-gray-400 text-sm">No se encontraron apoderados</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         placeholder="Nombre Apoderado"
@@ -332,6 +408,13 @@ const EnrollmentsPage = () => {
                                         value={formData.newGuardian.telefono}
                                         onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
                                     />
+                                </div>
+
+                                <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                                    <p className="text-xs text-green-700 font-bold flex items-center gap-2">
+                                        <Users size={14} />
+                                        💡 Tip: Si necesitas matricular a más hermanos/as con este mismo apoderado, reutiliza estos datos en la siguiente matrícula.
+                                    </p>
                                 </div>
                             </div>
 

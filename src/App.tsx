@@ -22,6 +22,7 @@ import EvaluationsPage from './pages/EvaluationsPage';
 import AttendancePage from './pages/AttendancePage';
 import TariffsPage from './pages/TariffsPage';
 import MessagesPage from './pages/MessagesPage';
+import CurriculumMaterialPage from './pages/CurriculumMaterialPage';
 
 function App() {
   return (
@@ -52,6 +53,7 @@ function App() {
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
+            <Route path="/curriculum-material" element={<CurriculumMaterialPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

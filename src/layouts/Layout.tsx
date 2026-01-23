@@ -2,6 +2,7 @@ import { Outlet, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import { LogOut, Home, Users, UserPlus, FileText, ClipboardList, Calendar, DollarSign, Settings, ShieldCheck, School, TrendingUp, GraduationCap, BookOpen, CheckCircle2 } from 'lucide-react';
 
 const Layout = () => {
@@ -17,15 +18,7 @@ const Layout = () => {
                 style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
             >
                 <div className="p-8 border-b border-white/10">
-                    <h1 className="text-2xl font-black tracking-tighter flex items-center gap-2 uppercase">
-                        <div className="bg-white p-1.5 rounded-lg">
-                            <div
-                                className="w-5 h-5 rounded-sm"
-                                style={{ backgroundColor: tenant?.theme?.secondaryColor || '#3b82f6' }}
-                            ></div>
-                        </div>
-                        {tenant?.name || 'MARITIMO'} <span className="text-blue-400 opacity-50">4.0</span>
-                    </h1>
+                    <TenantLogo size="medium" showName={true} />
                 </div>
 
                 <nav className="flex-1 p-6 space-y-1.5 overflow-y-auto custom-scrollbar">
@@ -97,6 +90,13 @@ const Layout = () => {
                         <FileText size={20} className="text-blue-300 group-hover:text-white" />
                         <span className="font-bold text-sm">Mensajes</span>
                     </Link>
+
+                    {(permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'teacher') && (
+                        <Link to="/curriculum-material" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
+                            <BookOpen size={20} className="text-blue-300 group-hover:text-white" />
+                            <span className="font-bold text-sm">Material Curricular</span>
+                        </Link>
+                    )}
 
                     <div className="pt-4 mt-4 border-t border-blue-900/50">
                         <p className="text-[10px] font-black text-blue-300/50 uppercase tracking-widest mb-4 px-2">Administración</p>

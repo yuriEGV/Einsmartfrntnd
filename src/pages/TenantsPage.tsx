@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail } from 'lucide-react';
+import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail, Upload, X } from 'lucide-react';
 
 interface Tenant {
     _id: string;
@@ -12,6 +12,7 @@ interface Tenant {
     phone?: string;
     contactEmail?: string;
     status: 'activo' | 'inactivo';
+    logo?: string; // Base64 or file URL
     createdAt: string;
 }
 
@@ -29,7 +30,8 @@ const TenantsPage = () => {
         paymentType: 'paid' as 'paid' | 'free',
         address: '',
         phone: '',
-        contactEmail: ''
+        contactEmail: '',
+        logo: '' // Base64 or URL
     });
 
     useEffect(() => {
@@ -84,7 +86,8 @@ const TenantsPage = () => {
             paymentType: t.paymentType || 'paid',
             address: t.address || '',
             phone: t.phone || '',
-            contactEmail: t.contactEmail || ''
+            contactEmail: t.contactEmail || '',
+            logo: t.logo || ''
         });
         setShowModal(true);
     };
@@ -117,7 +120,7 @@ const TenantsPage = () => {
                 <button
                     onClick={() => {
                         setModalMode('create');
-                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
+                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logo: '' });
                         setShowModal(true);
                     }}
                     className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
@@ -161,9 +164,13 @@ const TenantsPage = () => {
                                 <tr key={t._id} className="hover:bg-blue-50/20 transition-colors group">
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-[#11355a] text-white flex items-center justify-center font-black text-lg">
-                                                {t.name.charAt(0)}
-                                            </div>
+                                            {t.logo ? (
+                                                <img src={t.logo} alt={t.name} className="w-12 h-12 rounded-2xl object-contain bg-white border border-gray-100" />
+                                            ) : (
+                                                <div className="w-12 h-12 rounded-2xl bg-[#11355a] text-white flex items-center justify-center font-black text-lg">
+                                                    {t.name.charAt(0)}
+                                                </div>
+                                            )}
                                             <div>
                                                 <div className="font-black text-gray-800 text-lg">{t.name}</div>
                                                 <div className="text-[10px] text-gray-400 font-mono italic">{t.domain || 'sin-dominio.edu'}</div>
@@ -290,6 +297,43 @@ const TenantsPage = () => {
                                         value={formData.address}
                                         onChange={e => setFormData({ ...formData, address: e.target.value })}
                                     />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Logo del Colegio (Imagen)</label>
+                                    <div className="flex items-end gap-4">
+                                        <div className="flex-1">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-bold"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setFormData({ ...formData, logo: reader.result as string });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                        {formData.logo && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, logo: '' })}
+                                                className="p-3 bg-red-100 text-red-600 rounded-xl hover:bg-red-200 transition-all"
+                                            >
+                                                <X size={20} />
+                                            </button>
+                                        )}
+                                    </div>
+                                    {formData.logo && (
+                                        <div className="mt-4 p-4 bg-gray-50 rounded-2xl border-2 border-gray-100 flex justify-center">
+                                            <img src={formData.logo} alt="Preview" className="max-h-24 object-contain" />
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
