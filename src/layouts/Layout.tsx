@@ -64,12 +64,12 @@ const Layout = () => {
                 className="md:hidden flex items-center justify-between px-6 py-4 text-white z-[70] sticky top-0 shadow-2xl backdrop-blur-xl border-b border-white/5"
                 style={{ backgroundColor: tenant?.theme?.primaryColor ? `${tenant.theme.primaryColor}ee` : '#11355aee' }}
             >
-                <div className="flex items-center gap-3">
-                    <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-md shadow-inner">
+                <div className="flex items-center gap-3 min-w-0">
+                    <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-md shadow-inner shrink-0">
                         <School size={18} className="text-white" />
                     </div>
-                    <div className="flex flex-col">
-                        <h1 className="text-sm font-black tracking-tighter uppercase truncate max-w-[150px]">
+                    <div className="flex flex-col min-w-0">
+                        <h1 className="text-sm font-black tracking-tighter uppercase truncate">
                             {tenant?.name || 'MARITIMO'}
                         </h1>
                         <span className="text-[8px] font-black text-blue-300/60 uppercase tracking-widest leading-none">Gestión Digital</span>

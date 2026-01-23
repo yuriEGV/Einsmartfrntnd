@@ -97,36 +97,37 @@ const DashboardPage = () => {
                 </div>
             </div>
 
-            {/* Stats Cards - Grid optimized for touch */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-8">
+            {/* Stats Cards - Grid optimized for adaptability */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {canManageStudents && (
-                    <div className="bg-white p-5 md:p-8 rounded-[2rem] shadow-xl shadow-blue-500/5 border-b-4 border-blue-500 hover:translate-y-[-4px] transition-all">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2.5 bg-blue-50 rounded-xl"><GraduationCap size={20} className="text-blue-500" /></div>
-                            <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Estudiantes</h3>
+                    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Estudiantes</span>
                         </div>
-                        <p className="text-xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
-                        <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Estudiantes</p>
+                        <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Matrículas Vigentes</p>
                     </div>
                 )}
 
                 {(isSuperAdmin || user?.role === 'teacher') && (
-                    <div className="bg-white p-5 md:p-8 rounded-[2rem] shadow-xl shadow-emerald-500/5 border-b-4 border-emerald-500 hover:translate-y-[-4px] transition-all">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2.5 bg-emerald-50 rounded-xl"><BookOpen size={20} className="text-emerald-500" /></div>
-                            <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Cursos</h3>
+                    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Cursos</span>
                         </div>
-                        <p className="text-xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.courseCount}</p>
-                        <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Cursos</p>
+                        <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Niveles Académicos</p>
                     </div>
                 )}
 
-                <div className="hidden md:block bg-white p-8 rounded-[2rem] shadow-xl shadow-amber-500/5 border-b-4 border-amber-500 hover:translate-y-[-4px] transition-all">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2.5 bg-amber-50 rounded-xl"><School size={20} className="text-amber-500" /></div>
-                        <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Estado</h3>
+                <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group flex flex-col justify-center">
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all"><School size={24} /></div>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Estado</span>
                     </div>
-                    <p className="text-lg font-black text-emerald-600 uppercase italic">Institución Activa</p>
+                    <p className="text-lg font-black text-emerald-600 uppercase italic tracking-tight">Institución Activa</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Periodo {new Date().getFullYear()}</p>
                 </div>
             </div>
 

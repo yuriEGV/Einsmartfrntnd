@@ -172,18 +172,18 @@ const EnrollmentsPage = () => {
                     <p className="text-gray-500 mt-1 text-xs md:text-lg">Inscripciones y periodos académicos.</p>
                 </div>
 
-                <div className="flex w-full md:w-auto bg-white rounded-xl shadow-sm border p-1">
+                <div className="flex w-full md:w-auto bg-white rounded-2xl shadow-sm border p-1.5 flex-wrap">
                     <button
                         onClick={() => setActiveTab('list')}
-                        className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                     >
-                        LISTADO
+                        LISTADO REGISTRADO
                     </button>
                     <button
                         onClick={() => setActiveTab('new')}
-                        className={`flex-1 md:flex-none px-4 md:px-6 py-2 rounded-lg text-xs md:text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
                     >
-                        NUEVA
+                        NUEVA MATRÍCULA
                     </button>
                 </div>
             </div>
@@ -474,20 +474,24 @@ const EnrollmentsPage = () => {
                         </div>
                     ) : (
                         <>
-                            {/* Mobile View Card List */}
-                            <div className="md:hidden space-y-4">
+                            {/* Mobile Card Grid - Unified Premium Style */}
+                            <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 {filteredEnrollments.map(enrollment => (
-                                    <div key={enrollment._id} className="p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-3">
-                                        <div className="flex justify-between items-start">
-                                            <div>
-                                                <div className="font-black text-[#11355a] text-sm">
-                                                    {enrollment.estudianteId ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}` : 'N/A'}
+                                    <div key={enrollment._id} className="p-5 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col group">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="min-w-0">
+                                                <div className="font-black text-slate-800 text-sm truncate uppercase tracking-tight">
+                                                    {enrollment.estudianteId ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}` : 'No Asignado'}
                                                 </div>
-                                                <div className="text-[10px] font-bold text-gray-400 uppercase">{enrollment.courseId?.name || 'S/G'}</div>
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1 opacity-70 truncate">
+                                                    {enrollment.courseId?.name || 'S/N'}
+                                                </div>
                                             </div>
-                                            <div className="text-sm font-black text-emerald-600">${enrollment.fee.toLocaleString()}</div>
+                                            <div className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-center justify-center min-w-[80px]">
+                                                ${enrollment.fee.toLocaleString()}
+                                            </div>
                                         </div>
-                                        <div className="flex justify-between text-[10px] text-gray-400 font-bold border-t pt-2">
+                                        <div className="mt-auto flex justify-between text-[9px] text-slate-400 font-extrabold border-t border-slate-50 pt-3 uppercase tracking-tighter">
                                             <span>PERIODO: {enrollment.period}</span>
                                             <span>{new Date(enrollment.createdAt).toLocaleDateString()}</span>
                                         </div>

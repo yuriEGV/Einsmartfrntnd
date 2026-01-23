@@ -189,21 +189,26 @@ const GradesPage = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Mobile Card List */}
-                    <div className="md:hidden divide-y divide-gray-100">
+                    {/* Mobile Card Grid - Optimized for all touch devices */}
+                    <div className="md:hidden p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {filteredGrades.map((grade) => (
-                            <div key={grade._id} className="p-4 space-y-3 group relative">
-                                <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                        <div className="text-sm font-black text-gray-800">{grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}</div>
-                                        <div className="text-xs font-bold text-blue-500 uppercase">{grade.evaluationId?.title}</div>
+                            <div key={grade._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="min-w-0">
+                                        <div className="text-sm font-black text-slate-800 leading-tight truncate">
+                                            {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
+                                        </div>
+                                        <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1 opacity-70 truncate">
+                                            {(grade.evaluationId as any)?.subject || 'Gral'} • {grade.evaluationId?.title}
+                                        </div>
                                     </div>
-                                    <span className={`px-3 py-1 rounded-lg font-black text-base ${grade.score >= 4 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    <div className={`px-3 py-1.5 rounded-xl font-black text-lg shadow-sm ${grade.score >= 4 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>
                                         {grade.score.toFixed(1)}
-                                    </span>
+                                    </div>
                                 </div>
+
                                 {canManageGrades && (
-                                    <div className="flex gap-2 pt-2">
+                                    <div className="mt-auto flex gap-2 pt-4 border-t border-slate-50">
                                         <button onClick={() => {
                                             const stud = students.find(s => s._id === grade.estudianteId?._id);
                                             setModalMode('edit');
@@ -216,8 +221,10 @@ const GradesPage = () => {
                                             });
                                             setStudentSearch(stud ? `${stud.nombres} ${stud.apellidos}` : '');
                                             setShowModal(true);
-                                        }} className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold text-[10px] uppercase">Editar</button>
-                                        <button onClick={() => handleDelete(grade._id)} className="flex-1 py-2 bg-red-50 text-red-600 rounded-xl font-bold text-[10px] uppercase">Eliminar</button>
+                                        }} className="flex-1 py-2.5 bg-slate-50 text-blue-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-50 transition-colors">Editar</button>
+                                        <button onClick={() => handleDelete(grade._id)} className="px-4 py-2.5 bg-slate-50 text-rose-500 rounded-xl hover:bg-rose-50 transition-colors">
+                                            <Trash2 size={16} />
+                                        </button>
                                     </div>
                                 )}
                             </div>

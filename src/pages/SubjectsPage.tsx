@@ -203,14 +203,21 @@ const SubjectsPage = () => {
                 />
             </div>
 
-            {loading ? <p>Cargando...</p> : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {loading ? <p className="text-center py-20 text-gray-400 font-bold animate-pulse">Cargando Asignaturas...</p> : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
                     {filteredSubjects.map(subj => (
-                        <div key={subj._id} className="bg-white p-5 rounded-lg shadow border hover:shadow-md transition group">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-lg text-gray-800">{subj.name}</h3>
+                        <div key={subj._id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 className="font-black text-xl text-slate-800 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{subj.name}</h3>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100/50">
+                                            {subj.courseId?.name || 'Común'}
+                                        </span>
+                                    </div>
+                                </div>
                                 {canManage && (
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
                                         <button onClick={() => {
                                             setModalMode('edit');
                                             setFormData({
@@ -220,26 +227,33 @@ const SubjectsPage = () => {
                                                 teacherId: subj.teacherId?._id
                                             });
                                             setShowModal(true);
-                                        }} className="text-gray-400 hover:text-blue-600"><Edit size={18} /></button>
-                                        <button onClick={() => handleDelete(subj._id)} className="text-gray-400 hover:text-red-600"><Trash2 size={18} /></button>
+                                        }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                            <Edit size={18} />
+                                        </button>
+                                        <button onClick={() => handleDelete(subj._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                            <Trash2 size={18} />
+                                        </button>
                                     </div>
                                 )}
                             </div>
-                            <div className="space-y-1 text-sm text-gray-600">
-                                <p className="font-semibold text-blue-600 bg-blue-50 inline-block px-2 py-0.5 rounded">
-                                    {subj.courseId?.name || 'Sin Curso'}
-                                </p>
-                                <div className="flex items-center gap-2 pt-2 text-gray-500">
-                                    <User size={16} />
-                                    <span>{subj.teacherId?.name || 'Sin Profesor'}</span>
+
+                            <div className="mt-auto space-y-4">
+                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-500 shadow-sm">
+                                        <User size={20} />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Docente Guía</p>
+                                        <p className="text-sm font-black text-slate-700 truncate">{subj.teacherId?.name || 'No asignado'}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="mt-4 pt-4 border-t flex gap-2">
+
                                 <button
                                     onClick={() => handleOpenObjectives(subj)}
-                                    className="flex-1 bg-blue-50 text-blue-700 py-2 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-blue-100 transition"
+                                    className="w-full bg-[#11355a] text-white py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/10 active:scale-95 uppercase tracking-widest"
                                 >
-                                    <Target size={16} /> Objetivos y Cobertura
+                                    <Target size={18} className="text-blue-300" />
+                                    Planificación y Cobertura
                                 </button>
                             </div>
                         </div>
