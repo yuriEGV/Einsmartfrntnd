@@ -36,12 +36,24 @@ const GuardianPaymentsPage = () => {
 
     const fetchData = async () => {
         try {
+            // Obtener solo los estudiantes del apoderado logueado
             const [payRes, studRes] = await Promise.all([
                 api.get('/payments'),
-                api.get('/estudiantes')
+                api.get(`/apoderados/${permissions.user?._id}/estudiantes`) // Endpoint para obtener estudiantes del apoderado
+                    .catch(() => api.get('/estudiantes')) // Fallback si el endpoint específico no existe
             ]);
-            setPayments(payRes.data);
-            setStudents(studRes.data);
+            
+            // Filtrar: solo estudiantes que pertenecen al apoderado
+            const myStudents = studRes.data;
+            const myStudentIds = myStudents.map((s: any) => s._id);
+            
+            // Filtrar pagos: solo los de mis estudiantes
+            const myPayments = payRes.data.filter((p: any) => 
+                myStudentIds.includes(p.estudianteId._id || p.estudianteId)
+            );
+            
+            setPayments(myPayments);
+            setStudents(myStudents);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {

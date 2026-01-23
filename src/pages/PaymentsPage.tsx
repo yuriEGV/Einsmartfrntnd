@@ -98,10 +98,19 @@ const PaymentsPage = () => {
     const handleAssignPayment = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // This creates a pending payment (debt)
+            // Obtener la tarifa seleccionada
+            const selectedTariff = tariffs.find(t => t._id === formData.tariffId);
+            if (!selectedTariff) {
+                alert('Por favor selecciona una tarifa válida');
+                return;
+            }
+            
+            // Enviar datos del pago sin tariffId, usando concepto y monto directamente
             await api.post('/payments', {
-                ...formData,
-                provider: 'manual' // Just creating the record first
+                estudianteId: formData.estudianteId,
+                concepto: selectedTariff.name,
+                amount: selectedTariff.amount,
+                provider: 'manual'
             });
             setShowModal(false);
             fetchData();
