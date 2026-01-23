@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import api from '../services/api';
@@ -10,7 +9,7 @@ import { DollarSign, Search, CreditCard, CheckCircle, Clock, AlertCircle, School
 interface Payment {
     _id: string;
     estudianteId: { nombres: string; apellidos: string; rut: string };
-    concepto: string; // From Tariff name
+    concepto: string;
     amount: number;
     status: 'pending' | 'approved' | 'rejected';
     providerPaymentId?: string;
@@ -31,7 +30,6 @@ interface Tariff {
     active?: boolean;
 }
 
-// Mock tariffs data as fallback
 const mockTariffs: Tariff[] = [
     { _id: '1', name: 'Matrícula', amount: 150000, active: true },
     { _id: '2', name: 'Mensualidad Enero', amount: 250000, active: true },
@@ -49,20 +47,14 @@ const mockTariffs: Tariff[] = [
 ];
 
 const PaymentsPage = () => {
-    // Sostenedor page - manage payment assignments and tracking
     const permissions = usePermissions();
     const { tenant } = useTenant();
-    // Assuming PaymentsPage is visible to Admin/Sostenedor/Parents(future).
-    // For now manage payments (assigning debts or paying).
 
-    const [payments, setPayments] = useState<Payment[]>([]); // History
+    const [payments, setPayments] = useState<Payment[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [tariffs, setTariffs] = useState<Tariff[]>(mockTariffs);
-
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
-
-    // Create Payment (Assign Debt)
     const [showModal, setShowModal] = useState(false);
     const [formData, setFormData] = useState({
         estudianteId: '',
@@ -76,13 +68,12 @@ const PaymentsPage = () => {
     const fetchData = async () => {
         try {
             const [payRes, studRes, tarRes] = await Promise.all([
-                api.get('/payments'), // List assigned payments/debts
+                api.get('/payments'),
                 api.get('/estudiantes'),
                 api.get('/tariffs')
             ]);
             setPayments(payRes.data);
             setStudents(studRes.data);
-            // Usar mock data si el API no devuelve nada o falla
             if (tarRes.data && Array.isArray(tarRes.data) && tarRes.data.length > 0) {
                 setTariffs(tarRes.data);
             } else {
@@ -90,7 +81,6 @@ const PaymentsPage = () => {
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            // Si falla cualquier petición, usar mock data para tarifas
             setTariffs(mockTariffs);
         } finally {
             setLoading(false);
@@ -100,14 +90,12 @@ const PaymentsPage = () => {
     const handleAssignPayment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            // Get the selected tariff from the list
             const selectedTariff = tariffs.find(t => t._id === formData.tariffId);
             if (!selectedTariff) {
                 alert('Por favor selecciona una tarifa válida');
                 return;
             }
             
-            // Enviar datos del pago sin tariffId, usando concepto y monto directamente
             await api.post('/payments', {
                 estudianteId: formData.estudianteId,
                 concepto: selectedTariff.name,
@@ -123,26 +111,13 @@ const PaymentsPage = () => {
     };
 
     const handlePayOnline = async (_paymentId: string) => {
-        // This triggers MP checkout flow
-        // In a real app we would redirect to MP URL returned by backend
         try {
-            // Find payment details to retry/initiate
-            // Re-calling create or dedicated pay endpoint?
-            // Since we already have the ID, we might need an endpoint like POST /payments/:id/checkout
-            // For now, let's assume we create a NEW intent or use existing.
-            // Simpler: Just allow paying assigned debts.
-
-            // NOT IMPLEMENTED: The backend 'createPayment' creates and returns checkout info immediately.
-            // If we are listing existing pending payments, we need a way to "resume" or "pay" them.
-            // For this MVP, let's assume we Create & Pay in one step or we just show the link if available.
-
             alert("Funcionalidad de pago directo desde lista en desarrollo. Por favor genere el cobro nuevamente con opción MercadoPago.");
         } catch (error) {
             console.error(error);
         }
     };
 
-    // Filter
     const filteredPayments = payments.filter(p =>
         (p.estudianteId?.nombres + ' ' + p.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
         p.concepto?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -150,30 +125,28 @@ const PaymentsPage = () => {
 
     return (
         <>
-            {/* Solo sostenedor puede ver esta página - redireccionar si no lo es */}
             {!permissions.isSostenedor && <Navigate to="/" replace />}
             
             {permissions.isSostenedor && (
             <div className="p-6 max-w-7xl mx-auto">
-                    <div className="flex items-center gap-4 mb-8">
-                        {tenant?.logo && <TenantLogo size="small" showName={false} />}
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
-                                <DollarSign size={32} />
-                                Pagos y Cobranza
-                            </h1>
-                            <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
-                        </div>
+                <div className="flex items-center gap-4 mb-8">
+                    {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <DollarSign size={32} />
+                            Pagos y Cobranza
+                        </h1>
+                        <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
                     </div>
-                    {permissions.user?.role !== 'student' && (
-                        <button onClick={() => { setFormData({ estudianteId: '', tariffId: '' }); setShowModal(true); }} className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20">
-                            <CreditCard size={20} />
-                            Asignar Cobro
-                        </button>
-                    )}
+                </div>
+                {permissions.user?.role !== 'student' && (
+                    <button onClick={() => { setFormData({ estudianteId: '', tariffId: '' }); setShowModal(true); }} className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20">
+                        <CreditCard size={20} />
+                        Asignar Cobro
+                    </button>
+                )}
             </div>
 
-            {/* Institutional Fee Reference Card */}
             <div className="bg-gradient-to-r from-[#11355a] to-blue-900 rounded-3xl p-8 mb-8 text-white shadow-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                     <School size={120} />
@@ -211,7 +184,6 @@ const PaymentsPage = () => {
                 </div>
             ) : filteredPayments.length > 0 ? (
                 <>
-                {/* Tabla para desktop */}
                 <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50/50">
@@ -256,7 +228,6 @@ const PaymentsPage = () => {
                     </table>
                 </div>
 
-                {/* Cards para mobile */}
                 <div className="md:hidden space-y-3">
                     {filteredPayments.map(p => (
                         <div key={p._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
@@ -296,7 +267,6 @@ const PaymentsPage = () => {
                 </div>
             )}
 
-            {/* Assign Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
