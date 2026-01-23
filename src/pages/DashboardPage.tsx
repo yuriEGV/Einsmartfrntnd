@@ -81,7 +81,7 @@ const DashboardPage = () => {
             {/* Header / Welcome - Compact on Mobile */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
                 <div className="space-y-1">
-                    <h1 className="text-2xl md:text-4xl font-black text-gray-800 tracking-tight leading-tight">
+                    <h1 className="text-xl md:text-4xl font-black text-gray-800 tracking-tight leading-tight">
                         <span className="block md:inline text-blue-600 opacity-90">Hola,</span> {user?.name.split(' ')[0]}
                     </h1>
                     <p className="text-[10px] md:text-sm text-gray-400 font-black uppercase tracking-[0.2em] flex items-center gap-2">
@@ -105,7 +105,7 @@ const DashboardPage = () => {
                             <div className="p-2.5 bg-blue-50 rounded-xl"><GraduationCap size={20} className="text-blue-500" /></div>
                             <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Estudiantes</h3>
                         </div>
-                        <p className="text-2xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                        <p className="text-xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
                         <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Estudiantes</p>
                     </div>
                 )}
@@ -116,7 +116,7 @@ const DashboardPage = () => {
                             <div className="p-2.5 bg-emerald-50 rounded-xl"><BookOpen size={20} className="text-emerald-500" /></div>
                             <h3 className="hidden md:block text-[10px] font-black text-gray-400 uppercase tracking-widest">Cursos</h3>
                         </div>
-                        <p className="text-2xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.courseCount}</p>
+                        <p className="text-xl md:text-5xl font-black text-gray-800 tracking-tighter">{stats.courseCount}</p>
                         <p className="md:hidden text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Cursos</p>
                     </div>
                 )}

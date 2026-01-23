@@ -164,11 +164,11 @@ const EnrollmentsPage = () => {
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div>
-                    <h1 className="text-2xl md:text-3xl font-extrabold text-[#11355a] flex items-center gap-3">
-                        <UserPlus size={28} className="md:w-8 md:h-8" />
+                    <h1 className="text-xl md:text-3xl font-extrabold text-[#11355a] flex items-center gap-2 md:gap-3">
+                        <UserPlus size={24} className="md:w-8 md:h-8" />
                         Matrículas
                     </h1>
-                    <p className="text-gray-500 mt-1 text-sm md:text-lg">Inscripciones y periodos académicos.</p>
+                    <p className="text-gray-500 mt-1 text-xs md:text-lg">Inscripciones y periodos académicos.</p>
                 </div>
 
                 <div className="flex w-full md:w-auto bg-white rounded-xl shadow-sm border p-1">
@@ -188,10 +188,10 @@ const EnrollmentsPage = () => {
             </div>
 
             {activeTab === 'new' ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="lg:col-span-2 space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="lg:col-span-2 space-y-4 md:space-y-6">
                         {/* Student Info Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-8">
+                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-4 md:p-8">
                             <div className="flex justify-between items-center mb-6 border-b pb-4">
                                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                     <UserCheck className="text-blue-600" />
@@ -346,9 +346,13 @@ const EnrollmentsPage = () => {
                                             key={course._id}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, courseId: course._id })}
-                                            className={`p-3 text-xs font-bold rounded-lg border-2 transition-all ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
+                                            className={`p-3 text-[10px] md:text-xs font-bold rounded-lg border-2 transition-all flex flex-col items-center justify-center leading-tight ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
                                         >
-                                            {course.name}
+                                            <span className="uppercase">{course.name}</span>
+                                            {/* Si hay nombres duplicados, el código ayuda a diferenciar */}
+                                            <span className={`text-[8px] opacity-70 mt-1 ${formData.courseId === course._id ? 'text-blue-100' : 'text-gray-400'}`}>
+                                                ID: {course._id.substring(course._id.length - 4)}
+                                            </span>
                                         </button>
                                     ))}
                                 </div>
@@ -356,7 +360,7 @@ const EnrollmentsPage = () => {
                         </div>
 
                         {/* Arancel Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-emerald-500 p-8">
+                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-emerald-500 p-4 md:p-8">
                             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4">
                                 <CreditCard className="text-emerald-600" />
                                 {tenant?.paymentType === 'paid' ? 'Arancel y Pagos' : 'Información Adicional'}

@@ -166,9 +166,9 @@ const StudentsPage = () => {
             {/* Page Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                        <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100/50">
-                            <School size={32} className="text-[#11355a] md:w-10 md:h-10" />
+                    <h1 className="text-2xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <div className="p-2 md:p-3 bg-blue-50 rounded-2xl border border-blue-100/50">
+                            <School size={24} className="text-[#11355a] md:w-10 md:h-10" />
                         </div>
                         Estudiantes
                     </h1>

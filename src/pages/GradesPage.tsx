@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useReactToPrint } from 'react-to-print';
 import {
     ClipboardList,
     Plus,
@@ -9,7 +10,8 @@ import {
     Search,
     GraduationCap,
     AlertCircle,
-    ChevronRight
+    ChevronRight,
+    Printer
 } from 'lucide-react';
 
 interface Grade {
@@ -42,6 +44,7 @@ const GradesPage = () => {
     const [students, setStudents] = useState<Student[]>([]);
     const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
     const [loading, setLoading] = useState(true);
+    const printRef = useRef<HTMLDivElement>(null);
 
     // UI - Search and Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -78,6 +81,11 @@ const GradesPage = () => {
             setLoading(false);
         }
     };
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Notas-${new Date().toLocaleDateString()}`,
+    });
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -152,6 +160,13 @@ const GradesPage = () => {
                             Ingresar Nota
                         </button>
                     )}
+                    <button
+                        onClick={handlePrint}
+                        className="bg-white text-gray-600 px-6 py-2.5 rounded-xl font-bold border border-gray-200 flex items-center gap-2 hover:bg-gray-50 transition-all"
+                    >
+                        <Printer size={20} />
+                        Imprimir
+                    </button>
                 </div>
             </div>
 
@@ -160,7 +175,20 @@ const GradesPage = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" ref={printRef}>
+                    {/* Print Only Header */}
+                    <div className="hidden print:block p-10 text-center border-b-4 border-slate-900 mb-10">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="text-left">
+                                <h1 className="text-3xl font-black uppercase tracking-tighter">REGISTRO DE CALIFICACIONES</h1>
+                                <p className="text-blue-600 font-black text-sm">SISTEMA DE GESTIÓN EDUCATIVA EINSMART</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-lg font-black uppercase">Reporte Académico</div>
+                                <div className="text-slate-500 font-bold">FECHA: {new Date().toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                    </div>
                     {/* Mobile Card List */}
                     <div className="md:hidden divide-y divide-gray-100">
                         {filteredGrades.map((grade) => (

@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getAnotaciones, createAnotacion, type Anotacion } from '../services/annotationService';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { Search, Filter, AlertCircle, CheckCircle, User, Calendar, BookOpen, ChevronRight } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+import { Search, Filter, AlertCircle, CheckCircle, User, Calendar, BookOpen, ChevronRight, Printer } from 'lucide-react';
 
 interface Student {
     _id: string;
@@ -23,6 +24,7 @@ const AnnotationsPage = () => {
     const [courses, setCourses] = useState<Course[]>([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
+    const printRef = useRef<HTMLDivElement>(null);
 
     // UI Filters
     const [courseFilter, setCourseFilter] = useState('');
@@ -60,6 +62,11 @@ const AnnotationsPage = () => {
             setLoading(false);
         }
     };
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Anotaciones-${new Date().toLocaleDateString()}`,
+    });
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -102,12 +109,20 @@ const AnnotationsPage = () => {
                     <p className="text-gray-500 text-sm">Bitácora de comportamiento y méritos académicos.</p>
                 </div>
                 {permissions.isStaff && permissions.user?.role !== 'student' && (
-                    <button
-                        onClick={() => setShowForm(!showForm)}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg ${showForm ? 'bg-gray-100 text-gray-600' : 'bg-[#11355a] text-white hover:bg-blue-800 active:scale-95'}`}
-                    >
-                        {showForm ? 'Cerrar Panel' : '+ Nueva Anotación'}
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold bg-white text-gray-600 border border-gray-200 hover:bg-gray-50 transition-all shadow-sm"
+                        >
+                            <Printer size={20} /> Imprimir Hoja de Vida
+                        </button>
+                        <button
+                            onClick={() => setShowForm(!showForm)}
+                            className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg ${showForm ? 'bg-gray-100 text-gray-600' : 'bg-[#11355a] text-white hover:bg-blue-800 active:scale-95'}`}
+                        >
+                            {showForm ? 'Cerrar Panel' : '+ Nueva Anotación'}
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -237,7 +252,20 @@ const AnnotationsPage = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" ref={printRef}>
+                    {/* Print Only Header */}
+                    <div className="hidden print:block p-10 text-center border-b-4 border-slate-900 mb-10">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="text-left">
+                                <h1 className="text-3xl font-black uppercase tracking-tighter">HOJA DE VIDA DEL ESTUDIANTE</h1>
+                                <p className="text-blue-600 font-black text-sm">SISTEMA DE GESTIÓN EDUCATIVA EINSMART</p>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-lg font-black uppercase">Reporte de Observaciones</div>
+                                <div className="text-slate-500 font-bold">FECHA: {new Date().toLocaleDateString()}</div>
+                            </div>
+                        </div>
+                    </div>
                     <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4 items-center">
                         <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-inner">
                             <Filter size={16} className="text-gray-400" />

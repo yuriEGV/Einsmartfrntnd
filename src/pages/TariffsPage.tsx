@@ -37,9 +37,27 @@ const TariffsPage = () => {
         active: true
     });
 
+    const [showBulkModal, setShowBulkModal] = useState(false);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [bulkData, setBulkData] = useState({
+        courseId: '',
+        tariffId: '',
+        dueDate: new Date().toISOString().split('T')[0]
+    });
+
     useEffect(() => {
         fetchTariffs();
+        fetchCourses();
     }, []);
+
+    const fetchCourses = async () => {
+        try {
+            const res = await api.get('/courses');
+            setCourses(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const fetchTariffs = async () => {
         try {
@@ -78,6 +96,22 @@ const TariffsPage = () => {
         }
     };
 
+    const handleBulkAssign = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!bulkData.courseId || !bulkData.tariffId) return;
+
+        setLoading(true);
+        try {
+            const res = await api.post('/payments/bulk-assign', bulkData);
+            alert(res.data.message);
+            setShowBulkModal(false);
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error en asignación masiva');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     if (!canManage) {
         return <div className="p-8 text-center text-gray-500">No tienes permisos para gestionar tarifas.</div>;
     }
@@ -92,20 +126,31 @@ const TariffsPage = () => {
                     </h1>
                     <p className="text-gray-500 font-medium">Define los cobros del establecimiento (Matrícula, Mensualidad, etc.)</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setModalMode('create');
-                        setFormData({ _id: '', name: '', description: '', amount: 0, currency: 'CLP', active: true });
-                        setShowModal(true);
-                    }}
-                    className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
-                >
-                    <Plus size={20} />
-                    Nueva Tarifa
-                </button>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => {
+                            setBulkData({ ...bulkData, tariffId: tariffs[0]?._id || '' });
+                            setShowBulkModal(true);
+                        }}
+                        className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
+                    >
+                        Asignar a Curso
+                    </button>
+                    <button
+                        onClick={() => {
+                            setModalMode('create');
+                            setFormData({ _id: '', name: '', description: '', amount: 0, currency: 'CLP', active: true });
+                            setShowModal(true);
+                        }}
+                        className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                    >
+                        <Plus size={20} />
+                        Nueva Tarifa
+                    </button>
+                </div>
             </div>
 
-            {loading ? (
+            {loading && tariffs.length === 0 ? (
                 <div className="flex justify-center p-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
                 </div>
@@ -147,7 +192,7 @@ const TariffsPage = () => {
                             </div>
                         </div>
                     ))}
-                    {tariffs.length === 0 && (
+                    {tariffs.length === 0 && !loading && (
                         <div className="col-span-full p-12 text-center text-gray-400 font-medium bg-gray-50 rounded-2xl border border-dashed border-gray-200">
                             No hay tarifas configuradas. Crea una para comenzar a recibir pagos.
                         </div>
@@ -207,6 +252,72 @@ const TariffsPage = () => {
 
                             <button type="submit" className="w-full bg-[#11355a] text-white py-3 rounded-xl font-bold mt-4 hover:bg-blue-800 transition-colors">
                                 Guardar Tarifa
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Bulk Assign Modal */}
+            {showBulkModal && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        <div className="bg-emerald-600 p-6 text-white flex justify-between items-center">
+                            <h2 className="text-xl font-bold text-white">Asignar Cobro a Curso</h2>
+                            <button onClick={() => setShowBulkModal(false)} className="text-white/60 hover:text-white font-bold">✕</button>
+                        </div>
+                        <form onSubmit={handleBulkAssign} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Seleccionar Tarifa</label>
+                                <select
+                                    required
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-emerald-500 outline-none font-bold"
+                                    value={bulkData.tariffId}
+                                    onChange={e => setBulkData({ ...bulkData, tariffId: e.target.value })}
+                                >
+                                    <option value="">Seleccione una tarifa...</option>
+                                    {tariffs.map(t => (
+                                        <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Curso Destino</label>
+                                <select
+                                    required
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-emerald-500 outline-none font-bold"
+                                    value={bulkData.courseId}
+                                    onChange={e => setBulkData({ ...bulkData, courseId: e.target.value })}
+                                >
+                                    <option value="">Seleccione un curso...</option>
+                                    {courses.map(c => (
+                                        <option key={c._id} value={c._id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Fecha de Vencimiento</label>
+                                <input
+                                    type="date"
+                                    required
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-emerald-500 outline-none font-bold"
+                                    value={bulkData.dueDate}
+                                    onChange={e => setBulkData({ ...bulkData, dueDate: e.target.value })}
+                                />
+                            </div>
+
+                            <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-100 mt-4">
+                                <p className="text-xs text-emerald-700 font-bold">
+                                    Esto generará cobros individuales para todos los alumnos matriculados en el curso seleccionado.
+                                </p>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-emerald-600 text-white py-4 rounded-xl font-black mt-2 hover:bg-emerald-700 transition-colors shadow-lg active:scale-95 disabled:bg-gray-300"
+                            >
+                                {loading ? 'PROCESANDO...' : 'CONFIRMAR ASIGNACIÓN MASIVA'}
                             </button>
                         </form>
                     </div>
