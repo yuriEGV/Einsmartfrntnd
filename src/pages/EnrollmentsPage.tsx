@@ -8,6 +8,7 @@ interface Course {
     _id: string;
     name: string;
     code?: string;
+    teacherId?: { name: string };
 }
 
 interface Enrollment {
@@ -96,6 +97,20 @@ const EnrollmentsPage = () => {
         }
     };
 
+    const handleSendInstitutionalList = async () => {
+        if (!window.confirm('¿Desea enviar el listado completo de alumnos matriculados al sostenedor para la creación de correos institucionales?')) return;
+        setLoading(true);
+        try {
+            const res = await api.post('/enrollments/send-institutional-list');
+            alert(res.data.message);
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Error al enviar el listado');
+        } finally {
+            setLoading(false);
+        }
+    };
+
     const handleEnroll = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -172,19 +187,30 @@ const EnrollmentsPage = () => {
                     <p className="text-gray-500 mt-1 text-xs md:text-lg">Inscripciones y periodos académicos.</p>
                 </div>
 
-                <div className="flex w-full md:w-auto bg-white rounded-2xl shadow-sm border p-1.5 flex-wrap">
-                    <button
-                        onClick={() => setActiveTab('list')}
-                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
-                    >
-                        LISTADO REGISTRADO
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('new')}
-                        className={`flex-1 md:flex-none px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
-                    >
-                        NUEVA MATRÍCULA
-                    </button>
+                <div className="flex w-full md:w-auto bg-white rounded-2xl shadow-sm border p-1.5 flex-wrap gap-2">
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('list')}
+                            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            LISTADO
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('new')}
+                            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            NUEVA
+                        </button>
+                    </div>
+                    {permissions.isSuperAdmin && activeTab === 'list' && (
+                        <button
+                            onClick={handleSendInstitutionalList}
+                            className="px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                        >
+                            <Save size={14} />
+                            Enviar Listado Institucional
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -347,11 +373,11 @@ const EnrollmentsPage = () => {
                                             key={course._id}
                                             type="button"
                                             onClick={() => setFormData({ ...formData, courseId: course._id })}
-                                            className={`p-3 text-[10px] md:text-xs font-bold rounded-lg border-2 transition-all flex flex-col items-center justify-center leading-tight ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
+                                            className={`p-4 text-[10px] md:text-xs font-bold rounded-2xl border-2 transition-all flex flex-col items-center justify-center leading-tight min-h-[80px] ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-600 hover:border-blue-300'}`}
                                         >
-                                            <span className="uppercase text-[10px] md:text-sm">{course.name}</span>
-                                            <span className={`text-[9px] font-black mt-1 px-1.5 py-0.5 rounded ${formData.courseId === course._id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                {course.code || `ID: ${course._id.substring(course._id.length - 4)}`}
+                                            <span className="uppercase text-[10px] md:text-sm font-black">{course.name}</span>
+                                            <span className={`text-[9px] font-black mt-1.5 px-2 py-0.5 rounded-lg uppercase tracking-tighter ${formData.courseId === course._id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                {course.teacherId?.name || 'S/ Profesor'}
                                             </span>
                                         </button>
                                     ))}

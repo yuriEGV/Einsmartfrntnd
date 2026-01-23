@@ -248,17 +248,24 @@ const PaymentsPage = () => {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Tarifa / Concepto</label>
+                                <label className="block text-sm font-bold text-gray-700 mb-1">Motivo / Concepto del Cobro</label>
                                 <select
                                     required
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none"
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none font-bold"
                                     value={formData.tariffId}
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
                                     <option value="">-- Seleccionar --</option>
-                                    {tariffs.filter(t => t.active ?? true).map(t => (
-                                        <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
-                                    ))}
+                                    <optgroup label="Conceptos Fijos">
+                                        <option value="MATRICULA">Matrícula (Valor Institucional)</option>
+                                        <option value="MENSUALIDAD">Mensualidad</option>
+                                        <option value="PASEO">Paseo de fin de año / Recreacional</option>
+                                    </optgroup>
+                                    <optgroup label="Tarifas Especiales">
+                                        {tariffs.filter(t => t.active ?? true).map(t => (
+                                            <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
+                                        ))}
+                                    </optgroup>
                                 </select>
                             </div>
 
