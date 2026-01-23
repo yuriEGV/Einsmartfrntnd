@@ -28,9 +28,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (data.token) {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
-            // Assuming tenantId is part of user or response, otherwise handle it
-            if (data.tenantId) {
-                localStorage.setItem('tenantId', data.tenantId);
+            // Guardar tenantId del usuario o de la respuesta
+            const tenantId = data.user?.tenantId || data.tenantId;
+            if (tenantId) {
+                localStorage.setItem('tenantId', tenantId);
             }
             setUser(data.user);
         }
