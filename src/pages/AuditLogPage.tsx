@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { ShieldCheck, Search, Filter, Clock, User } from 'lucide-react';
+import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
+import { ShieldCheck, Search, Filter, Clock, User, AlertCircle } from 'lucide-react';
 
 interface AuditLog {
     _id: string;
@@ -12,6 +14,7 @@ interface AuditLog {
 }
 
 const AuditLogPage = () => {
+    const { tenant } = useTenant();
     const [logs, setLogs] = useState<AuditLog[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,10 +51,11 @@ const AuditLogPage = () => {
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                    <ShieldCheck className="text-[#11355a]" />
-                    Central de Auditoría (Fiscalización)
+            <div className="flex items-center gap-4 mb-6">
+                {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                <h1 className="text-2xl md:text-3xl font-bold text-[#11355a] flex items-center gap-2">
+                    <ShieldCheck className="text-blue-600" />
+                    Central de Auditoría
                 </h1>
             </div>
 
@@ -72,9 +76,13 @@ const AuditLogPage = () => {
             </div>
 
             {loading ? (
-                <p>Cargando bitácora...</p>
-            ) : (
-                <div className="bg-white rounded-lg shadow overflow-hidden border">
+                <div className="flex justify-center p-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
+                </div>
+            ) : filteredLogs.length > 0 ? (
+                <>
+                {/* Tabla para desktop */}
+                <div className="hidden md:block bg-white rounded-lg shadow overflow-hidden border">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50">
@@ -116,6 +124,35 @@ const AuditLogPage = () => {
                             </tbody>
                         </table>
                     </div>
+                </div>
+
+                {/* Cards para mobile */}
+                <div className="md:hidden space-y-3">
+                    {filteredLogs.map(log => (
+                        <div key={log._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="flex items-center gap-2 mb-3">
+                                <div className="bg-gray-100 p-2 rounded-full text-gray-600"><User size={16} /></div>
+                                <div>
+                                    <p className="font-bold text-gray-900">{log.user?.name}</p>
+                                    <p className="text-xs text-gray-500">{log.user?.role}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <Clock size={14} className="text-gray-400" />
+                                <p className="text-xs text-gray-600">{new Date(log.createdAt).toLocaleString()}</p>
+                            </div>
+                            <div className="mb-2">
+                                {getActionBadge(log.action)}
+                            </div>
+                            <p className="text-xs text-gray-600 bg-gray-50 p-2 rounded">{JSON.stringify(log.details)}</p>
+                        </div>
+                    ))}
+                </div>
+                </>
+            ) : (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                    <AlertCircle size={48} className="text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-bold">No hay registros de auditoría.</p>
                 </div>
             )}
         </div>
