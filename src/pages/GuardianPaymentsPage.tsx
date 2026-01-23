@@ -51,7 +51,7 @@ const GuardianPaymentsPage = () => {
             
             // Filtrar pagos: solo los de mis estudiantes
             const myPayments = payRes.data.filter((p: any) => 
-                p.estudianteId._id ? myStudentIds.includes(p.estudianteId._id) : myStudentIds.includes(p.estudianteId.rut)
+                (typeof p.estudianteId._id !== 'undefined') ? myStudentIds.includes(p.estudianteId._id) : myStudentIds.includes(p.estudianteId.rut)
             );
             
             setPayments(myPayments);
@@ -85,7 +85,7 @@ const GuardianPaymentsPage = () => {
 
     const filteredPayments = selectedStudent
         ? payments.filter(p => {
-            if (p.estudianteId._id) {
+            if (typeof p.estudianteId._id !== 'undefined') {
                 return p.estudianteId._id === selectedStudent;
             } else {
                 return p.estudianteId.rut === selectedStudent;
