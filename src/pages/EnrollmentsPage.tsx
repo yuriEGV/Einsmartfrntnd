@@ -7,6 +7,7 @@ import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, 
 interface Course {
     _id: string;
     name: string;
+    code?: string;
 }
 
 interface Enrollment {
@@ -348,10 +349,9 @@ const EnrollmentsPage = () => {
                                             onClick={() => setFormData({ ...formData, courseId: course._id })}
                                             className={`p-3 text-[10px] md:text-xs font-bold rounded-lg border-2 transition-all flex flex-col items-center justify-center leading-tight ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
                                         >
-                                            <span className="uppercase">{course.name}</span>
-                                            {/* Si hay nombres duplicados, el código ayuda a diferenciar */}
-                                            <span className={`text-[8px] opacity-70 mt-1 ${formData.courseId === course._id ? 'text-blue-100' : 'text-gray-400'}`}>
-                                                ID: {course._id.substring(course._id.length - 4)}
+                                            <span className="uppercase text-[10px] md:text-sm">{course.name}</span>
+                                            <span className={`text-[9px] font-black mt-1 px-1.5 py-0.5 rounded ${formData.courseId === course._id ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'}`}>
+                                                {course.code || `ID: ${course._id.substring(course._id.length - 4)}`}
                                             </span>
                                         </button>
                                     ))}
