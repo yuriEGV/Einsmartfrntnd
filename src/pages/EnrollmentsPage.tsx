@@ -58,9 +58,11 @@ const EnrollmentsPage = () => {
         studentId: '',
         courseId: '',
         period: new Date().getFullYear().toString(),
-        status: 'activo',
+        status: 'active',
         fee: 0,
         notes: '',
+        studentPhoto: '',
+        schoolLogo: '',
         // Direct creation data
         newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
         newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
@@ -152,9 +154,11 @@ const EnrollmentsPage = () => {
                 studentId: '',
                 courseId: '',
                 period: new Date().getFullYear().toString(),
-                status: 'activo',
+                status: 'active',
                 fee: 0,
                 notes: '',
+                studentPhoto: '',
+                schoolLogo: '',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
                 newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
@@ -326,6 +330,89 @@ const EnrollmentsPage = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Photo Upload Section */}
+                            <div className="mt-8 pt-8 border-t border-dashed grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Student Photo */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        📷 Foto del Estudiante (Opcional)
+                                    </label>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setFormData({ ...formData, studentPhoto: reader.result as string });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-blue-300 rounded-xl outline-none hover:border-blue-500 transition-all"
+                                        />
+                                        {formData.studentPhoto && (
+                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-blue-500">
+                                                <img
+                                                    src={formData.studentPhoto}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, studentPhoto: '' })}
+                                                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* School Logo */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        🏫 Logo del Colegio (Opcional)
+                                    </label>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setFormData({ ...formData, schoolLogo: reader.result as string });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-green-300 rounded-xl outline-none hover:border-green-500 transition-all"
+                                        />
+                                        {formData.schoolLogo && (
+                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-green-500">
+                                                <img
+                                                    src={formData.schoolLogo}
+                                                    alt="Logo Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, schoolLogo: '' })}
+                                                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
 
                             {/* Guardian Info - CRITICAL for notifications */}
                             <div className="mt-8 pt-8 border-t border-dashed">

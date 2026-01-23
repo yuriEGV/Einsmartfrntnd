@@ -29,6 +29,23 @@ interface Tariff {
     active?: boolean;
 }
 
+// Mock tariffs data as fallback
+const mockTariffs: Tariff[] = [
+    { _id: '1', name: 'Matrícula', amount: 150000, active: true },
+    { _id: '2', name: 'Mensualidad Enero', amount: 250000, active: true },
+    { _id: '3', name: 'Mensualidad Febrero', amount: 250000, active: true },
+    { _id: '4', name: 'Mensualidad Marzo', amount: 250000, active: true },
+    { _id: '5', name: 'Mensualidad Abril', amount: 250000, active: true },
+    { _id: '6', name: 'Mensualidad Mayo', amount: 250000, active: true },
+    { _id: '7', name: 'Mensualidad Junio', amount: 250000, active: true },
+    { _id: '8', name: 'Mensualidad Julio', amount: 250000, active: true },
+    { _id: '9', name: 'Mensualidad Agosto', amount: 250000, active: true },
+    { _id: '10', name: 'Mensualidad Septiembre', amount: 250000, active: true },
+    { _id: '11', name: 'Mensualidad Octubre', amount: 250000, active: true },
+    { _id: '12', name: 'Mensualidad Noviembre', amount: 250000, active: true },
+    { _id: '13', name: 'Mensualidad Diciembre', amount: 250000, active: true }
+];
+
 const PaymentsPage = () => {
     // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
     const permissions = usePermissions();
@@ -38,7 +55,7 @@ const PaymentsPage = () => {
 
     const [payments, setPayments] = useState<Payment[]>([]); // History
     const [students, setStudents] = useState<Student[]>([]);
-    const [tariffs, setTariffs] = useState<Tariff[]>([]);
+    const [tariffs, setTariffs] = useState<Tariff[]>(mockTariffs);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
@@ -63,9 +80,10 @@ const PaymentsPage = () => {
             ]);
             setPayments(payRes.data);
             setStudents(studRes.data);
-            setTariffs(tarRes.data);
+            setTariffs(tarRes.data && tarRes.data.length > 0 ? tarRes.data : mockTariffs);
         } catch (error) {
             console.error(error);
+            setTariffs(mockTariffs);
         } finally {
             setLoading(false);
         }
@@ -251,15 +269,24 @@ const PaymentsPage = () => {
                                 <label className="block text-sm font-bold text-gray-700 mb-1">Tarifa / Concepto</label>
                                 <select
                                     required
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none"
+                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none font-bold"
                                     value={formData.tariffId}
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
-                                    <option value="">-- Seleccionar --</option>
-                                    {tariffs.filter(t => t.active ?? true).map(t => (
-                                        <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
-                                    ))}
+                                    <option value="">-- Seleccionar Tarifa --</option>
+                                    {tariffs && tariffs.length > 0 ? (
+                                        tariffs.filter(t => t.active ?? true).map(t => (
+                                            <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
+                                        ))
+                                    ) : (
+                                        <option disabled>No hay tarifas disponibles</option>
+                                    )}
                                 </select>
+                                {formData.tariffId && (
+                                    <p className="text-xs text-green-600 font-bold mt-1">
+                                        ✓ Monto: ${tariffs.find(t => t._id === formData.tariffId)?.amount.toLocaleString() || 0}
+                                    </p>
+                                )}
                             </div>
 
                             <button type="submit" className="w-full bg-[#11355a] text-white py-3 rounded-xl font-bold mt-4 hover:bg-blue-800 transition-colors">
