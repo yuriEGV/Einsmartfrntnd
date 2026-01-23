@@ -100,7 +100,7 @@ const PaymentsPage = () => {
     const handleAssignPayment = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         try {
-            // Obtener la tarifa seleccionada
+            // Get the selected tariff from the list
             const selectedTariff = tariffs.find(t => t._id === formData.tariffId);
             if (!selectedTariff) {
                 alert('Por favor selecciona una tarifa válida');
