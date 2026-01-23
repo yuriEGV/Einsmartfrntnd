@@ -8,7 +8,7 @@ import { DollarSign, FileText, Printer, CheckCircle, Clock } from 'lucide-react'
 
 interface Payment {
     _id: string;
-    estudianteId: { nombres: string; apellidos: string; rut: string };
+    estudianteId: { nombres: string; apellidos: string; rut: string; _id?: string };
     concepto: string;
     amount: number;
     status: 'pending' | 'approved' | 'rejected';
