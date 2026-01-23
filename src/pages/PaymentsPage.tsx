@@ -49,7 +49,7 @@ const mockTariffs: Tariff[] = [
 ];
 
 const PaymentsPage = () => {
-    // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
+    // Sostenedor page - manage payment assignments and tracking
     const permissions = usePermissions();
     const { tenant } = useTenant();
     // Assuming PaymentsPage is visible to Admin/Sostenedor/Parents(future).
