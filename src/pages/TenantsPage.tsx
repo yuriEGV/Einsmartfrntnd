@@ -29,7 +29,8 @@ const TenantsPage = () => {
         paymentType: 'paid' as 'paid' | 'free',
         address: '',
         phone: '',
-        contactEmail: ''
+        contactEmail: '',
+        logoUrl: ''
     });
 
     useEffect(() => {
@@ -53,12 +54,25 @@ const TenantsPage = () => {
         e.preventDefault();
         try {
             if (modalMode === 'create') {
-                await api.post('/tenants', formData);
+                await api.post('/tenants', {
+                    ...formData,
+                    theme: { logoUrl: formData.logoUrl }
+                });
             } else {
-                await api.put(`/tenants/${currentTenantId}`, formData);
+                // Find existing tenant to preserve colors
+                const existingTenant = tenants.find(t => t._id === currentTenantId);
+                const existingTheme = (existingTenant as any)?.theme || {};
+
+                await api.put(`/tenants/${currentTenantId}`, {
+                    ...formData,
+                    theme: {
+                        ...existingTheme,
+                        logoUrl: formData.logoUrl
+                    }
+                });
             }
             setShowModal(false);
-            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
+            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '' });
             fetchTenants();
         } catch (err) {
             alert(`Error al ${modalMode === 'create' ? 'crear' : 'actualizar'} institución`);
@@ -84,7 +98,8 @@ const TenantsPage = () => {
             paymentType: t.paymentType || 'paid',
             address: t.address || '',
             phone: t.phone || '',
-            contactEmail: t.contactEmail || ''
+            contactEmail: t.contactEmail || '',
+            logoUrl: (t as any).theme?.logoUrl || ''
         });
         setShowModal(true);
     };
@@ -117,7 +132,8 @@ const TenantsPage = () => {
                 <button
                     onClick={() => {
                         setModalMode('create');
-                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
+                        setModalMode('create');
+                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '' });
                         setShowModal(true);
                     }}
                     className="w-full md:w-auto bg-blue-600 text-white px-6 md:px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 text-sm md:text-base"
@@ -348,6 +364,22 @@ const TenantsPage = () => {
                                     </div>
                                 </div>
 
+
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">URL DEL LOGO (IMAGEN)</label>
+                                    <input
+                                        className="w-full px-8 py-5 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 shadow-inner"
+                                        placeholder="https://ejemplo.com/logo.png"
+                                        value={formData.logoUrl}
+                                        onChange={e => setFormData({ ...formData, logoUrl: e.target.value })}
+                                    />
+                                    {formData.logoUrl && (
+                                        <div className="mt-2 flex justify-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                                            <img src={formData.logoUrl} alt="Vista previa" className="h-16 object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="md:col-span-2">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 ml-2 text-center md:text-left">SISTEMA DE FINANCIAMIENTO</label>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -430,9 +462,9 @@ const TenantsPage = () => {
                             </div>
                         </form>
                     </div>
-                </div>
+                </div >
             )}
-        </div>
+        </div >
     );
 };
 

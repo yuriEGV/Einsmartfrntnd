@@ -18,7 +18,8 @@ const SchoolSettingsPage = () => {
         academicYear: new Date().getFullYear().toString(),
         theme: {
             primaryColor: '#11355a',
-            secondaryColor: '#3b82f6'
+            secondaryColor: '#3b82f6',
+            logoUrl: ''
         }
     });
 
@@ -33,7 +34,8 @@ const SchoolSettingsPage = () => {
                 academicYear: tenant.academicYear || new Date().getFullYear().toString(),
                 theme: {
                     primaryColor: tenant.theme?.primaryColor || '#11355a',
-                    secondaryColor: tenant.theme?.secondaryColor || '#3b82f6'
+                    secondaryColor: tenant.theme?.secondaryColor || '#3b82f6',
+                    logoUrl: tenant.theme?.logoUrl || ''
                 }
             });
         }
@@ -132,6 +134,24 @@ const SchoolSettingsPage = () => {
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="md:col-span-2 space-y-4">
+                                <label className="block text-sm font-bold text-gray-700">Logo Institucional (URL)</label>
+                                <div className="flex flex-col md:flex-row gap-4 items-start">
+                                    <input
+                                        className="flex-1 w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none"
+                                        placeholder="https://ejemplo.com/logo.png"
+                                        value={formData.theme.logoUrl || ''}
+                                        onChange={e => setFormData({ ...formData, theme: { ...formData.theme, logoUrl: e.target.value } })}
+                                    />
+                                    {(formData.theme.logoUrl) && (
+                                        <div className="p-2 bg-gray-50 rounded-xl border flex items-center justify-center shrink-0">
+                                            <img src={formData.theme.logoUrl} alt="Logo Preview" className="h-10 object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-gray-400">URL pública de la imagen (PNG/JPG).</p>
+                            </div>
+
                             <div className="space-y-4">
                                 <label className="block text-sm font-bold text-gray-700">Color Primario (Sidebar / Botones)</label>
                                 <div className="flex items-center gap-4">
