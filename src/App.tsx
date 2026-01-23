@@ -23,6 +23,8 @@ import AttendancePage from './pages/AttendancePage';
 import TariffsPage from './pages/TariffsPage';
 import MessagesPage from './pages/MessagesPage';
 import CurriculumMaterialPage from './pages/CurriculumMaterialPage';
+import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de Nóminas
+import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
 
 function App() {
   return (
@@ -49,11 +51,16 @@ function App() {
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/evaluations" element={<EvaluationsPage />} />
-            <Route path="/evaluations" element={<EvaluationsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/curriculum-material" element={<CurriculumMaterialPage />} />
+
+            {/* Rutas para Gestión de Nóminas */}
+            <Route path="/payroll" element={<PayrollPage />} />
+            <Route path="/payroll/new" element={<PayrollForm />} />
+            <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
+
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

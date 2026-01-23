@@ -173,6 +173,11 @@ const Layout = () => {
                         )}
 
                         <NavLink to="/payments" icon={DollarSign}>Finanzas</NavLink>
+
+                        {/* Nuevo enlace para Nóminas */}
+                        {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
+                            <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
+                        )}
                     </div>
                 </nav>
 
