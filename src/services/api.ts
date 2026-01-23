@@ -1,13 +1,13 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-    // En producción (Vercel), usar la URL del backend desplegado
-    if (import.meta.env.PROD) {
-        // URL del backend en Vercel
+    // Detectar si estamos en producción (Vercel) basado en el hostname
+    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        // Estamos en Vercel u otro entorno de producción
         return 'https://einsmart-bcknd.vercel.app/api';
     }
-    
-    // En desarrollo, usar la variable de entorno o localhost por defecto
+
+    // En desarrollo local, usar la variable de entorno o localhost por defecto
     let url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
     // Remove newlines, carriage returns and spaces
     url = url.trim().replace(/[\r\n]/g, '');

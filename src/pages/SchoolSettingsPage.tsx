@@ -18,7 +18,8 @@ const SchoolSettingsPage = () => {
         academicYear: new Date().getFullYear().toString(),
         theme: {
             primaryColor: '#11355a',
-            secondaryColor: '#3b82f6'
+            secondaryColor: '#3b82f6',
+            logoUrl: ''
         }
     });
 
@@ -33,7 +34,8 @@ const SchoolSettingsPage = () => {
                 academicYear: tenant.academicYear || new Date().getFullYear().toString(),
                 theme: {
                     primaryColor: tenant.theme?.primaryColor || '#11355a',
-                    secondaryColor: tenant.theme?.secondaryColor || '#3b82f6'
+                    secondaryColor: tenant.theme?.secondaryColor || '#3b82f6',
+                    logoUrl: tenant.theme?.logoUrl || ''
                 }
             });
         }
@@ -61,11 +63,11 @@ const SchoolSettingsPage = () => {
     return (
         <div className="p-8 max-w-4xl mx-auto animate-in fade-in duration-500">
             <header className="mb-8">
-                <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                    <Building2 size={32} />
-                    Configuración de la Institución
+                <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3 text-wrap">
+                    <Building2 size={28} className="md:w-8 md:h-8 shrink-0" />
+                    Configuración Institucional
                 </h1>
-                <p className="text-gray-500 text-lg">Personaliza la identidad visual y datos de contacto de tu colegio.</p>
+                <p className="text-gray-500 text-sm md:text-lg mt-1">Identidad visual y datos de contacto.</p>
             </header>
 
             <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -132,6 +134,24 @@ const SchoolSettingsPage = () => {
                         </h2>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="md:col-span-2 space-y-4">
+                                <label className="block text-sm font-bold text-gray-700">Logo Institucional (URL)</label>
+                                <div className="flex flex-col md:flex-row gap-4 items-start">
+                                    <input
+                                        className="flex-1 w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none"
+                                        placeholder="https://ejemplo.com/logo.png"
+                                        value={formData.theme.logoUrl || ''}
+                                        onChange={e => setFormData({ ...formData, theme: { ...formData.theme, logoUrl: e.target.value } })}
+                                    />
+                                    {(formData.theme.logoUrl) && (
+                                        <div className="p-2 bg-gray-50 rounded-xl border flex items-center justify-center shrink-0">
+                                            <img src={formData.theme.logoUrl} alt="Logo Preview" className="h-10 object-contain" onError={(e) => (e.currentTarget.style.display = 'none')} />
+                                        </div>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-gray-400">URL pública de la imagen (PNG/JPG).</p>
+                            </div>
+
                             <div className="space-y-4">
                                 <label className="block text-sm font-bold text-gray-700">Color Primario (Sidebar / Botones)</label>
                                 <div className="flex items-center gap-4">

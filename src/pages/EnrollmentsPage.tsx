@@ -2,28 +2,14 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert, Users } from 'lucide-react';
+import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
 
 interface Course {
     _id: string;
     name: string;
+    code?: string;
+    teacherId?: { name: string };
 }
-
-// Mock data for courses if API fails
-const mockCourses: Course[] = [
-    { _id: '1', name: '1° Básico' },
-    { _id: '2', name: '2° Básico' },
-    { _id: '3', name: '3° Básico' },
-    { _id: '4', name: '4° Básico' },
-    { _id: '5', name: '5° Básico' },
-    { _id: '6', name: '6° Básico' },
-    { _id: '7', name: '7° Básico' },
-    { _id: '8', name: '8° Básico' },
-    { _id: '9', name: '1° Medio' },
-    { _id: '10', name: '2° Medio' },
-    { _id: '11', name: '3° Medio' },
-    { _id: '12', name: '4° Medio' }
-];
 
 interface Enrollment {
     _id: string;
@@ -38,7 +24,7 @@ interface Enrollment {
 const EnrollmentsPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
-    const [courses, setCourses] = useState<Course[]>(mockCourses);
+    const [courses, setCourses] = useState<Course[]>([]);
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
     const [loading, setLoading] = useState(false);
@@ -49,20 +35,15 @@ const EnrollmentsPage = () => {
 
     // State for toggle
     const [isNewStudent, setIsNewStudent] = useState(false);
-    const [useExistingGuardian, setUseExistingGuardian] = useState(false);
-    const [guardians, setGuardians] = useState<any[]>([]);
-    const [searchTermGuardian, setSearchTermGuardian] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
         studentId: '',
         courseId: '',
         period: new Date().getFullYear().toString(),
-        status: 'active',
+        status: 'confirmada',
         fee: 0,
         notes: '',
-        studentPhoto: '',
-        schoolLogo: '',
         // Direct creation data
         newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
         newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
@@ -73,7 +54,6 @@ const EnrollmentsPage = () => {
             fetchCourses();
             fetchEnrollments();
             fetchStudents();
-            fetchGuardians();
         }
     }, [permissions.canManageEnrollments]);
 
@@ -96,22 +76,12 @@ const EnrollmentsPage = () => {
         }
     };
 
-    const fetchGuardians = async () => {
-        try {
-            const res = await api.get('/apoderados');
-            setGuardians(res.data);
-        } catch (err) {
-            console.error('Error fetching guardians:', err);
-        }
-    };
-
     const fetchCourses = async () => {
         try {
             const res = await api.get('/courses');
-            setCourses(res.data && res.data.length > 0 ? res.data : mockCourses);
+            setCourses(res.data);
         } catch (err) {
             console.error('Error fetching courses:', err);
-            setCourses(mockCourses);
         }
     };
 
@@ -122,6 +92,20 @@ const EnrollmentsPage = () => {
             setEnrollments(res.data);
         } catch (err) {
             console.error('Error fetching enrollments:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSendInstitutionalList = async () => {
+        if (!window.confirm('¿Desea enviar el listado completo de alumnos matriculados al sostenedor para la creación de correos institucionales?')) return;
+        setLoading(true);
+        try {
+            const res = await api.post('/enrollments/send-institutional-list');
+            alert(res.data.message);
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Error al enviar el listado');
         } finally {
             setLoading(false);
         }
@@ -148,29 +132,16 @@ const EnrollmentsPage = () => {
 
         setLoading(true);
         try {
-            // Crear objeto sin las imágenes (Base64 es demasiado pesado)
-            const enrollmentData = {
-                studentId: formData.studentId,
-                courseId: formData.courseId,
-                period: formData.period,
-                status: formData.status,
-                fee: formData.fee,
-                notes: formData.notes,
-                newStudent: isNewStudent ? formData.newStudent : undefined,
-                newGuardian: formData.newGuardian
-            };
-            
+            const enrollmentData = { ...formData, status: 'confirmada' };
             await api.post('/enrollments', enrollmentData);
             alert('¡Matrícula exitosa!');
             setFormData({
                 studentId: '',
                 courseId: '',
                 period: new Date().getFullYear().toString(),
-                status: 'active',
+                status: 'confirmada',
                 fee: 0,
                 notes: '',
-                studentPhoto: '',
-                schoolLogo: '',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
                 newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
@@ -208,36 +179,47 @@ const EnrollmentsPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
                 <div>
-                    <h1 className="text-3xl font-extrabold text-[#11355a] flex items-center gap-3">
-                        <UserPlus size={32} />
-                        Gestión de Matrículas
+                    <h1 className="text-xl md:text-3xl font-extrabold text-[#11355a] flex items-center gap-2 md:gap-3">
+                        <UserPlus size={24} className="md:w-8 md:h-8" />
+                        Matrículas
                     </h1>
-                    <p className="text-gray-500 mt-1 text-lg">Inscribe nuevos alumnos y gestiona sus periodos académicos.</p>
+                    <p className="text-gray-500 mt-1 text-xs md:text-lg">Inscripciones y periodos académicos.</p>
                 </div>
 
-                <div className="flex bg-white rounded-xl shadow-sm border p-1">
-                    <button
-                        onClick={() => setActiveTab('list')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        Ver Matrículas
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('new')}
-                        className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-md' : 'text-gray-600 hover:bg-gray-50'}`}
-                    >
-                        Nueva Matrícula
-                    </button>
+                <div className="flex w-full md:w-auto bg-white rounded-2xl shadow-sm border p-1.5 flex-wrap gap-2">
+                    <div className="flex bg-slate-100 p-1 rounded-xl">
+                        <button
+                            onClick={() => setActiveTab('list')}
+                            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'list' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            LISTADO
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('new')}
+                            className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'new' ? 'bg-[#11355a] text-white shadow-xl shadow-blue-900/20' : 'text-slate-400 hover:text-slate-600'}`}
+                        >
+                            NUEVA
+                        </button>
+                    </div>
+                    {permissions.isSuperAdmin && activeTab === 'list' && (
+                        <button
+                            onClick={handleSendInstitutionalList}
+                            className="px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                        >
+                            <Save size={14} />
+                            Enviar Listado Institucional
+                        </button>
+                    )}
                 </div>
             </div>
 
             {activeTab === 'new' ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="lg:col-span-2 space-y-6">
+                <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="lg:col-span-2 space-y-4 md:space-y-6 order-2 lg:order-1">
                         {/* Student Info Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-8">
+                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-3 md:p-8">
                             <div className="flex justify-between items-center mb-6 border-b pb-4">
                                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                     <UserCheck className="text-blue-600" />
@@ -343,160 +325,12 @@ const EnrollmentsPage = () => {
                                 </div>
                             )}
 
-                            {/* Photo Upload Section */}
-                            <div className="mt-8 pt-8 border-t border-dashed grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {/* Student Photo */}
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                        📷 Foto del Estudiante <span className="text-xs text-gray-400">(Vista previa local)</span>
-                                    </label>
-                                    <div className="space-y-2">
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={(e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    const reader = new FileReader();
-                                                    reader.onloadend = () => {
-                                                        setFormData({ ...formData, studentPhoto: reader.result as string });
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                }
-                                            }}
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-blue-300 rounded-xl outline-none hover:border-blue-500 transition-all"
-                                        />
-                                        {formData.studentPhoto && (
-                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-blue-500">
-                                                <img
-                                                    src={formData.studentPhoto}
-                                                    alt="Preview"
-                                                    className="w-full h-full object-cover"
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, studentPhoto: '' })}
-                                                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* School Logo - Solo para sostenedores */}
-                                {permissions.isSostenedor && (
-                                    <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                            🏫 Logo del Colegio <span className="text-xs text-gray-400">(Vista previa local)</span>
-                                        </label>
-                                        <div className="space-y-2">
-                                            <input
-                                                type="file"
-                                                accept="image/*"
-                                                onChange={(e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (file) {
-                                                        const reader = new FileReader();
-                                                        reader.onloadend = () => {
-                                                            setFormData({ ...formData, schoolLogo: reader.result as string });
-                                                        };
-                                                        reader.readAsDataURL(file);
-                                                    }
-                                                }}
-                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-green-300 rounded-xl outline-none hover:border-green-500 transition-all"
-                                            />
-                                            {formData.schoolLogo && (
-                                                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-green-500">
-                                                    <img
-                                                        src={formData.schoolLogo}
-                                                        alt="Logo Preview"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => setFormData({ ...formData, schoolLogo: '' })}
-                                                        className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
                             {/* Guardian Info - CRITICAL for notifications */}
                             <div className="mt-8 pt-8 border-t border-dashed">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
-                                        <ShieldAlert size={16} className="text-orange-500" />
-                                        Información del Apoderado (Para Notificaciones)
-                                    </h3>
-                                    <button
-                                        type="button"
-                                        onClick={() => setUseExistingGuardian(!useExistingGuardian)}
-                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${useExistingGuardian ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
-                                    >
-                                        {useExistingGuardian ? '✓ Usar Existente' : '+ Nuevo Apoderado'}
-                                    </button>
-                                </div>
-
-                                {useExistingGuardian && guardians.length > 0 ? (
-                                    <div className="mb-4">
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Apoderado Existente</label>
-                                        <div className="relative">
-                                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                                            <input
-                                                placeholder="Nombre, apellido o email del apoderado..."
-                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none shadow-inner font-bold"
-                                                value={searchTermGuardian}
-                                                onChange={e => setSearchTermGuardian(e.target.value)}
-                                            />
-                                        </div>
-                                        {searchTermGuardian && (
-                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
-                                                {guardians
-                                                    .filter(g =>
-                                                        `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
-                                                    )
-                                                    .slice(0, 5)
-                                                    .map(g => (
-                                                        <button
-                                                            key={g._id}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                setFormData({
-                                                                    ...formData,
-                                                                    newGuardian: {
-                                                                        nombre: g.nombre || '',
-                                                                        apellidos: g.apellidos || '',
-                                                                        correo: g.correo || '',
-                                                                        telefono: g.telefono || '',
-                                                                        direccion: g.direccion || '',
-                                                                        parentesco: g.parentesco || 'Padre'
-                                                                    }
-                                                                });
-                                                                setSearchTermGuardian('');
-                                                            }}
-                                                            className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
-                                                        >
-                                                            <div className="font-bold text-sm">{g.nombre} {g.apellidos}</div>
-                                                            <div className="text-[10px] text-gray-400">{g.correo} | {g.telefono || 'N/A'}</div>
-                                                        </button>
-                                                    ))}
-                                                {guardians.filter(g =>
-                                                    `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
-                                                ).length === 0 && (
-                                                    <div className="px-4 py-4 text-center text-gray-400 text-sm">No se encontraron apoderados</div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                ) : null}
-
+                                <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                    <ShieldAlert size={16} className="text-orange-500" />
+                                    Información del Apoderado (Para Notificaciones)
+                                </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         placeholder="Nombre Apoderado"
@@ -527,48 +361,33 @@ const EnrollmentsPage = () => {
                                         onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
                                     />
                                 </div>
-
-                                <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-lg">
-                                    <p className="text-xs text-green-700 font-bold flex items-center gap-2">
-                                        <Users size={14} />
-                                        💡 Tip: Si necesitas matricular a más hermanos/as con este mismo apoderado, reutiliza estos datos en la siguiente matrícula.
-                                    </p>
-                                </div>
                             </div>
 
-                            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl">
-                                <p className="text-base text-blue-800 font-bold flex items-center gap-2 mb-4">
-                                    <BookOpen size={20} className="text-blue-600" />
+                            <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                                <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
+                                    <BookOpen size={16} />
                                     ¿A qué curso será asignado?
                                 </p>
-                                {courses && courses.length > 0 ? (
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                        {courses.map(course => (
-                                            <button
-                                                key={course._id}
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, courseId: course._id })}
-                                                className={`p-4 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'}`}
-                                            >
-                                                {course.name}
-                                            </button>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="p-4 bg-white rounded-lg border-2 border-yellow-300 text-yellow-800 font-bold text-center">
-                                        ⚠️ No hay cursos disponibles. Por favor, crea cursos primero.
-                                    </div>
-                                )}
-                                {formData.courseId && (
-                                    <div className="mt-4 p-3 bg-green-100 border-l-4 border-green-600 rounded text-green-800 font-bold text-sm">
-                                        ✓ Curso seleccionado: {courses.find(c => c._id === formData.courseId)?.name}
-                                    </div>
-                                )}
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
+                                    {courses.map(course => (
+                                        <button
+                                            key={course._id}
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, courseId: course._id })}
+                                            className={`p-4 text-[10px] md:text-xs font-bold rounded-2xl border-2 transition-all flex flex-col items-center justify-center leading-tight min-h-[80px] ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-600 hover:border-blue-300'}`}
+                                        >
+                                            <span className="uppercase text-[10px] md:text-sm font-black">{course.name}</span>
+                                            <span className={`text-[9px] font-black mt-1.5 px-2 py-0.5 rounded-lg uppercase tracking-tighter ${formData.courseId === course._id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                {course.teacherId?.name || 'S/ Profesor'}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
                         {/* Arancel Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-emerald-500 p-8">
+                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-emerald-500 p-4 md:p-8">
                             <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2 border-b pb-4">
                                 <CreditCard className="text-emerald-600" />
                                 {tenant?.paymentType === 'paid' ? 'Arancel y Pagos' : 'Información Adicional'}
@@ -618,17 +437,17 @@ const EnrollmentsPage = () => {
                     </div>
 
                     {/* Summary / Action Card */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-[#11355a] rounded-2xl p-6 text-white shadow-2xl sticky top-8 border-b-8 border-blue-900">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 opacity-90 tracking-tighter">
+                    <div className="lg:col-span-1 order-1 lg:order-2">
+                        <div className="bg-[#11355a] rounded-2xl p-4 md:p-6 text-white shadow-2xl md:sticky md:top-8 border-b-8 border-blue-900">
+                            <h3 className="text-sm md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2 opacity-90 tracking-tighter">
                                 <ChevronRight size={20} />
                                 RESUMEN FINAL
                             </h3>
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between border-b border-blue-800 pb-2">
                                     <span className="text-blue-300 text-xs font-bold uppercase tracking-widest">Estudiante:</span>
-                                    <span className="font-bold text-sm truncate max-w-[120px]">
-                                        {isNewStudent ? (formData.newStudent.nombres || 'PENDIENTE') : (formData.studentId || 'N/A')}
+                                    <span className="font-bold text-sm truncate max-w-[150px]">
+                                        {isNewStudent ? (formData.newStudent.nombres || 'PENDIENTE') : (filteredStudents.find(s => s._id === formData.studentId)?.nombres || 'PDTE')}
                                     </span>
                                 </div>
                                 <div className="flex justify-between border-b border-blue-800 pb-2">
@@ -660,74 +479,98 @@ const EnrollmentsPage = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-8 animate-in slide-in-from-top-4 duration-500">
-                    <div className="flex justify-between items-center mb-6">
-                        <div className="relative flex-1 max-w-md">
+                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-3 md:p-8 animate-in slide-in-from-top-4 duration-500">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div className="relative w-full md:max-w-md">
                             <input
                                 type="text"
                                 placeholder="Buscar inscritos..."
-                                className="w-full pl-10 pr-4 py-2 bg-gray-50 border rounded-xl outline-none focus:ring-2 focus:ring-blue-100"
+                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                             />
-                            <Search className="absolute left-3 top-2.5 text-gray-400" size={18} />
+                            <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
                         </div>
                     </div>
 
                     {loading ? (
                         <div className="space-y-3">
                             {[1, 2, 3].map(i => (
-                                <div key={i} className="h-14 bg-gray-50 rounded-xl animate-pulse border border-gray-100 flex items-center px-4 gap-4">
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                                </div>
+                                <div key={i} className="h-16 bg-gray-50 rounded-xl animate-pulse border border-gray-100"></div>
                             ))}
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="text-xs font-black text-gray-400 uppercase tracking-widest border-b">
-                                        <th className="pb-4 pt-2 px-4">Estudiante</th>
-                                        <th className="pb-4 pt-2 px-4">Curso</th>
-                                        <th className="pb-4 pt-2 px-4">Periodo</th>
-                                        <th className="pb-4 pt-2 px-4">Fecha</th>
-                                        <th className="pb-4 pt-2 px-4 text-right">Monto</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y">
-                                    {filteredEnrollments.map(enrollment => (
-                                        <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors group">
-                                            <td className="py-4 px-4 font-bold text-gray-800">
-                                                {enrollment.estudianteId
-                                                    ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
-                                                    : 'Desconocido'}
-                                            </td>
-                                            <td className="py-4 px-4">
-                                                <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">
-                                                    {enrollment.courseId?.name || 'N/A'}
-                                                </span>
-                                            </td>
-                                            <td className="py-4 px-4 text-sm text-gray-500 font-medium">
-                                                {enrollment.period}
-                                            </td>
-                                            <td className="py-4 px-4 text-xs text-gray-400">
-                                                {new Date(enrollment.createdAt).toLocaleDateString()}
-                                            </td>
-                                            <td className="py-4 px-4 text-right font-mono font-bold text-emerald-600">
+                        <>
+                            {/* Mobile Card Grid - Unified Premium Style */}
+                            <div className="md:hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {filteredEnrollments.map(enrollment => (
+                                    <div key={enrollment._id} className="p-5 bg-white rounded-3xl border border-slate-100 shadow-sm flex flex-col group">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className="min-w-0">
+                                                <div className="font-black text-slate-800 text-sm truncate uppercase tracking-tight">
+                                                    {enrollment.estudianteId ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}` : 'No Asignado'}
+                                                </div>
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1 opacity-70 truncate">
+                                                    {enrollment.courseId?.name || 'S/N'}
+                                                </div>
+                                            </div>
+                                            <div className="text-sm font-black text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-xl border border-emerald-100 flex items-center justify-center min-w-[80px]">
                                                 ${enrollment.fee.toLocaleString()}
-                                            </td>
+                                            </div>
+                                        </div>
+                                        <div className="mt-auto flex justify-between text-[9px] text-slate-400 font-extrabold border-t border-slate-50 pt-3 uppercase tracking-tighter">
+                                            <span>PERIODO: {enrollment.period}</span>
+                                            <span>{new Date(enrollment.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="text-xs font-black text-gray-400 uppercase tracking-widest border-b">
+                                            <th className="pb-4 pt-2 px-4">Estudiante</th>
+                                            <th className="pb-4 pt-2 px-4">Curso</th>
+                                            <th className="pb-4 pt-2 px-4">Periodo</th>
+                                            <th className="pb-4 pt-2 px-4">Fecha</th>
+                                            <th className="pb-4 pt-2 px-4 text-right">Monto</th>
                                         </tr>
-                                    ))}
-                                    {filteredEnrollments.length === 0 && (
-                                        <tr>
-                                            <td colSpan={5} className="py-20 text-center text-gray-400 font-medium italic">
-                                                No se encontraron matrículas para mostrar.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y">
+                                        {filteredEnrollments.map(enrollment => (
+                                            <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors group">
+                                                <td className="py-4 px-4 font-bold text-gray-800">
+                                                    {enrollment.estudianteId
+                                                        ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
+                                                        : 'Desconocido'}
+                                                </td>
+                                                <td className="py-4 px-4">
+                                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">
+                                                        {enrollment.courseId?.name || 'N/A'}
+                                                    </span>
+                                                </td>
+                                                <td className="py-4 px-4 text-sm text-gray-500 font-medium">
+                                                    {enrollment.period}
+                                                </td>
+                                                <td className="py-4 px-4 text-xs text-gray-400">
+                                                    {new Date(enrollment.createdAt).toLocaleDateString()}
+                                                </td>
+                                                <td className="py-4 px-4 text-right font-mono font-bold text-emerald-600">
+                                                    ${enrollment.fee.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </>
+                    )}
+
+                    {!loading && filteredEnrollments.length === 0 && (
+                        <div className="py-20 text-center text-gray-400 font-medium italic">
+                            No se encontraron matrículas.
                         </div>
                     )}
                 </div>
