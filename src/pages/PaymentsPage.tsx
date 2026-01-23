@@ -170,13 +170,13 @@ const PaymentsPage = () => {
                             onClick={() => {
                                 setFormData({ estudianteId: '', tariffId: '' });
                                 setShowModal(true);
-                        }}
-                        className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
-                    >
-                        <CreditCard size={20} />
-                        Asignar Cobro
-                    </button>
-                )}
+                            }}
+                            className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                        >
+                            <CreditCard size={20} />
+                            Asignar Cobro
+                        </button>
+                    )}
             </div>
 
             {/* Institutional Fee Reference Card */}
