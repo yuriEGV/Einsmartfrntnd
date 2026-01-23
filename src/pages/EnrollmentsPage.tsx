@@ -132,7 +132,8 @@ const EnrollmentsPage = () => {
 
         setLoading(true);
         try {
-            await api.post('/enrollments', formData);
+            const enrollmentData = { ...formData, status: 'confirmada' };
+            await api.post('/enrollments', enrollmentData);
             alert('¡Matrícula exitosa!');
             setFormData({
                 studentId: '',
