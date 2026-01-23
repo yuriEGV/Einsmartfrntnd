@@ -149,20 +149,20 @@ const PaymentsPage = () => {
             )}
             
             {permissions.isSostenedor && (
-            <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <DollarSign size={32} />
-                        Pagos y Cobranza
-                    </h1>
-                    <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
-                </div>
-                {permissions.user?.role !== 'student' && (
-                    <button
-                        onClick={() => {
-                            setFormData({ estudianteId: '', tariffId: '' });
-                            setShowModal(true);
+                <>
+                <div className="flex justify-between items-center mb-8">
+                    <div>
+                        <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <DollarSign size={32} />
+                            Pagos y Cobranza
+                        </h1>
+                        <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
+                    </div>
+                    {permissions.user?.role !== 'student' && (
+                        <button
+                            onClick={() => {
+                                setFormData({ estudianteId: '', tariffId: '' });
+                                setShowModal(true);
                         }}
                         className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
                     >
@@ -313,6 +313,7 @@ const PaymentsPage = () => {
                     </div>
                 </div>
             )}
+            </>
             )}
         </div>
     );
