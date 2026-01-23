@@ -24,14 +24,22 @@ const TenantsPage = () => {
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentTenantId, setCurrentTenantId] = useState<string | null>(null);
     const [showModal, setShowModal] = useState(false);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        name: string;
+        domain: string;
+        paymentType: 'paid' | 'free';
+        address: string;
+        phone: string;
+        contactEmail: string;
+        logo: string;
+    }>({
         name: '',
         domain: '',
-        paymentType: 'paid' as 'paid' | 'free',
+        paymentType: 'paid',
         address: '',
         phone: '',
         contactEmail: '',
-        logo: '' // Base64 or URL
+        logo: ''
     });
 
     useEffect(() => {
