@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getPayrollPayments, deletePayrollPayment } from '../services/payrollService';
-import { getUsers } from '../services/userService'; // Importar el servicio de usuarios
+import { getUsers } from '../services/userService';
+import { useReactToPrint } from 'react-to-print'; // Importar useReactToPrint
 
 interface PayrollPayment {
     _id: string;
@@ -30,6 +31,12 @@ const PayrollPage: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const { user, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    const componentRef = useRef<HTMLDivElement>(null); // Referencia para el componente a imprimir
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+        documentTitle: 'Lista de Pagos de Nómina',
+    });
 
     useEffect(() => {
         if (!isLoading && (!isAuthenticated || !(user?.role === 'admin' || user?.role === 'sostenedor'))) {
@@ -99,15 +106,22 @@ const PayrollPage: React.FC = () => {
 
             <button
                 onClick={() => navigate('/payroll/new')}
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
+                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 mr-2"
             >
                 Crear Nuevo Pago de Nómina
+            </button>
+            <button
+                onClick={handlePrint}
+                className="bg-gray-600 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded mb-4"
+            >
+                Imprimir Lista
             </button>
 
             {payments.length === 0 ? (
                 <p>No hay pagos de nómina registrados.</p>
             ) : (
-                <div className="overflow-x-auto">
+                <div ref={componentRef} className="overflow-x-auto p-4">
+                    <h2 className="text-xl font-bold mb-4 print-only">Lista de Pagos de Nómina</h2>
                     <table className="min-w-full bg-white border border-gray-200">
                         <thead>
                             <tr>
