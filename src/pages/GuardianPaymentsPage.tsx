@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import { DollarSign, FileText, Printer, Eye, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 interface Payment {
@@ -96,17 +97,20 @@ const GuardianPaymentsPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <DollarSign size={32} />
-                        Mis Pagos y Deudas
-                    </h1>
-                    <p className="text-gray-500 font-medium">Consulta el estado de tus pagos y realiza nuevos pagos en línea.</p>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <DollarSign size={32} />
+                            Mis Pagos y Deudas
+                        </h1>
+                        <p className="text-gray-500 font-medium">Consulta el estado de tus pagos y realiza nuevos pagos en línea.</p>
+                    </div>
                 </div>
                 <button
                     onClick={handlePrint}
-                    className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg"
+                    className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg whitespace-nowrap"
                 >
                     <Printer size={20} />
                     Imprimir
@@ -168,7 +172,9 @@ const GuardianPaymentsPage = () => {
             {/* Payments Table */}
             {!loading ? (
                 filteredPayments.length > 0 ? (
-                    <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
+                    <>
+                    {/* Tabla para desktop */}
+                    <div className="hidden md:block bg-white rounded-2xl shadow-xl overflow-hidden">
                         <table className="w-full">
                             <thead className="bg-[#11355a] text-white">
                                 <tr>
@@ -224,6 +230,52 @@ const GuardianPaymentsPage = () => {
                             </tbody>
                         </table>
                     </div>
+
+                    {/* Cards para mobile */}
+                    <div className="md:hidden space-y-3">
+                        {filteredPayments.map((payment) => (
+                            <div key={payment._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                                <div className="mb-3">
+                                    <p className="font-bold text-gray-900">{payment.estudianteId.nombres}</p>
+                                    <p className="text-xs text-gray-500">{payment.estudianteId.rut}</p>
+                                </div>
+                                <div className="mb-3">
+                                    <p className="text-xs text-gray-500 uppercase font-bold">Concepto</p>
+                                    <p className="font-bold text-gray-900">{payment.concepto}</p>
+                                </div>
+                                <div className="mb-3 grid grid-cols-2 gap-3">
+                                    <div>
+                                        <p className="text-xs text-gray-500 uppercase font-bold">Monto</p>
+                                        <p className="font-black text-gray-800">${payment.amount.toLocaleString()}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 uppercase font-bold">Fecha</p>
+                                        <p className="text-sm text-gray-600">{new Date(payment.createdAt).toLocaleDateString('es-CL')}</p>
+                                    </div>
+                                </div>
+                                <div className="mb-3">
+                                    {payment.status === 'approved' && (
+                                        <span className="inline-block bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-bold">✓ Pagado</span>
+                                    )}
+                                    {payment.status === 'pending' && (
+                                        <span className="inline-block bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-bold">⏱ Pendiente</span>
+                                    )}
+                                    {payment.status === 'rejected' && (
+                                        <span className="inline-block bg-red-100 text-red-800 px-3 py-1 rounded-full text-xs font-bold">✕ Rechazado</span>
+                                    )}
+                                </div>
+                                {payment.status === 'pending' && (
+                                    <button
+                                        onClick={() => handlePayOnline(payment._id)}
+                                        className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-all"
+                                    >
+                                        Pagar Ahora
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                    </>
                 ) : (
                     <div className="text-center py-12 bg-white rounded-2xl">
                         <FileText size={48} className="text-gray-300 mx-auto mb-4" />
