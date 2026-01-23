@@ -60,7 +60,7 @@ const TenantsPage = () => {
                 await api.put(`/tenants/${currentTenantId}`, formData);
             }
             setShowModal(false);
-            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '' });
+            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logo: '' });
             fetchTenants();
         } catch (err) {
             alert(`Error al ${modalMode === 'create' ? 'crear' : 'actualizar'} institución`);
