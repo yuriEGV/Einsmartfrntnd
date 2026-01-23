@@ -4,7 +4,7 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import TenantLogo from '../components/TenantLogo';
-import { DollarSign, FileText, Printer, Eye, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { DollarSign, FileText, Printer, CheckCircle, Clock } from 'lucide-react';
 
 interface Payment {
     _id: string;
@@ -84,7 +84,10 @@ const GuardianPaymentsPage = () => {
     }
 
     const filteredPayments = selectedStudent
-        ? payments.filter(p => p.estudianteId._id === selectedStudent)
+        ? payments.filter(p => {
+            // Si estudianteId tiene _id, usarlo; si no, comparar por rut
+            return (p.estudianteId._id === selectedStudent) || (p.estudianteId.rut === selectedStudent);
+        })
         : payments;
 
     const totalAmount = filteredPayments.reduce((sum, p) => sum + p.amount, 0);
