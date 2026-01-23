@@ -6,6 +6,7 @@ import AnnotationsPage from './pages/AnnotationsPage';
 import GradesPage from './pages/GradesPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import PaymentsPage from './pages/PaymentsPage';
+import GuardianPaymentsPage from './pages/GuardianPaymentsPage';
 import StudentsPage from './pages/StudentsPage';
 import UsersPage from './pages/UsersPage';
 import EventsPage from './pages/EventsPage';
@@ -44,6 +45,7 @@ function App() {
             <Route path="/settings" element={<SchoolSettingsPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/my-payments" element={<GuardianPaymentsPage />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/evaluations" element={<EvaluationsPage />} />

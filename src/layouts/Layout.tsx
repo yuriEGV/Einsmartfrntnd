@@ -136,10 +136,21 @@ const Layout = () => {
                             </Link>
                         )}
 
-                        <Link to="/payments" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
-                            <DollarSign size={20} className="text-blue-300 group-hover:text-white" />
-                            <span className="font-bold text-sm">Pagos y Aranceles</span>
-                        </Link>
+                        {/* Pagos - Solo sostenedor */}
+                        {permissions.isSostenedor && (
+                            <Link to="/payments" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
+                                <DollarSign size={20} className="text-blue-300 group-hover:text-white" />
+                                <span className="font-bold text-sm">Aranceles y Cobros</span>
+                            </Link>
+                        )}
+
+                        {/* Mis Pagos - Solo apoderado */}
+                        {permissions.user?.role === 'apoderado' && (
+                            <Link to="/my-payments" className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/10 transition-all group">
+                                <DollarSign size={20} className="text-green-300 group-hover:text-white" />
+                                <span className="font-bold text-sm">Mis Pagos</span>
+                            </Link>
+                        )}
                     </div>
                 </nav>
 
