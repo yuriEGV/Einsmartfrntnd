@@ -148,7 +148,19 @@ const EnrollmentsPage = () => {
 
         setLoading(true);
         try {
-            await api.post('/enrollments', formData);
+            // Crear objeto sin las imágenes (Base64 es demasiado pesado)
+            const enrollmentData = {
+                studentId: formData.studentId,
+                courseId: formData.courseId,
+                period: formData.period,
+                status: formData.status,
+                fee: formData.fee,
+                notes: formData.notes,
+                newStudent: isNewStudent ? formData.newStudent : undefined,
+                newGuardian: formData.newGuardian
+            };
+            
+            await api.post('/enrollments', enrollmentData);
             alert('¡Matrícula exitosa!');
             setFormData({
                 studentId: '',
@@ -336,7 +348,7 @@ const EnrollmentsPage = () => {
                                 {/* Student Photo */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                        📷 Foto del Estudiante (Opcional)
+                                        📷 Foto del Estudiante <span className="text-xs text-gray-400">(Vista previa local)</span>
                                     </label>
                                     <div className="space-y-2">
                                         <input
@@ -376,7 +388,7 @@ const EnrollmentsPage = () => {
                                 {/* School Logo */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
-                                        🏫 Logo del Colegio (Opcional)
+                                        🏫 Logo del Colegio <span className="text-xs text-gray-400">(Vista previa local)</span>
                                     </label>
                                     <div className="space-y-2">
                                         <input
