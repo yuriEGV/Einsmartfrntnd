@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -147,19 +148,12 @@ const PaymentsPage = () => {
     );
 
     return (
-        <div className="p-6 max-w-7xl mx-auto">
-            {/* Solo sostenedor puede ver esta página */}
-            {!permissions.isSostenedor && (
-                <div className="flex flex-col items-center justify-center p-20 text-center">
-                    <DollarSign size={64} className="text-rose-500 mb-6" />
-                    <h1 className="text-2xl font-black text-gray-800 uppercase">Acceso Restringido</h1>
-                    <p className="text-gray-500">Solo el sostenedor del establecimiento puede gestionar aranceles y cobros.</p>
-                </div>
-            )}
+        <>
+            {/* Solo sostenedor puede ver esta página - redireccionar si no lo es */}
+            {!permissions.isSostenedor && <Navigate to="/" replace />}
             
             {permissions.isSostenedor && (
-                <>
-                <div className="flex justify-between items-center mb-8">
+            <div className="p-6 max-w-7xl mx-auto">
                     <div>
                         <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
                             <DollarSign size={32} />
@@ -322,9 +316,9 @@ const PaymentsPage = () => {
                     </div>
                 </div>
             )}
-            </>
+            </div>
             )}
-        </div>
+        </>
     );
 };
 

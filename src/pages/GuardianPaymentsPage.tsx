@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -76,15 +77,9 @@ const GuardianPaymentsPage = () => {
             alert('Error al iniciar el pago. Por favor intenta más tarde.');
         }
     };
-
+    // Solo apoderados pueden acceder - redirigir si no lo son
     if (permissions.user?.role !== 'apoderado') {
-        return (
-            <div className="flex flex-col items-center justify-center p-20 text-center">
-                <AlertCircle size={64} className="text-rose-500 mb-6" />
-                <h1 className="text-2xl font-black text-gray-800 uppercase">Acceso Restringido</h1>
-                <p className="text-gray-500">Solo apoderados pueden ver esta sección.</p>
-            </div>
-        );
+        return <Navigate to="/" replace />;
     }
 
     const filteredPayments = selectedStudent
