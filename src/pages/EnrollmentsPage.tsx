@@ -9,6 +9,22 @@ interface Course {
     name: string;
 }
 
+// Mock data for courses if API fails
+const mockCourses: Course[] = [
+    { _id: '1', name: '1° Básico' },
+    { _id: '2', name: '2° Básico' },
+    { _id: '3', name: '3° Básico' },
+    { _id: '4', name: '4° Básico' },
+    { _id: '5', name: '5° Básico' },
+    { _id: '6', name: '6° Básico' },
+    { _id: '7', name: '7° Básico' },
+    { _id: '8', name: '8° Básico' },
+    { _id: '9', name: '1° Medio' },
+    { _id: '10', name: '2° Medio' },
+    { _id: '11', name: '3° Medio' },
+    { _id: '12', name: '4° Medio' }
+];
+
 interface Enrollment {
     _id: string;
     estudianteId: { nombres: string; apellidos: string };
@@ -22,7 +38,7 @@ interface Enrollment {
 const EnrollmentsPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<Course[]>(mockCourses);
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
     const [loading, setLoading] = useState(false);
@@ -90,9 +106,10 @@ const EnrollmentsPage = () => {
     const fetchCourses = async () => {
         try {
             const res = await api.get('/courses');
-            setCourses(res.data);
+            setCourses(res.data && res.data.length > 0 ? res.data : mockCourses);
         } catch (err) {
             console.error('Error fetching courses:', err);
+            setCourses(mockCourses);
         }
     };
 

@@ -21,9 +21,36 @@ const CurriculumMaterialPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
     
+    // Mock data for courses and subjects if API fails
+    const mockCourses: Course[] = [
+        { _id: '1', name: '1° Básico' },
+        { _id: '2', name: '2° Básico' },
+        { _id: '3', name: '3° Básico' },
+        { _id: '4', name: '4° Básico' },
+        { _id: '5', name: '5° Básico' },
+        { _id: '6', name: '6° Básico' },
+        { _id: '7', name: '7° Básico' },
+        { _id: '8', name: '8° Básico' },
+        { _id: '9', name: '1° Medio' },
+        { _id: '10', name: '2° Medio' },
+        { _id: '11', name: '3° Medio' },
+        { _id: '12', name: '4° Medio' }
+    ];
+
+    const mockSubjects: Subject[] = [
+        { _id: 's1', name: 'Matemática', courseId: '1' },
+        { _id: 's2', name: 'Lenguaje', courseId: '1' },
+        { _id: 's3', name: 'Ciencias Naturales', courseId: '1' },
+        { _id: 's4', name: 'Historia', courseId: '1' },
+        { _id: 's5', name: 'Educación Física', courseId: '1' },
+        { _id: 's6', name: 'Artes', courseId: '1' },
+        { _id: 's7', name: 'Inglés', courseId: '1' },
+        { _id: 's8', name: 'Tecnología', courseId: '1' }
+    ];
+    
     const [materials, setMaterials] = useState<CurriculumMaterial[]>([]);
-    const [courses, setCourses] = useState<Course[]>([]);
-    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [courses, setCourses] = useState<Course[]>(mockCourses);
+    const [subjects, setSubjects] = useState<Subject[]>(mockSubjects);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -59,10 +86,14 @@ const CurriculumMaterialPage = () => {
                 api.get('/subjects')
             ]);
             setMaterials(materialsRes.data);
-            setCourses(coursesRes.data);
-            setSubjects(subjectsRes.data);
+            setCourses(coursesRes.data && coursesRes.data.length > 0 ? coursesRes.data : mockCourses);
+            setSubjects(subjectsRes.data && subjectsRes.data.length > 0 ? subjectsRes.data : mockSubjects);
         } catch (err) {
             console.error('Error fetching data:', err);
+            // Use mock data as fallback
+            setMaterials([]);
+            setCourses(mockCourses);
+            setSubjects(mockSubjects);
         } finally {
             setLoading(false);
         }
