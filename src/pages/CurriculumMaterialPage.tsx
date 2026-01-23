@@ -375,18 +375,25 @@ const CurriculumMaterialPage = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Curso</label>
+                                    <label className="block text-sm font-bold text-gray-700 mb-2">Curso <span className="text-red-600">*</span></label>
                                     <select
                                         required
                                         className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
                                         value={formData.courseId || ''}
-                                        onChange={e => setFormData({ ...formData, courseId: e.target.value })}
+                                        onChange={e => setFormData({ ...formData, courseId: e.target.value, subjectId: '' })}
                                     >
-                                        <option value="">Seleccionar Curso...</option>
-                                        {courses.map(c => (
-                                            <option key={c._id} value={c._id}>{c.name}</option>
-                                        ))}
+                                        <option value="">-- Seleccionar Curso --</option>
+                                        {courses && courses.length > 0 ? (
+                                            courses.map(c => (
+                                                <option key={c._id} value={c._id}>{c.name}</option>
+                                            ))
+                                        ) : (
+                                            <option disabled>No hay cursos disponibles</option>
+                                        )}
                                     </select>
+                                    {formData.courseId && (
+                                        <p className="text-xs text-green-600 font-bold mt-1">✓ Curso: {courses.find(c => c._id === formData.courseId)?.name}</p>
+                                    )}
                                 </div>
 
                                 <div>
@@ -397,10 +404,14 @@ const CurriculumMaterialPage = () => {
                                         onChange={e => setFormData({ ...formData, subjectId: e.target.value })}
                                         disabled={!formData.courseId}
                                     >
-                                        <option value="">Sin asignatura específica</option>
-                                        {availableSubjects.map(s => (
-                                            <option key={s._id} value={s._id}>{s.name}</option>
-                                        ))}
+                                        <option value="">-- Sin asignatura específica --</option>
+                                        {availableSubjects && availableSubjects.length > 0 ? (
+                                            availableSubjects.map(s => (
+                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                            ))
+                                        ) : (
+                                            formData.courseId && <option disabled>No hay asignaturas para este curso</option>
+                                        )}
                                     </select>
                                 </div>
                             </div>

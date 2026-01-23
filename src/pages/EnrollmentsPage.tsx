@@ -435,23 +435,34 @@ const EnrollmentsPage = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                                <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
-                                    <BookOpen size={16} />
+                            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl">
+                                <p className="text-base text-blue-800 font-bold flex items-center gap-2 mb-4">
+                                    <BookOpen size={20} className="text-blue-600" />
                                     ¿A qué curso será asignado?
                                 </p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                                    {courses.map(course => (
-                                        <button
-                                            key={course._id}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, courseId: course._id })}
-                                            className={`p-3 text-xs font-bold rounded-lg border-2 transition-all ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
-                                        >
-                                            {course.name}
-                                        </button>
-                                    ))}
-                                </div>
+                                {courses && courses.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {courses.map(course => (
+                                            <button
+                                                key={course._id}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, courseId: course._id })}
+                                                className={`p-4 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'}`}
+                                            >
+                                                {course.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-white rounded-lg border-2 border-yellow-300 text-yellow-800 font-bold text-center">
+                                        ⚠️ No hay cursos disponibles. Por favor, crea cursos primero.
+                                    </div>
+                                )}
+                                {formData.courseId && (
+                                    <div className="mt-4 p-3 bg-green-100 border-l-4 border-green-600 rounded text-green-800 font-bold text-sm">
+                                        ✓ Curso seleccionado: {courses.find(c => c._id === formData.courseId)?.name}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
