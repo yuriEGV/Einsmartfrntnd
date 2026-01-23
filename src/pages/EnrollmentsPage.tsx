@@ -216,10 +216,10 @@ const EnrollmentsPage = () => {
             </div>
 
             {activeTab === 'new' ? (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                    <div className="lg:col-span-2 space-y-4 md:space-y-6">
+                <div className="flex flex-col lg:grid lg:grid-cols-3 gap-4 md:gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="lg:col-span-2 space-y-4 md:space-y-6 order-2 lg:order-1">
                         {/* Student Info Card */}
-                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-4 md:p-8">
+                        <div className="bg-white rounded-2xl shadow-xl border-t-4 border-[#11355a] p-3 md:p-8">
                             <div className="flex justify-between items-center mb-6 border-b pb-4">
                                 <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
                                     <UserCheck className="text-blue-600" />
@@ -437,9 +437,9 @@ const EnrollmentsPage = () => {
                     </div>
 
                     {/* Summary / Action Card */}
-                    <div className="lg:col-span-1">
-                        <div className="bg-[#11355a] rounded-2xl p-6 text-white shadow-2xl md:sticky md:top-8 border-b-8 border-blue-900">
-                            <h3 className="text-lg font-bold mb-4 flex items-center gap-2 opacity-90 tracking-tighter">
+                    <div className="lg:col-span-1 order-1 lg:order-2">
+                        <div className="bg-[#11355a] rounded-2xl p-4 md:p-6 text-white shadow-2xl md:sticky md:top-8 border-b-8 border-blue-900">
+                            <h3 className="text-sm md:text-lg font-bold mb-3 md:mb-4 flex items-center gap-2 opacity-90 tracking-tighter">
                                 <ChevronRight size={20} />
                                 RESUMEN FINAL
                             </h3>
@@ -479,7 +479,7 @@ const EnrollmentsPage = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-4 md:p-8 animate-in slide-in-from-top-4 duration-500">
+                <div className="bg-white rounded-2xl shadow-xl border overflow-hidden p-3 md:p-8 animate-in slide-in-from-top-4 duration-500">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                         <div className="relative w-full md:max-w-md">
                             <input

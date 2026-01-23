@@ -18,6 +18,12 @@ const Layout = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const location = useLocation();
 
+    const handleLogout = () => {
+        if (window.confirm('¿Estás seguro que deseas salir del sistema?')) {
+            logout();
+        }
+    };
+
     // Close menu on navigation
     useEffect(() => {
         setIsMenuOpen(false);
@@ -185,8 +191,8 @@ const Layout = () => {
                         </div>
                     </div>
                     <button
-                        onClick={logout}
-                        className="flex items-center justify-center gap-3 text-white/70 hover:text-white hover:bg-rose-500/20 w-full py-4 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 hover:border-rose-500/20 shadow-xl"
+                        onClick={handleLogout}
+                        className="flex items-center justify-center gap-3 text-white/70 hover:text-white hover:bg-rose-500/20 w-full py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 hover:border-rose-500/20 shadow-xl"
                     >
                         <LogOut size={16} className="text-rose-400" />
                         <span>Salir del Sistema</span>
@@ -214,7 +220,7 @@ const Layout = () => {
                     </div>
                 </header>
 
-                <div className="max-w-[1600px] mx-auto p-4 md:p-0 min-h-full pb-32 md:pb-10">
+                <div className="max-w-[1600px] mx-auto p-3 md:p-0 min-h-full pb-24 md:pb-10">
                     <Outlet />
                 </div>
             </main>
