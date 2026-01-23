@@ -46,6 +46,6 @@ export const usePermissions = (): Permissions => {
         canManageSubjects: isAdmin || isTeacher,
         isTeacher,
         isSostenedor,
-        canManagePayments: isAdmin,
+        canManagePayments: isSostenedor, // Solo sostenedor puede gestionar pagos y aranceles
     };
 };

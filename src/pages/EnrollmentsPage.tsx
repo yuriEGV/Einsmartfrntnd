@@ -2,12 +2,28 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
+import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert, Users } from 'lucide-react';
 
 interface Course {
     _id: string;
     name: string;
 }
+
+// Mock data for courses if API fails
+const mockCourses: Course[] = [
+    { _id: '1', name: '1° Básico' },
+    { _id: '2', name: '2° Básico' },
+    { _id: '3', name: '3° Básico' },
+    { _id: '4', name: '4° Básico' },
+    { _id: '5', name: '5° Básico' },
+    { _id: '6', name: '6° Básico' },
+    { _id: '7', name: '7° Básico' },
+    { _id: '8', name: '8° Básico' },
+    { _id: '9', name: '1° Medio' },
+    { _id: '10', name: '2° Medio' },
+    { _id: '11', name: '3° Medio' },
+    { _id: '12', name: '4° Medio' }
+];
 
 interface Enrollment {
     _id: string;
@@ -22,7 +38,7 @@ interface Enrollment {
 const EnrollmentsPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
-    const [courses, setCourses] = useState<Course[]>([]);
+    const [courses, setCourses] = useState<Course[]>(mockCourses);
     const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
     const [activeTab, setActiveTab] = useState<'list' | 'new'>('list');
     const [loading, setLoading] = useState(false);
@@ -33,15 +49,20 @@ const EnrollmentsPage = () => {
 
     // State for toggle
     const [isNewStudent, setIsNewStudent] = useState(false);
+    const [useExistingGuardian, setUseExistingGuardian] = useState(false);
+    const [guardians, setGuardians] = useState<any[]>([]);
+    const [searchTermGuardian, setSearchTermGuardian] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
         studentId: '',
         courseId: '',
         period: new Date().getFullYear().toString(),
-        status: 'activo',
+        status: 'active',
         fee: 0,
         notes: '',
+        studentPhoto: '',
+        schoolLogo: '',
         // Direct creation data
         newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
         newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
@@ -52,6 +73,7 @@ const EnrollmentsPage = () => {
             fetchCourses();
             fetchEnrollments();
             fetchStudents();
+            fetchGuardians();
         }
     }, [permissions.canManageEnrollments]);
 
@@ -74,12 +96,22 @@ const EnrollmentsPage = () => {
         }
     };
 
+    const fetchGuardians = async () => {
+        try {
+            const res = await api.get('/apoderados');
+            setGuardians(res.data);
+        } catch (err) {
+            console.error('Error fetching guardians:', err);
+        }
+    };
+
     const fetchCourses = async () => {
         try {
             const res = await api.get('/courses');
-            setCourses(res.data);
+            setCourses(res.data && res.data.length > 0 ? res.data : mockCourses);
         } catch (err) {
             console.error('Error fetching courses:', err);
+            setCourses(mockCourses);
         }
     };
 
@@ -116,15 +148,29 @@ const EnrollmentsPage = () => {
 
         setLoading(true);
         try {
-            await api.post('/enrollments', formData);
+            // Crear objeto sin las imágenes (Base64 es demasiado pesado)
+            const enrollmentData = {
+                studentId: formData.studentId,
+                courseId: formData.courseId,
+                period: formData.period,
+                status: formData.status,
+                fee: formData.fee,
+                notes: formData.notes,
+                newStudent: isNewStudent ? formData.newStudent : undefined,
+                newGuardian: formData.newGuardian
+            };
+            
+            await api.post('/enrollments', enrollmentData);
             alert('¡Matrícula exitosa!');
             setFormData({
                 studentId: '',
                 courseId: '',
                 period: new Date().getFullYear().toString(),
-                status: 'activo',
+                status: 'active',
                 fee: 0,
                 notes: '',
+                studentPhoto: '',
+                schoolLogo: '',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
                 newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
@@ -297,12 +343,160 @@ const EnrollmentsPage = () => {
                                 </div>
                             )}
 
+                            {/* Photo Upload Section */}
+                            <div className="mt-8 pt-8 border-t border-dashed grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {/* Student Photo */}
+                                <div>
+                                    <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                        📷 Foto del Estudiante <span className="text-xs text-gray-400">(Vista previa local)</span>
+                                    </label>
+                                    <div className="space-y-2">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => {
+                                                const file = e.target.files?.[0];
+                                                if (file) {
+                                                    const reader = new FileReader();
+                                                    reader.onloadend = () => {
+                                                        setFormData({ ...formData, studentPhoto: reader.result as string });
+                                                    };
+                                                    reader.readAsDataURL(file);
+                                                }
+                                            }}
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-blue-300 rounded-xl outline-none hover:border-blue-500 transition-all"
+                                        />
+                                        {formData.studentPhoto && (
+                                            <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-blue-500">
+                                                <img
+                                                    src={formData.studentPhoto}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setFormData({ ...formData, studentPhoto: '' })}
+                                                    className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* School Logo - Solo para sostenedores */}
+                                {permissions.isSostenedor && (
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+                                            🏫 Logo del Colegio <span className="text-xs text-gray-400">(Vista previa local)</span>
+                                        </label>
+                                        <div className="space-y-2">
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={(e) => {
+                                                    const file = e.target.files?.[0];
+                                                    if (file) {
+                                                        const reader = new FileReader();
+                                                        reader.onloadend = () => {
+                                                            setFormData({ ...formData, schoolLogo: reader.result as string });
+                                                        };
+                                                        reader.readAsDataURL(file);
+                                                    }
+                                                }}
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-dashed border-green-300 rounded-xl outline-none hover:border-green-500 transition-all"
+                                            />
+                                            {formData.schoolLogo && (
+                                                <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-green-500">
+                                                    <img
+                                                        src={formData.schoolLogo}
+                                                        alt="Logo Preview"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setFormData({ ...formData, schoolLogo: '' })}
+                                                        className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                                    >
+                                                        ✕
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
                             {/* Guardian Info - CRITICAL for notifications */}
                             <div className="mt-8 pt-8 border-t border-dashed">
-                                <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <ShieldAlert size={16} className="text-orange-500" />
-                                    Información del Apoderado (Para Notificaciones)
-                                </h3>
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                                        <ShieldAlert size={16} className="text-orange-500" />
+                                        Información del Apoderado (Para Notificaciones)
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setUseExistingGuardian(!useExistingGuardian)}
+                                        className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${useExistingGuardian ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                                    >
+                                        {useExistingGuardian ? '✓ Usar Existente' : '+ Nuevo Apoderado'}
+                                    </button>
+                                </div>
+
+                                {useExistingGuardian && guardians.length > 0 ? (
+                                    <div className="mb-4">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Apoderado Existente</label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                                            <input
+                                                placeholder="Nombre, apellido o email del apoderado..."
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none shadow-inner font-bold"
+                                                value={searchTermGuardian}
+                                                onChange={e => setSearchTermGuardian(e.target.value)}
+                                            />
+                                        </div>
+                                        {searchTermGuardian && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                                {guardians
+                                                    .filter(g =>
+                                                        `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
+                                                    )
+                                                    .slice(0, 5)
+                                                    .map(g => (
+                                                        <button
+                                                            key={g._id}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    newGuardian: {
+                                                                        nombre: g.nombre || '',
+                                                                        apellidos: g.apellidos || '',
+                                                                        correo: g.correo || '',
+                                                                        telefono: g.telefono || '',
+                                                                        direccion: g.direccion || '',
+                                                                        parentesco: g.parentesco || 'Padre'
+                                                                    }
+                                                                });
+                                                                setSearchTermGuardian('');
+                                                            }}
+                                                            className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                                                        >
+                                                            <div className="font-bold text-sm">{g.nombre} {g.apellidos}</div>
+                                                            <div className="text-[10px] text-gray-400">{g.correo} | {g.telefono || 'N/A'}</div>
+                                                        </button>
+                                                    ))}
+                                                {guardians.filter(g =>
+                                                    `${g.nombre} ${g.apellidos} ${g.correo}`.toLowerCase().includes(searchTermGuardian.toLowerCase())
+                                                ).length === 0 && (
+                                                    <div className="px-4 py-4 text-center text-gray-400 text-sm">No se encontraron apoderados</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : null}
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         placeholder="Nombre Apoderado"
@@ -333,25 +527,43 @@ const EnrollmentsPage = () => {
                                         onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
                                     />
                                 </div>
+
+                                <div className="mt-4 p-3 bg-green-50 border-l-4 border-green-500 rounded-lg">
+                                    <p className="text-xs text-green-700 font-bold flex items-center gap-2">
+                                        <Users size={14} />
+                                        💡 Tip: Si necesitas matricular a más hermanos/as con este mismo apoderado, reutiliza estos datos en la siguiente matrícula.
+                                    </p>
+                                </div>
                             </div>
 
-                            <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
-                                <p className="text-sm text-blue-700 font-medium flex items-center gap-2">
-                                    <BookOpen size={16} />
+                            <div className="mt-8 p-6 bg-blue-50 border-2 border-blue-200 rounded-2xl">
+                                <p className="text-base text-blue-800 font-bold flex items-center gap-2 mb-4">
+                                    <BookOpen size={20} className="text-blue-600" />
                                     ¿A qué curso será asignado?
                                 </p>
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-3">
-                                    {courses.map(course => (
-                                        <button
-                                            key={course._id}
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, courseId: course._id })}
-                                            className={`p-3 text-xs font-bold rounded-lg border-2 transition-all ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-100 text-gray-600 hover:border-blue-300'}`}
-                                        >
-                                            {course.name}
-                                        </button>
-                                    ))}
-                                </div>
+                                {courses && courses.length > 0 ? (
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                        {courses.map(course => (
+                                            <button
+                                                key={course._id}
+                                                type="button"
+                                                onClick={() => setFormData({ ...formData, courseId: course._id })}
+                                                className={`p-4 text-sm font-bold rounded-lg border-2 transition-all duration-200 ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-gray-200 text-gray-700 hover:border-blue-400 hover:bg-blue-50'}`}
+                                            >
+                                                {course.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 bg-white rounded-lg border-2 border-yellow-300 text-yellow-800 font-bold text-center">
+                                        ⚠️ No hay cursos disponibles. Por favor, crea cursos primero.
+                                    </div>
+                                )}
+                                {formData.courseId && (
+                                    <div className="mt-4 p-3 bg-green-100 border-l-4 border-green-600 rounded text-green-800 font-bold text-sm">
+                                        ✓ Curso seleccionado: {courses.find(c => c._id === formData.courseId)?.name}
+                                    </div>
+                                )}
                             </div>
                         </div>
 

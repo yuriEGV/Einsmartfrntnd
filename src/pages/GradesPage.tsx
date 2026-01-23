@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import {
     ClipboardList,
     Plus,
@@ -36,6 +38,7 @@ interface Evaluation {
 
 const GradesPage = () => {
     const permissions = usePermissions();
+    const { tenant } = useTenant();
     const canManageGrades = permissions.canEditGrades;
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -118,12 +121,15 @@ const GradesPage = () => {
     return (
         <div className="p-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <ClipboardList size={32} />
-                        Libro de Clases: Notas
-                    </h1>
-                    <p className="text-gray-500 font-medium">Registro académico oficial del establecimiento.</p>
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <ClipboardList size={28} />
+                            Libro de Clases: Notas
+                        </h1>
+                        <p className="text-gray-500 font-medium text-sm">Registro académico oficial del establecimiento.</p>
+                    </div>
                 </div>
 
                 <div className="flex w-full md:w-auto gap-3">
@@ -159,8 +165,10 @@ const GradesPage = () => {
                 <div className="flex justify-center p-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
                 </div>
-            ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            ) : filteredGrades.length > 0 ? (
+                <>
+                {/* Tabla para desktop */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">
                             <thead className="bg-gray-50/50">
@@ -215,7 +223,48 @@ const GradesPage = () => {
                             </tbody>
                         </table>
                     </div>
-                    {filteredGrades.length === 0 && <div className="p-12 text-center text-gray-400 font-medium">No se encontraron calificaciones registradas.</div>}
+                </div>
+
+                {/* Cards para mobile */}
+                <div className="md:hidden space-y-3">
+                    {filteredGrades.map((grade) => (
+                        <div key={grade._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="flex justify-between items-start mb-3">
+                                <div>
+                                    <p className="font-bold text-gray-900">{grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}</p>
+                                    <p className="text-sm text-gray-500">{grade.evaluationId?.title}</p>
+                                </div>
+                                <span className={`px-3 py-1.5 rounded-lg font-black text-lg ${grade.score >= 4 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                    {grade.score.toFixed(1)}
+                                </span>
+                            </div>
+                            <p className="text-xs font-bold text-blue-600 uppercase mb-3">{(grade.evaluationId as any)?.subject}</p>
+                            {canManageGrades && (
+                                <div className="flex gap-2">
+                                    <button onClick={() => {
+                                        const stud = students.find(s => s._id === grade.estudianteId?._id);
+                                        setModalMode('edit');
+                                        setFormData({
+                                            _id: grade._id,
+                                            estudianteId: grade.estudianteId?._id,
+                                            evaluationId: grade.evaluationId?._id,
+                                            score: grade.score,
+                                            comments: grade.comments || ''
+                                        });
+                                        setStudentSearch(stud ? `${stud.nombres} ${stud.apellidos}` : '');
+                                        setShowModal(true);
+                                    }} className="flex-1 p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors text-sm font-bold"><Edit size={16} className="inline mr-1" />Editar</button>
+                                    <button onClick={() => handleDelete(grade._id)} className="flex-1 p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors text-sm font-bold"><Trash2 size={16} className="inline mr-1" />Eliminar</button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+                </>
+            ) : (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                    <AlertCircle size={48} className="text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-bold">No hay notas registradas</p>
                 </div>
             )}
 

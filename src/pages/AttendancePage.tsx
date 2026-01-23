@@ -1,6 +1,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
+import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import { usePermissions } from '../hooks/usePermissions';
 import { useReactToPrint } from 'react-to-print';
 import {
@@ -10,6 +12,7 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
+    AlertCircle,
 } from 'lucide-react';
 
 interface Course {
@@ -26,6 +29,7 @@ interface Student {
 
 const AttendancePage = () => {
     const permissions = usePermissions();
+    const { tenant } = useTenant();
     const isStudentOrGuardian = permissions.user?.role === 'student' || permissions.user?.role === 'apoderado';
 
     const [courses, setCourses] = useState<Course[]>([]);
@@ -145,14 +149,17 @@ const AttendancePage = () => {
     return (
         <div className="p-6 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <CalendarDays size={32} />
-                        {isStudentOrGuardian ? 'Mi Asistencia' : 'Control de Asistencia'}
-                    </h1>
-                    <p className="text-gray-500 font-medium">
-                        {isStudentOrGuardian ? 'Resumen de asistencia diaria.' : 'Registro diario de asistencia por curso.'}
-                    </p>
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <CalendarDays size={32} />
+                            {isStudentOrGuardian ? 'Mi Asistencia' : 'Control de Asistencia'}
+                        </h1>
+                        <p className="text-gray-500 font-medium">
+                            {isStudentOrGuardian ? 'Resumen de asistencia diaria.' : 'Registro diario de asistencia por curso.'}
+                        </p>
+                    </div>
                 </div>
 
                 {!isStudentOrGuardian && (
@@ -242,7 +249,9 @@ const AttendancePage = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" ref={printRef}>
+                <>
+                {/* Tabla para desktop */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden" ref={printRef}>
                     {/* Print Header - Visible only when printing usually, but here part of div */}
                     <div className="hidden print:block p-8 pb-0 text-center">
                         <h1 className="text-2xl font-bold text-black mb-2">Registro de Asistencia</h1>
@@ -317,6 +326,58 @@ const AttendancePage = () => {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Cards para mobile */}
+                <div className="md:hidden space-y-3">
+                    {students.length > 0 ? students.map(student => (
+                        <div key={student._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="mb-3">
+                                <p className="font-bold text-gray-900">{student.nombres} {student.apellidos}</p>
+                                <p className="text-xs text-gray-500 font-mono">{student.rut}</p>
+                            </div>
+                            {!isStudentOrGuardian ? (
+                                <div className="flex flex-col gap-2">
+                                    <button
+                                        onClick={() => handleStatusChange(student._id, 'presente')}
+                                        className={`p-2 rounded-lg flex items-center justify-center gap-2 transition-all text-sm font-bold ${attendance[student._id] === 'presente' ? 'bg-green-100 text-green-700' : 'text-gray-500 bg-gray-50 hover:bg-gray-100'}`}
+                                    >
+                                        <CheckCircle2 size={18} />
+                                        Presente
+                                    </button>
+                                    <button
+                                        onClick={() => handleStatusChange(student._id, 'ausente')}
+                                        className={`p-2 rounded-lg flex items-center justify-center gap-2 transition-all text-sm font-bold ${attendance[student._id] === 'ausente' ? 'bg-red-100 text-red-700' : 'text-gray-500 bg-gray-50 hover:bg-gray-100'}`}
+                                    >
+                                        <XCircle size={18} />
+                                        Ausente
+                                    </button>
+                                    <button
+                                        onClick={() => handleStatusChange(student._id, 'justificado')}
+                                        className={`p-2 rounded-lg flex items-center justify-center gap-2 transition-all text-sm font-bold ${attendance[student._id] === 'justificado' ? 'bg-yellow-100 text-yellow-700' : 'text-gray-500 bg-gray-50 hover:bg-gray-100'}`}
+                                    >
+                                        <Clock size={18} />
+                                        Justificado
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="text-center">
+                                    <span className={`px-4 py-1.5 rounded-lg font-black text-xs uppercase block ${attendance[student._id] === 'presente' ? 'bg-green-100 text-green-700' :
+                                        attendance[student._id] === 'ausente' ? 'bg-red-100 text-red-700' :
+                                            attendance[student._id] === 'justificado' ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-400'
+                                        }`}>
+                                        {attendance[student._id] || 'Pendiente'}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                    )) : (
+                        <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                            <AlertCircle size={48} className="text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 font-bold">Selecciona un curso para ver la lista de estudiantes.</p>
+                        </div>
+                    )}
+                </div>
+                </>
             )}
         </div>
     );
