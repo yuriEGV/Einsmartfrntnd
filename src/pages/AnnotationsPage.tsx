@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { getAnotaciones, createAnotacion, type Anotacion } from '../services/annotationService';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import { usePermissions } from '../hooks/usePermissions';
 import { Search, Filter, AlertCircle, CheckCircle, User, Calendar, BookOpen, ChevronRight } from 'lucide-react';
 
@@ -29,6 +31,7 @@ const AnnotationsPage = () => {
     const [studentSearch, setStudentSearch] = useState('');
 
     const { user } = useAuth();
+    const { tenant } = useTenant();
     const permissions = usePermissions();
 
     // Form state
@@ -93,18 +96,21 @@ const AnnotationsPage = () => {
 
     return (
         <div className="p-6">
-            <div className="flex justify-between items-center mb-8">
-                <div>
-                    <h1 className="text-2xl font-black text-gray-800 uppercase tracking-tight flex items-center gap-2">
-                        <AlertCircle className="text-blue-600" />
-                        Registro de Observaciones
-                    </h1>
-                    <p className="text-gray-500 text-sm">Bitácora de comportamiento y méritos académicos.</p>
+            <div className="flex justify-between items-start md:items-center gap-4 mb-8 flex-col md:flex-row">
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-[#11355a] uppercase tracking-tight flex items-center gap-2">
+                            <AlertCircle className="text-blue-600" />
+                            Registro de Observaciones
+                        </h1>
+                        <p className="text-gray-500 text-sm">Bitácora de comportamiento y méritos académicos.</p>
+                    </div>
                 </div>
                 {permissions.isStaff && permissions.user?.role !== 'student' && (
                     <button
                         onClick={() => setShowForm(!showForm)}
-                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg ${showForm ? 'bg-gray-100 text-gray-600' : 'bg-[#11355a] text-white hover:bg-blue-800 active:scale-95'}`}
+                        className={`flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-lg whitespace-nowrap ${showForm ? 'bg-gray-100 text-gray-600' : 'bg-[#11355a] text-white hover:bg-blue-800 active:scale-95'}`}
                     >
                         {showForm ? 'Cerrar Panel' : '+ Nueva Anotación'}
                     </button>
@@ -237,7 +243,9 @@ const AnnotationsPage = () => {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <>
+                {/* Tabla para desktop */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4 items-center">
                         <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-inner">
                             <Filter size={16} className="text-gray-400" />
@@ -299,6 +307,40 @@ const AnnotationsPage = () => {
                         </table>
                     </div>
                 </div>
+
+                {/* Cards para mobile */}
+                <div className="md:hidden space-y-3">
+                    {anotaciones.length > 0 ? anotaciones.map((anotacion) => (
+                        <div key={anotacion._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                                <div className="bg-gray-100 p-2 rounded-full text-gray-500"><User size={18} /></div>
+                                <div>
+                                    <p className="font-bold text-gray-900">{(anotacion.estudianteId as any)?.nombres} {(anotacion.estudianteId as any)?.apellidos}</p>
+                                    <p className="text-xs text-gray-500">{new Date(anotacion.fechaOcurrencia || '').toLocaleDateString('es-CL')}</p>
+                                </div>
+                            </div>
+                            <div className="mb-3">
+                                {anotacion.tipo === 'positiva' ? (
+                                    <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-xs bg-emerald-50 px-3 py-1 rounded-full border border-emerald-100">
+                                        <CheckCircle size={14} /> Positiva
+                                    </span>
+                                ) : (
+                                    <span className="inline-flex items-center gap-1.5 text-rose-600 font-bold text-xs bg-rose-50 px-3 py-1 rounded-full border border-rose-100">
+                                        <AlertCircle size={14} /> Negativa
+                                    </span>
+                                )}
+                            </div>
+                            <p className="font-bold text-gray-900 mb-1">{anotacion.titulo}</p>
+                            <p className="text-sm text-gray-600">{anotacion.descripcion}</p>
+                        </div>
+                    )) : (
+                        <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                            <AlertCircle size={48} className="text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-500 font-bold">No hay observaciones registradas aún.</p>
+                        </div>
+                    )}
+                </div>
+                </>
             )}
         </div>
     );
