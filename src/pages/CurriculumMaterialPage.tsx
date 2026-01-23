@@ -71,7 +71,7 @@ const CurriculumMaterialPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!formData.title || !formData.courseId || formData.objectives.length === 0) {
+        if (!formData.title || !formData.courseId || !formData.objectives || formData.objectives.length === 0) {
             alert('Por favor complete: título, curso y al menos un objetivo.');
             return;
         }
