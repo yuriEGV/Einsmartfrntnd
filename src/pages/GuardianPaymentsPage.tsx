@@ -8,7 +8,7 @@ import { DollarSign, FileText, Printer, CheckCircle, Clock } from 'lucide-react'
 
 interface Payment {
     _id: string;
-    estudianteId: { nombres: string; apellidos: string; rut: string; _id?: string };
+        estudianteId: { nombres: string; apellidos: string; rut: string; _id: string };
     concepto: string;
     amount: number;
     status: 'pending' | 'approved' | 'rejected';
@@ -48,12 +48,28 @@ const GuardianPaymentsPage = () => {
             // Filtrar: solo estudiantes que pertenecen al apoderado
             const myStudents = studRes.data;
             const myStudentIds = myStudents.map((s: any) => s._id);
-            
+
+            // Normalizar estudianteId para que siempre tenga _id
+            const normalizedPayments = payRes.data.map((p: any) => {
+                if (!p.estudianteId._id && p.estudianteId.rut) {
+                    // Buscar el estudiante por rut y asignar el _id si existe
+                    const student = myStudents.find((s: any) => s.rut === p.estudianteId.rut);
+                    if (student) {
+                        return {
+                            ...p,
+                            estudianteId: {
+                                ...p.estudianteId,
+                                _id: student._id
+                            }
+                        };
+                    }
+                }
+                return p;
+            });
+
             // Filtrar pagos: solo los de mis estudiantes
-            const myPayments = payRes.data.filter((p: any) => 
-                (typeof p.estudianteId._id !== 'undefined') ? myStudentIds.includes(p.estudianteId._id) : myStudentIds.includes(p.estudianteId.rut)
-            );
-            
+            const myPayments = normalizedPayments.filter((p: any) => myStudentIds.includes(p.estudianteId._id));
+
             setPayments(myPayments);
             setStudents(myStudents);
         } catch (error) {
