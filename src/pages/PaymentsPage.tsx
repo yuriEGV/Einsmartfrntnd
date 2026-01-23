@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
+import TenantLogo from '../components/TenantLogo';
 import { DollarSign, Search, CreditCard, CheckCircle, Clock, AlertCircle, School } from 'lucide-react';
 
 interface Payment {
@@ -154,12 +155,15 @@ const PaymentsPage = () => {
             
             {permissions.isSostenedor && (
             <div className="p-6 max-w-7xl mx-auto">
-                    <div>
-                        <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                            <DollarSign size={32} />
-                            Pagos y Cobranza
-                        </h1>
-                        <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
+                    <div className="flex items-center gap-4 mb-8">
+                        {tenant?.logo && <TenantLogo size="small" showName={false} />}
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-black text-[#11355a] flex items-center gap-3">
+                                <DollarSign size={32} />
+                                Pagos y Cobranza
+                            </h1>
+                            <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
+                        </div>
                     </div>
                     {permissions.user?.role !== 'student' && (
                         <button
@@ -211,8 +215,10 @@ const PaymentsPage = () => {
                 <div className="flex justify-center p-12">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
                 </div>
-            ) : (
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            ) : filteredPayments.length > 0 ? (
+                <>
+                {/* Tabla para desktop */}
+                <div className="hidden md:block bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50/50">
                             <tr>
@@ -252,13 +258,47 @@ const PaymentsPage = () => {
                                     </td>
                                 </tr>
                             ))}
-                            {filteredPayments.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-400 font-medium">No hay registros de pagos.</td>
-                                </tr>
-                            )}
                         </tbody>
                     </table>
+                </div>
+
+                {/* Cards para mobile */}
+                <div className="md:hidden space-y-3">
+                    {filteredPayments.map(p => (
+                        <div key={p._id} className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+                            <div className="mb-3">
+                                <p className="font-bold text-gray-900">{p.estudianteId?.nombres} {p.estudianteId?.apellidos}</p>
+                                <p className="text-xs text-gray-500">{p.estudianteId?.rut}</p>
+                            </div>
+                            <div className="mb-3 grid grid-cols-2 gap-3">
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase font-bold">Concepto</p>
+                                    <p className="font-bold text-gray-900 text-sm">{p.concepto}</p>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 uppercase font-bold">Monto</p>
+                                    <p className="font-bold text-[#11355a] text-sm">${p.amount?.toLocaleString()}</p>
+                                </div>
+                            </div>
+                            <div className="mb-3">
+                                {p.status === 'approved' && <span className="inline-flex items-center gap-1 bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold"><CheckCircle size={14} /> PAGADO</span>}
+                                {p.status === 'pending' && <span className="inline-flex items-center gap-1 bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold"><Clock size={14} /> PENDIENTE</span>}
+                                {p.status === 'rejected' && <span className="inline-flex items-center gap-1 bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold"><AlertCircle size={14} /> RECHAZADO</span>}
+                            </div>
+                            <p className="text-xs text-gray-500 mb-3">{new Date(p.createdAt).toLocaleDateString()}</p>
+                            {p.status === 'pending' && (
+                                <button onClick={() => handlePayOnline(p._id)} className="w-full bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition-colors">
+                                    Pagar Online
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+                </>
+            ) : (
+                <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+                    <AlertCircle size={48} className="text-gray-300 mx-auto mb-4" />
+                    <p className="text-gray-500 font-bold">No hay registros de pagos.</p>
                 </div>
             )}
 
