@@ -1,10 +1,10 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
-import { AlertCircle, Mail, Printer, ShieldAlert, CheckCircle, FileText } from 'lucide-react';
+import { AlertCircle, Mail, ShieldAlert, FileText } from 'lucide-react';
 
 const CollectionsPage = () => {
     // const { permissions } = usePermissions(); // Or use hook directly

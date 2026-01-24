@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { getPayrollPayments, deletePayrollPayment } from '../services/payrollService';
-import { getUsers } from '../services/userService';
+
 import { useReactToPrint } from 'react-to-print'; // Importar useReactToPrint
 
 interface PayrollPayment {
@@ -17,12 +17,6 @@ interface PayrollPayment {
     createdAt: string;
 }
 
-interface UserData {
-    _id: string;
-    name: string;
-    email: string;
-    role: string;
-}
 
 const PayrollPage: React.FC = () => {
     const [payments, setPayments] = useState<PayrollPayment[]>([]);

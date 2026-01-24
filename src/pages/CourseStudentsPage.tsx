@@ -1,16 +1,16 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { ArrowLeft, Users, Mail, Phone, Download, Printer } from 'lucide-react';
+import { ArrowLeft, Users, Mail, Download, Printer } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { useRef } from 'react';
 
 const CourseStudentsPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { canManageCourses, isStaff } = usePermissions();
+    usePermissions();
     const [students, setStudents] = useState<any[]>([]);
     const [course, setCourse] = useState<any>(null);
     const [loading, setLoading] = useState(true);
@@ -29,7 +29,7 @@ const CourseStudentsPage = () => {
         try {
             // Fetch Course Info
             // Assuming endpoint /courses/:id exists
-            const courseRes = await api.get(`/courses/${id}`); // We might need to implement this one if listed in filtered list only. 
+            await api.get(`/courses/${id}`); // We might need to implement this one if listed in filtered list only. 
             // Usually valid API has GET /courses or we filter from list. Let's assume GET /courses/:id works or we have to filter clientside?
             // Actually, backend usually has GET /courses.
             // Let's rely on getting enrollments filtered by courseId to get students.
