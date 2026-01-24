@@ -257,10 +257,14 @@ const PaymentsPage = () => {
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
                                     <option value="">-- Seleccionar --</option>
-                                    <optgroup label="Tarifas Especiales">
-                                        {tariffs.filter(t => t.active ?? true).map(t => (
-                                            <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
-                                        ))}
+                                    <optgroup label="Tarifas Configuradas">
+                                        {tariffs.filter(t => t.active ?? true).length > 0 ? (
+                                            tariffs.filter(t => t.active ?? true).map(t => (
+                                                <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
+                                            ))
+                                        ) : (
+                                            <option disabled>No hay tarifas activas disponibles</option>
+                                        )}
                                     </optgroup>
                                 </select>
                             </div>

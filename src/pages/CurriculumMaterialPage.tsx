@@ -185,6 +185,10 @@ const CurriculumMaterialPage = () => {
         ? subjects.filter(s => s.courseId === selectedCourse)
         : [];
 
+    const modalSubjects = formData.courseId
+        ? subjects.filter(s => s.courseId === formData.courseId)
+        : [];
+
     if (!permissions.isSuperAdmin && !permissions.user?.role?.includes('sostenedor') && !permissions.user?.role?.includes('admin') && !permissions.user?.role?.includes('teacher')) {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-center">
@@ -404,7 +408,7 @@ const CurriculumMaterialPage = () => {
                                         disabled={!formData.courseId}
                                     >
                                         <option value="">-- General --</option>
-                                        {availableSubjects && availableSubjects.map(s => (
+                                        {modalSubjects && modalSubjects.map(s => (
                                             <option key={s._id} value={s._id}>{s.name}</option>
                                         ))}
                                     </select>
