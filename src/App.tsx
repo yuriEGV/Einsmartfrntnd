@@ -25,6 +25,7 @@ import MessagesPage from './pages/MessagesPage';
 import CurriculumMaterialPage from './pages/CurriculumMaterialPage';
 import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de Nóminas
 import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
+import SostenedorDashboard from './pages/SostenedorDashboard';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
 
             {/* Rutas para Gestión de Nóminas */}
             <Route path="/payroll" element={<PayrollPage />} />
+            <Route path="/finance-dashboard" element={<SostenedorDashboard />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

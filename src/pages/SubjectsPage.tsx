@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X, Printer } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 
 interface Subject {
     _id: string;
@@ -60,6 +62,14 @@ const SubjectsPage = () => {
         covered: false
     });
     const [objModalMode, setObjModalMode] = useState<'create' | 'edit'>('create');
+
+    // Print Ref
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Cobertura Curricular - ${selectedSubject?.name || 'Asignatura'}`,
+    });
 
     useEffect(() => {
         fetchData();
@@ -331,9 +341,18 @@ const SubjectsPage = () => {
                                     Curso: {selectedSubject.courseId?.name}
                                 </p>
                             </div>
-                            <button onClick={() => setShowObjModal(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition">
-                                <X size={20} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => handlePrint()}
+                                    className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition flex items-center gap-2 px-4"
+                                >
+                                    <Printer size={18} />
+                                    <span className="text-xs font-bold uppercase">Imprimir</span>
+                                </button>
+                                <button onClick={() => setShowObjModal(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition">
+                                    <X size={20} />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="p-8 flex flex-col md:flex-row gap-8 overflow-hidden">

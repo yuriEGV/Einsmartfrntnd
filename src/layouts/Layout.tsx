@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search
+    Bell, Search, BookOpen
 } from 'lucide-react';
 
 const Layout = () => {
@@ -168,6 +168,14 @@ const Layout = () => {
                             <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
                         </div>
 
+                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/subjects" icon={BookOpen}>Ramos</NavLink>
+                        )}
+
+                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/curriculum-material" icon={ClipboardList}>Curriculum</NavLink>
+                        )}
+
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
                             <NavLink to="/settings" icon={Settings}>Institución</NavLink>
                         )}
@@ -180,7 +188,11 @@ const Layout = () => {
                             <NavLink to="/tenants" icon={School}>Clientes</NavLink>
                         )}
 
-                        <NavLink to="/payments" icon={DollarSign}>Finanzas</NavLink>
+                        <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
+
+                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
+                            <NavLink to="/finance-dashboard" icon={TrendingUp}>Finanzas Sostenedor</NavLink>
+                        )}
 
                         {/* Nuevo enlace para Nóminas */}
                         {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
