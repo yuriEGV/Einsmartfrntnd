@@ -87,11 +87,17 @@ const GuardiansPage = () => {
         }
     };
 
-    const filteredGuardians = guardians.filter(g =>
-        (g.nombres + ' ' + g.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        g.rut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (typeof g.estudianteId === 'object' && (g.estudianteId.nombres + ' ' + g.estudianteId.apellidos).toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredGuardians = guardians.filter(g => {
+        const fullName = `${g.nombres || ''} ${g.apellidos || ''}`.toLowerCase();
+        const rut = (g.rut || '').toLowerCase();
+        const studentName = typeof g.estudianteId === 'object'
+            ? `${g.estudianteId?.nombres || ''} ${g.estudianteId?.apellidos || ''}`.toLowerCase()
+            : '';
+
+        return fullName.includes(searchTerm.toLowerCase()) ||
+            rut.includes(searchTerm.toLowerCase()) ||
+            studentName.includes(searchTerm.toLowerCase());
+    });
 
     if (!canManage) {
         return <div className="p-8 text-center text-gray-500">No tienes permisos para acceder a esta sección.</div>;
@@ -134,7 +140,7 @@ const GuardiansPage = () => {
                         <div key={g._id} className="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-50 group hover:border-indigo-200 transition-all flex flex-col">
                             <div className="flex justify-between items-start mb-6">
                                 <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 text-xl border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm italic">
-                                    {g.nombres.charAt(0)}
+                                    {(g.nombres || 'A').charAt(0)}
                                 </div>
                                 <button
                                     onClick={() => handleEdit(g)}
