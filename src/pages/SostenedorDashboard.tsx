@@ -7,22 +7,20 @@ import {
     TrendingUp,
     TrendingDown,
     Plus,
-    Calendar,
     FileText,
     PieChart,
-    AlertCircle,
-    Trash2
+    AlertCircle
 } from 'lucide-react';
 import api from '../services/api';
 
 const SostenedorDashboard = () => {
-    const permissions = usePermissions();
-    const { tenant } = useTenant();
+    // const permissions = usePermissions(); // Unused
+    // const { tenant } = useTenant(); // Unused
     const [expenses, setExpenses] = useState<any[]>([]);
     const [debtStats, setDebtStats] = useState<any[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true); // Unused for now or we should use it? It is being set but not read.
 
     const [modalOpen, setModalOpen] = useState(false);
     const [formData, setFormData] = useState({
@@ -49,7 +47,7 @@ const SostenedorDashboard = () => {
         } catch (error) {
             console.error(error);
         } finally {
-            setLoading(false);
+            // setLoading(false);
         }
     };
 

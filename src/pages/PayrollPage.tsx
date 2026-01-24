@@ -26,15 +26,16 @@ interface UserData {
 
 const PayrollPage: React.FC = () => {
     const [payments, setPayments] = useState<PayrollPayment[]>([]);
-    const [users, setUsers] = useState<UserData[]>([]);
-    const [loading, setLoading] = useState(true);
+    // const [users, setUsers] = useState<UserData[]>([]); // Unused
+    // const [loading, setLoading] = useState(true); // Unused
     const [error, setError] = useState<string | null>(null);
     const { user, isAuthenticated, isLoading } = useAuth();
     const navigate = useNavigate();
 
+
     const componentRef = useRef<HTMLDivElement>(null); // Referencia para el componente a imprimir
     const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
+        contentRef: componentRef,
         documentTitle: 'Lista de Pagos de Nómina',
     });
 
@@ -59,13 +60,13 @@ const PayrollPage: React.FC = () => {
                 let fetchedUsers: UserData[] = [];
                 if (user?.role === 'admin') {
                     // Admins pueden ver todos los usuarios del tenant, o filtrar por rol
-                    fetchedUsers = await getUsers(user?.tenantId); 
+                    fetchedUsers = await getUsers(user?.tenantId);
                 } else if (user?.role === 'sostenedor') {
                     // Sostenedores solo ven usuarios de su tenant
-                    fetchedUsers = await getUsers(user?.tenantId); 
+                    fetchedUsers = await getUsers(user?.tenantId);
                 }
                 // Filtrar para excluir estudiantes y apoderados, ya que los pagos de nómina son para personal
-                fetchedUsers = fetchedUsers.filter(u => 
+                fetchedUsers = fetchedUsers.filter(u =>
                     u.role !== 'student' && u.role !== 'apoderado'
                 );
                 setUsers(fetchedUsers);
