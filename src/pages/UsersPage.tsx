@@ -294,7 +294,7 @@ const UsersPage = () => {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30 text-start">
+                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
                             <div className="space-y-5">
                                 <div className="group text-start">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">NOMBRE COMPLETO</label>

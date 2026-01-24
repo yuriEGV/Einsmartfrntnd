@@ -20,7 +20,7 @@ interface Subject {
 const CurriculumMaterialPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
-    
+
     // Mock data for courses and subjects if API fails
     const mockCourses: Course[] = [
         { _id: '1', name: '1° Básico' },
@@ -47,7 +47,7 @@ const CurriculumMaterialPage = () => {
         { _id: 's7', name: 'Inglés', courseId: '1' },
         { _id: 's8', name: 'Tecnología', courseId: '1' }
     ];
-    
+
     const [materials, setMaterials] = useState<CurriculumMaterial[]>([]);
     const [courses, setCourses] = useState<Course[]>(mockCourses);
     const [subjects, setSubjects] = useState<Subject[]>(mockSubjects);
@@ -116,7 +116,7 @@ const CurriculumMaterialPage = () => {
             if (formData.subjectId) submitData.append('subjectId', formData.subjectId);
             submitData.append('objectives', JSON.stringify(formData.objectives));
             submitData.append('content', formData.content || '');
-            
+
             if (file) {
                 submitData.append('file', file);
             }
@@ -141,7 +141,7 @@ const CurriculumMaterialPage = () => {
 
     const handleDelete = async (id: string) => {
         if (!window.confirm('¿Confirma que desea eliminar este material curricular?')) return;
-        
+
         try {
             await curriculumService.delete(id);
             alert('Material eliminado exitosamente');
@@ -181,7 +181,7 @@ const CurriculumMaterialPage = () => {
         return matchesSearch && matchesCourse && matchesSubject;
     });
 
-    const availableSubjects = selectedCourse 
+    const availableSubjects = selectedCourse
         ? subjects.filter(s => s.courseId === selectedCourse)
         : [];
 
@@ -280,7 +280,7 @@ const CurriculumMaterialPage = () => {
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {filteredMaterials.map(material => (
                         <div key={material._id} className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-lg transition-all overflow-hidden group">
-                            <div 
+                            <div
                                 className="p-6 text-white"
                                 style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                             >
@@ -335,101 +335,96 @@ const CurriculumMaterialPage = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-2xl shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
                         <div
-                            className="p-6 text-white flex justify-between items-center"
+                            className="p-10 text-white relative overflow-hidden"
                             style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                         >
-                            <h2 className="text-2xl font-black flex items-center gap-3">
-                                <BookOpen size={28} />
-                                {modalMode === 'create' ? 'Nuevo Material' : 'Editar Material'}
-                            </h2>
-                            <button onClick={() => setShowModal(false)} className="hover:bg-white/20 p-2 rounded-lg transition">
+                            <div className="relative z-10">
+                                <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2 flex items-center gap-3">
+                                    <BookOpen size={28} />
+                                    {modalMode === 'create' ? 'Nueva Planificación' : 'Editar Recurso'}
+                                </h2>
+                                <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
+                                    {modalMode === 'create' ? 'COBERTURA Y MATERIAL ACADÉMICO' : 'GESTIÓN DE CONTENIDO CURRICULAR'}
+                                </p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">
                                 <X size={24} />
                             </button>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Título del Material</label>
+                        <form onSubmit={handleSubmit} className="p-10 space-y-6 bg-slate-50/30">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">TÍTULO DEL MATERIAL / UNIDAD</label>
                                 <input
                                     required
-                                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
                                     value={formData.title || ''}
                                     onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    placeholder="Ej: Objetivos de Matemáticas - Unidad 1"
+                                    placeholder="Ej: Planificación Anual Matemática 2026"
                                 />
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Descripción</label>
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DESCRIPCIÓN DE LA ACTIVIDAD</label>
                                 <textarea
-                                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-bold text-slate-600 resize-none"
                                     rows={3}
                                     value={formData.description || ''}
                                     onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Descripción breve del material..."
+                                    placeholder="Detalles sobre el material o planificación..."
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Curso <span className="text-red-600">*</span></label>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CURSO <span className="text-red-600">*</span></label>
                                     <select
                                         required
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
                                         value={formData.courseId || ''}
                                         onChange={e => setFormData({ ...formData, courseId: e.target.value, subjectId: '' })}
                                     >
-                                        <option value="">-- Seleccionar Curso --</option>
-                                        {courses && courses.length > 0 ? (
-                                            courses.map(c => (
-                                                <option key={c._id} value={c._id}>{c.name}</option>
-                                            ))
-                                        ) : (
-                                            <option disabled>No hay cursos disponibles</option>
-                                        )}
+                                        <option value="">-- Seleccionar --</option>
+                                        {courses && courses.map(c => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
                                     </select>
-                                    {formData.courseId && (
-                                        <p className="text-xs text-green-600 font-bold mt-1">✓ Curso: {courses.find(c => c._id === formData.courseId)?.name}</p>
-                                    )}
                                 </div>
 
-                                <div>
-                                    <label className="block text-sm font-bold text-gray-700 mb-2">Asignatura (Opcional)</label>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ASIGNATURA (OPCIONAL)</label>
                                     <select
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
                                         value={formData.subjectId || ''}
                                         onChange={e => setFormData({ ...formData, subjectId: e.target.value })}
                                         disabled={!formData.courseId}
                                     >
-                                        <option value="">-- Sin asignatura específica --</option>
-                                        {availableSubjects && availableSubjects.length > 0 ? (
-                                            availableSubjects.map(s => (
-                                                <option key={s._id} value={s._id}>{s.name}</option>
-                                            ))
-                                        ) : (
-                                            formData.courseId && <option disabled>No hay asignaturas para este curso</option>
-                                        )}
+                                        <option value="">-- General --</option>
+                                        {availableSubjects && availableSubjects.map(s => (
+                                            <option key={s._id} value={s._id}>{s.name}</option>
+                                        ))}
                                     </select>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Objetivos de Aprendizaje</label>
-                                <div className="space-y-2 mb-3">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">OBJETIVOS DE APRENDIZAJE (OA)</label>
+                                <div className="space-y-2 mb-4">
                                     {(formData.objectives || []).map((obj, idx) => (
-                                        <div key={idx} className="flex items-center gap-2 bg-blue-50 p-3 rounded-lg border-2 border-blue-100">
-                                            <span className="text-blue-600 font-black">{idx + 1}.</span>
-                                            <span className="flex-1 text-gray-700 font-bold">{obj}</span>
+                                        <div key={idx} className="flex items-center gap-3 bg-white p-4 rounded-xl border-2 border-slate-50 shadow-sm">
+                                            <div className="w-6 h-6 bg-[#11355a] text-white rounded-lg flex items-center justify-center font-black text-[10px]">{idx + 1}</div>
+                                            <span className="flex-1 text-slate-600 font-bold text-sm">{obj}</span>
                                             <button
                                                 type="button"
                                                 onClick={() => setFormData({
                                                     ...formData,
                                                     objectives: (formData.objectives || []).filter((_, i) => i !== idx)
                                                 })}
-                                                className="text-red-600 hover:bg-red-100 p-1 rounded transition"
+                                                className="text-rose-400 hover:text-rose-600 p-1"
                                             >
                                                 <X size={18} />
                                             </button>
@@ -439,10 +434,22 @@ const CurriculumMaterialPage = () => {
                                 <div className="flex gap-2">
                                     <input
                                         type="text"
-                                        placeholder="Agregar un objetivo..."
-                                        className="flex-1 px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
+                                        placeholder="Ej: OA 01 - Cálculo numérico..."
+                                        className="flex-1 px-6 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-bold text-sm"
                                         value={newObjective}
                                         onChange={e => setNewObjective(e.target.value)}
+                                        onKeyPress={e => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                if (newObjective.trim()) {
+                                                    setFormData({
+                                                        ...formData,
+                                                        objectives: [...(formData.objectives || []), newObjective.trim()]
+                                                    });
+                                                    setNewObjective('');
+                                                }
+                                            }
+                                        }}
                                     />
                                     <button
                                         type="button"
@@ -450,63 +457,51 @@ const CurriculumMaterialPage = () => {
                                             if (newObjective.trim()) {
                                                 setFormData({
                                                     ...formData,
-                                                    objectives: [...(formData.objectives || []), newObjective]
+                                                    objectives: [...(formData.objectives || []), newObjective.trim()]
                                                 });
                                                 setNewObjective('');
                                             }
                                         }}
-                                        className="bg-blue-600 text-white px-4 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all"
+                                        className="bg-blue-600 text-white px-5 py-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-900/10"
                                     >
                                         <Plus size={20} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Contenido (Texto opcional)</label>
-                                <textarea
-                                    className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white outline-none transition-all font-bold"
-                                    rows={4}
-                                    value={formData.content || ''}
-                                    onChange={e => setFormData({ ...formData, content: e.target.value })}
-                                    placeholder="Contenido detallado del material..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-2">Adjuntar Archivo (Opcional)</label>
-                                <div className="relative">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ADJUNTAR EXPEDIENTE (PDF/DOCX)</label>
+                                <div className="relative border-2 border-dashed border-slate-200 rounded-[2rem] p-8 text-center bg-white hover:border-blue-400 transition-colors cursor-pointer group-hover:bg-blue-50/10">
                                     <input
                                         type="file"
                                         accept=".pdf,.doc,.docx,.txt,.xlsx,.pptx"
-                                        className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
                                         onChange={e => setFile(e.target.files?.[0] || null)}
                                     />
-                                    <p className="text-xs text-gray-500 mt-1">Formatos: PDF, Word, Excel, PowerPoint (máx. 10MB)</p>
-                                </div>
-                                {file && (
-                                    <div className="mt-2 p-2 bg-green-50 rounded-lg flex items-center gap-2">
-                                        <File size={16} className="text-green-600" />
-                                        <span className="text-xs font-bold text-green-600">{file.name}</span>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <File className="text-slate-300" size={32} />
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                            {file ? file.name : 'Seleccionar o Arrastrar Archivo'}
+                                        </span>
                                     </div>
-                                )}
+                                </div>
                             </div>
 
-                            <div className="pt-4 flex gap-4">
+                            <div className="pt-8 flex flex-col md:flex-row gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 py-3 text-gray-600 font-black hover:bg-gray-100 rounded-xl transition-all"
+                                    className="flex-1 py-5 text-slate-400 font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-widest text-xs"
                                 >
-                                    Cancelar
+                                    DESCARTAR
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black hover:bg-blue-700 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                                    className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:bg-slate-300"
                                 >
-                                    <Save size={20} />
-                                    {modalMode === 'create' ? 'Crear Material' : 'Guardar Cambios'}
+                                    <Save size={18} />
+                                    {modalMode === 'create' ? 'PUBLICAR PLANIFICACIÓN' : 'ACTUALIZAR DATOS'}
                                 </button>
                             </div>
                         </form>
