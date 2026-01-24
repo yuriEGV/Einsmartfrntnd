@@ -122,7 +122,7 @@ const AnalyticsPage = () => {
                                         <div className="text-xs text-gray-500 font-bold uppercase">{student.grado}</div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-3xl font-black text-blue-600">{student.overallAverage.toFixed(2)}</div>
+                                        <div className="text-3xl font-black text-blue-600">{student.overallAverage ? student.overallAverage.toFixed(2) : '0.00'}</div>
                                         <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Promedio</div>
                                     </div>
                                 </div>
@@ -201,9 +201,7 @@ const AnalyticsPage = () => {
                     </div>
                 </div>
 
-
-
-                {/* Debtor Ranking (Visible only to Admin/Sostenedor potentially? Check backend rules or assume safe here) */}
+                {/* Debtor Ranking */}
                 <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
                     <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
                         <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
@@ -232,7 +230,7 @@ const AnalyticsPage = () => {
                                                 <div className="font-bold text-gray-600">{debtor.studentName}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
-                                                <div className="text-xl font-black text-rose-600">${debtor.totalDebt.toLocaleString()}</div>
+                                                <div className="text-xl font-black text-rose-600">${debtor.totalDebt ? debtor.totalDebt.toLocaleString() : '0'}</div>
                                             </td>
                                             <td className="px-6 py-4 text-center">
                                                 <div className="flex flex-col items-center gap-1">
@@ -297,15 +295,14 @@ const AnalyticsPage = () => {
                                                             : 'bg-rose-100 text-rose-700'
                                                             }`}
                                                     >
-                                                        {subject.subject}: {subject.average.toFixed(1)}
+                                                        {subject.subject}: {subject.average ? subject.average.toFixed(1) : '0.0'}
                                                     </div>
                                                 ))}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            <div className={`text-2xl font-black ${student.overallAverage >= 4.0 ? 'text-emerald-600' : 'text-rose-600'
-                                                }`}>
-                                                {student.overallAverage.toFixed(2)}
+                                            <div className={`text-2xl font-black ${student.overallAverage >= 4.0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                {student.overallAverage ? student.overallAverage.toFixed(2) : '0.00'}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-center">
