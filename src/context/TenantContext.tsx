@@ -16,6 +16,7 @@ interface Tenant {
     address?: string;
     phone?: string;
     contactEmail?: string;
+    logo?: string;
     annualFee?: number;
     academicYear?: string;
 }

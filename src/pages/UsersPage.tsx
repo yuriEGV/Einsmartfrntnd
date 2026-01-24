@@ -277,7 +277,7 @@ const UsersPage = () => {
 
             {/* Refined Premium Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
                     <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
                         <div
                             className="p-10 text-white relative overflow-hidden"
@@ -294,7 +294,7 @@ const UsersPage = () => {
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
                         </div>
 
-                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30 text-start">
+                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
                             <div className="space-y-5">
                                 <div className="group text-start">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">NOMBRE COMPLETO</label>

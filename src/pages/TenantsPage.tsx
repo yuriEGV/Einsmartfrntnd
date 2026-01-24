@@ -311,7 +311,7 @@ const TenantsPage = () => {
 
             {/* Modal de Creación - Refined for Experience */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
                     <div className="bg-[#f8fafc] rounded-[3rem] w-full max-w-2xl shadow-[0_0_100px_rgba(0,0,0,0.4)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar flex flex-col">
                         <div
                             className="p-10 text-white relative overflow-hidden flex-shrink-0"

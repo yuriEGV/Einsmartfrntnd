@@ -2,7 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X, Printer, Save } from 'lucide-react';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 
 interface Subject {
     _id: string;
@@ -60,6 +62,14 @@ const SubjectsPage = () => {
         covered: false
     });
     const [objModalMode, setObjModalMode] = useState<'create' | 'edit'>('create');
+
+    // Print Ref
+    const printRef = useRef<HTMLDivElement>(null);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Cobertura Curricular - ${selectedSubject?.name || 'Asignatura'}`,
+    });
 
     useEffect(() => {
         fetchData();
@@ -263,53 +273,66 @@ const SubjectsPage = () => {
 
             {/* Modal Asignatura */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl animate-in fade-in duration-200">
-                        <h2 className="text-xl font-bold mb-4 border-b pb-2">
-                            {modalMode === 'create' ? 'Nueva Asignatura' : 'Editar Asignatura'}
-                        </h2>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Nombre</label>
-                                <input
-                                    required
-                                    placeholder="Ej: Matemáticas"
-                                    className="w-full border p-2 rounded"
-                                    value={formData.name}
-                                    onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                />
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
+                        <div className="p-10 text-white relative overflow-hidden bg-[#11355a]">
+                            <div className="relative z-10">
+                                <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
+                                    {modalMode === 'create' ? 'Nueva Asignatura' : 'Editar Asignatura'}
+                                </h2>
+                                <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
+                                    GESTIÓN DE RAMOS Y DOCENCIA
+                                </p>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Curso</label>
-                                <select
-                                    required
-                                    className="w-full border p-2 rounded bg-white"
-                                    value={formData.courseId}
-                                    onChange={e => setFormData({ ...formData, courseId: e.target.value })}
-                                >
-                                    <option value="">Seleccionar Curso...</option>
-                                    {courses.map(c => (
-                                        <option key={c._id} value={c._id}>{c.name}</option>
-                                    ))}
-                                </select>
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                        </div>
+                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
+                            <div className="space-y-5">
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRE DE LA ASIGNATURA</label>
+                                    <input
+                                        required
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: Matemáticas"
+                                        value={formData.name}
+                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                    />
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CURSO ASIGNADO</label>
+                                    <select
+                                        required
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
+                                        value={formData.courseId}
+                                        onChange={e => setFormData({ ...formData, courseId: e.target.value })}
+                                    >
+                                        <option value="">Seleccionar Curso...</option>
+                                        {courses.map(c => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">PROFESOR JEFE / TITULAR</label>
+                                    <select
+                                        required
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
+                                        value={formData.teacherId}
+                                        onChange={e => setFormData({ ...formData, teacherId: e.target.value })}
+                                    >
+                                        <option value="">Seleccionar Profesor...</option>
+                                        {teachers.map(t => (
+                                            <option key={t._id} value={t._id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Profesor Asignado</label>
-                                <select
-                                    required
-                                    className="w-full border p-2 rounded bg-white"
-                                    value={formData.teacherId}
-                                    onChange={e => setFormData({ ...formData, teacherId: e.target.value })}
-                                >
-                                    <option value="">Seleccionar Profesor...</option>
-                                    {teachers.map(t => (
-                                        <option key={t._id} value={t._id}>{t.name}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div className="flex justify-end gap-2 mt-6">
-                                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">Cancelar</button>
-                                <button type="submit" className="px-4 py-2 bg-[#11355a] text-white rounded hover:opacity-90">Guardar</button>
+
+                            <div className="pt-8 flex flex-col md:flex-row gap-4">
+                                <button type="button" onClick={() => setShowModal(false)} className="flex-1 py-5 text-slate-400 font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-widest text-xs">CANCELAR</button>
+                                <button type="submit" className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2">
+                                    <Save size={18} /> GUARDAR ASIGNATURA
+                                </button>
                             </div>
                         </form>
                     </div>
@@ -318,46 +341,58 @@ const SubjectsPage = () => {
 
             {/* Modal Objetivos */}
             {showObjModal && selectedSubject && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-5xl shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[90vh] flex flex-col overflow-hidden">
                         {/* Header */}
-                        <div className="bg-[#11355a] p-6 text-white flex justify-between items-center shrink-0">
-                            <div>
-                                <h2 className="text-xl font-bold flex items-center gap-2">
-                                    <Target className="text-blue-300" />
-                                    Objetivos de Aprendizaje: {selectedSubject.name}
-                                </h2>
-                                <p className="text-blue-200 text-xs font-medium uppercase tracking-wider mt-1">
-                                    Curso: {selectedSubject.courseId?.name}
-                                </p>
+                        <div className="p-8 text-white relative overflow-hidden bg-[#11355a] shrink-0">
+                            <div className="relative z-10 flex justify-between items-center">
+                                <div>
+                                    <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2 flex items-center gap-3">
+                                        <Target className="text-blue-400" />
+                                        Planes y Programas
+                                    </h2>
+                                    <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
+                                        ASIGNATURA: {selectedSubject.name} | CURSO: {selectedSubject.courseId?.name}
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        onClick={() => handlePrint()}
+                                        className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl transition-all flex items-center gap-2 border border-white/10 font-black text-[10px] uppercase tracking-widest"
+                                    >
+                                        <Printer size={16} /> Imprimir Reporte
+                                    </button>
+                                    <button onClick={() => setShowObjModal(false)} className="bg-white/10 hover:bg-red-500/40 p-3 rounded-2xl transition-all border border-white/10">
+                                        <X size={24} />
+                                    </button>
+                                </div>
                             </div>
-                            <button onClick={() => setShowObjModal(false)} className="bg-white/10 hover:bg-white/20 p-2 rounded-full transition">
-                                <X size={20} />
-                            </button>
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
                         </div>
 
-                        <div className="p-8 flex flex-col md:flex-row gap-8 overflow-hidden">
-                            {/* Form Side */}
-                            <div className="w-full md:w-1/3 flex flex-col gap-6 shrink-0">
-                                <div className="bg-gray-50 p-6 rounded-2xl border-2 border-dashed border-gray-200">
-                                    <h3 className="font-black text-gray-800 text-sm uppercase mb-4 flex items-center gap-2">
-                                        <Plus size={16} className="text-blue-600" />
-                                        {objModalMode === 'create' ? 'Nuevo Objetivo' : 'Editar Objetivo'}
+                        <div className="p-8 flex flex-col md:flex-row gap-8 overflow-hidden bg-slate-50/30 flex-1">
+                            {/* Form Side - NOW MORE BALANCED AND CENTERED IN FEEL */}
+                            <div className="w-full md:w-[350px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
+                                <div className="bg-white p-6 rounded-3xl shadow-xl shadow-blue-900/5 border border-slate-100">
+                                    <h3 className="font-black text-slate-800 text-xs uppercase mb-6 flex items-center gap-2 pb-4 border-b">
+                                        <Plus size={18} className="text-blue-600" />
+                                        {objModalMode === 'create' ? 'Agregar Objetivo' : 'Actualizar OA'}
                                     </h3>
-                                    <form onSubmit={handleSaveObjective} className="space-y-4">
+                                    <form onSubmit={handleSaveObjective} className="space-y-5">
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1">Código (Ej: OA 01)</label>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CÓDIGO IDENTIFICADOR</label>
                                             <input
                                                 required
-                                                className="w-full border-2 border-gray-100 rounded-xl p-3 text-sm focus:border-blue-500 outline-none transition"
+                                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-black text-slate-700 text-sm"
+                                                placeholder="Ej: OA 01"
                                                 value={objFormData.code}
                                                 onChange={e => setObjFormData({ ...objFormData, code: e.target.value })}
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1">Periodo</label>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">TEMPORALIDAD</label>
                                             <select
-                                                className="w-full border-2 border-gray-100 rounded-xl p-3 text-sm focus:border-blue-500 outline-none transition"
+                                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-black text-slate-700 text-sm appearance-none"
                                                 value={objFormData.period}
                                                 onChange={e => setObjFormData({ ...objFormData, period: e.target.value })}
                                             >
@@ -367,17 +402,19 @@ const SubjectsPage = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-gray-400 uppercase mb-1">Descripción</label>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DESCRIPCIÓN DEL APRENDIZAJE</label>
                                             <textarea
                                                 required
                                                 rows={4}
-                                                className="w-full border-2 border-gray-100 rounded-xl p-3 text-sm focus:border-blue-500 outline-none transition resize-none"
+                                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold text-slate-600 text-sm resize-none"
+                                                placeholder="Describa el objetivo de aprendizaje..."
                                                 value={objFormData.description}
                                                 onChange={e => setObjFormData({ ...objFormData, description: e.target.value })}
                                             />
                                         </div>
-                                        <button type="submit" className="w-full bg-[#11355a] text-white py-3 rounded-xl font-bold shadow-lg shadow-blue-900/20 hover:bg-blue-800 transition">
-                                            {objModalMode === 'create' ? 'Agregar Objetivo' : 'Guardar Cambios'}
+                                        <button type="submit" className="w-full bg-[#11355a] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:bg-blue-900 transition-all flex items-center justify-center gap-2">
+                                            {objModalMode === 'create' ? <Plus size={16} /> : <Save size={16} />}
+                                            {objModalMode === 'create' ? 'AGREGAR A MATRIZ' : 'ACTUALIZAR DATOS'}
                                         </button>
                                         {objModalMode === 'edit' && (
                                             <button
@@ -386,7 +423,7 @@ const SubjectsPage = () => {
                                                     setObjModalMode('create');
                                                     setObjFormData({ _id: '', code: '', description: '', period: 'Anual', covered: false });
                                                 }}
-                                                className="w-full text-gray-500 text-xs font-bold hover:underline"
+                                                className="w-full text-slate-400 text-[10px] font-black uppercase tracking-widest hover:text-slate-600 transition-colors"
                                             >
                                                 Cancelar Edición
                                             </button>
@@ -396,56 +433,61 @@ const SubjectsPage = () => {
                             </div>
 
                             {/* List Side */}
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
-                                <div className="flex justify-between items-end mb-2">
-                                    <h3 className="font-black text-gray-400 text-[10px] uppercase tracking-widest">Listado de Cobertura Curricular</h3>
-                                    <div className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">
-                                        Total: {objectives.length} objetivos
+                            <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="font-black text-slate-400 text-[10px] uppercase tracking-[0.2em]">MATRIZ DE COBERTURA CURRICULAR</h3>
+                                    <div className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100">
+                                        LISTADOS: {objectives.length} OA REGISTRADOS
                                     </div>
                                 </div>
                                 {objectives.length === 0 ? (
-                                    <div className="text-center py-20 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 text-gray-400 italic">
-                                        No hay objetivos registrados para esta asignatura.
+                                    <div className="flex flex-col items-center justify-center py-24 bg-white rounded-[2.5rem] border-4 border-dashed border-slate-100 text-slate-300">
+                                        <Target size={48} className="mb-4 opacity-20" />
+                                        <p className="font-black uppercase text-xs tracking-widest">Sin planificación registrada</p>
                                     </div>
                                 ) : (
-                                    objectives.map(obj => (
-                                        <div key={obj._id} className={`p-5 rounded-2xl border-2 transition-all group ${obj.covered ? 'bg-emerald-50 border-emerald-100 shadow-sm' : 'bg-white border-gray-50 hover:border-blue-100 hover:shadow-md'}`}>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div className="flex items-center gap-3">
-                                                    <span className={`px-3 py-1 rounded-lg font-black text-xs ${obj.covered ? 'bg-emerald-500 text-white' : 'bg-gray-100 text-gray-500'}`}>
-                                                        {obj.code}
-                                                    </span>
-                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">{obj.period}</span>
-                                                </div>
-                                                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => {
-                                                        setObjModalMode('edit');
-                                                        setObjFormData({
-                                                            _id: obj._id,
-                                                            code: obj.code,
-                                                            description: obj.description,
-                                                            period: obj.period,
-                                                            covered: obj.covered
-                                                        });
-                                                    }} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition"><Edit size={16} /></button>
-                                                    <button onClick={() => handleDeleteObjective(obj._id)} className="p-2 text-rose-600 hover:bg-rose-100 rounded-lg transition"><Trash2 size={16} /></button>
+                                    <div className="space-y-4">
+                                        {objectives.map(obj => (
+                                            <div key={obj._id} className={`p-6 rounded-[2rem] border-2 transition-all group relative overflow-hidden ${obj.covered ? 'bg-emerald-50 border-emerald-100 shadow-sm' : 'bg-white border-slate-50 hover:shadow-xl hover:shadow-blue-900/5'}`}>
+                                                <div className="flex justify-between items-start relative z-10">
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-3 mb-3">
+                                                            <span className={`px-4 py-1.5 rounded-xl font-black text-xs shadow-sm ${obj.covered ? 'bg-emerald-500 text-white' : 'bg-[#11355a] text-white'}`}>
+                                                                {obj.code}
+                                                            </span>
+                                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{obj.period}</span>
+                                                        </div>
+                                                        <p className={`text-sm leading-relaxed mb-6 font-bold ${obj.covered ? 'text-emerald-800' : 'text-slate-600'}`}>{obj.description}</p>
+                                                        <div className="flex gap-4">
+                                                            <button
+                                                                onClick={() => toggleCoverage(obj)}
+                                                                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border-2 transition-all ${obj.covered
+                                                                    ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                                                                    : 'bg-white border-slate-100 text-slate-400 hover:border-emerald-500 hover:text-emerald-500'
+                                                                    }`}
+                                                            >
+                                                                {obj.covered ? <Check size={14} /> : null}
+                                                                {obj.covered ? 'COBERTURA LOGRADA' : 'MARCAR CUMPLIMIENTO'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col gap-2 ml-4">
+                                                        <button onClick={() => {
+                                                            setObjModalMode('edit');
+                                                            setObjFormData({
+                                                                _id: obj._id,
+                                                                code: obj.code,
+                                                                description: obj.description,
+                                                                period: obj.period,
+                                                                covered: obj.covered
+                                                            });
+                                                        }} className="p-3 text-blue-400 hover:bg-blue-50 hover:text-blue-600 rounded-xl transition-all shadow-sm bg-white border border-slate-50"><Edit size={16} /></button>
+                                                        <button onClick={() => handleDeleteObjective(obj._id)} className="p-3 text-rose-300 hover:bg-rose-50 hover:text-rose-600 rounded-xl transition-all shadow-sm bg-white border border-slate-50"><Trash2 size={16} /></button>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <p className={`text-sm leading-relaxed mb-4 font-medium ${obj.covered ? 'text-emerald-800' : 'text-gray-600'}`}>{obj.description}</p>
-                                            <div className="flex justify-between items-center mt-2">
-                                                <button
-                                                    onClick={() => toggleCoverage(obj)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border-2 transition-all ${obj.covered
-                                                        ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/20'
-                                                        : 'bg-white border-gray-100 text-gray-400 hover:border-emerald-500 hover:text-emerald-500'
-                                                        }`}
-                                                >
-                                                    {obj.covered ? <Check size={14} /> : null}
-                                                    {obj.covered ? 'Objetivo Cubierto' : 'Marcar como Cubierto'}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
+                                        ))}
+                                    </div>
                                 )}
                             </div>
                         </div>

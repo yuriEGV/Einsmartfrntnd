@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search
+    Bell, Search, BookOpen
 } from 'lucide-react';
 
 const Layout = () => {
@@ -71,9 +71,13 @@ const Layout = () => {
                 style={{ backgroundColor: tenant?.theme?.primaryColor ? `${tenant.theme.primaryColor}ee` : '#11355aee' }}
             >
                 <div className="flex items-center gap-3 min-w-0">
-                    <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-md shadow-inner shrink-0">
-                        <School size={18} className="text-white" />
-                    </div>
+                    {tenant?.theme?.logoUrl ? (
+                        <img src={tenant.theme.logoUrl} alt={`${tenant.name} logo`} className="w-8 h-8 rounded-xl border border-white/15 backdrop-blur-md shadow-inner shrink-0 object-contain" />
+                    ) : (
+                        <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-md shadow-inner shrink-0">
+                            <School size={18} className="text-white" />
+                        </div>
+                    )}
                     <div className="flex flex-col min-w-0">
                         <h1 className="text-sm font-black tracking-tighter uppercase truncate">
                             {tenant?.name || 'MARITIMO'}
@@ -116,9 +120,13 @@ const Layout = () => {
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
 
                     <h1 className="text-2xl font-black tracking-tighter flex items-center gap-4 uppercase relative z-10">
-                        <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-lg shadow-2xl">
-                            <School size={26} className="text-white" />
-                        </div>
+                        {tenant?.theme?.logoUrl ? (
+                            <img src={tenant.theme.logoUrl} alt={`${tenant.name} logo`} className="w-12 h-12 rounded-2xl border border-white/15 backdrop-blur-lg shadow-2xl object-contain" />
+                        ) : (
+                            <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-lg shadow-2xl">
+                                <School size={26} className="text-white" />
+                            </div>
+                        )}
                         <div className="flex flex-col">
                             <span className="leading-none text-white">{tenant?.name || 'MARITIMO'}</span>
                             <span className="text-[10px] text-blue-400 font-black tracking-[0.2em] mt-1.5 opacity-60">EINSMART® v4.0</span>
@@ -160,6 +168,14 @@ const Layout = () => {
                             <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
                         </div>
 
+                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/subjects" icon={BookOpen}>Ramos</NavLink>
+                        )}
+
+                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/curriculum-material" icon={ClipboardList}>Curriculum</NavLink>
+                        )}
+
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
                             <NavLink to="/settings" icon={Settings}>Institución</NavLink>
                         )}
@@ -172,7 +188,18 @@ const Layout = () => {
                             <NavLink to="/tenants" icon={School}>Clientes</NavLink>
                         )}
 
-                        <NavLink to="/payments" icon={DollarSign}>Finanzas</NavLink>
+                        {(permissions.canManagePayments || permissions.isSuperAdmin) && (
+                            <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
+                        )}
+
+                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
+                            <NavLink to="/finance-dashboard" icon={TrendingUp}>Finanzas Sostenedor</NavLink>
+                        )}
+
+                        {/* Nuevo enlace para Nóminas */}
+                        {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
+                            <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
+                        )}
                     </div>
                 </nav>
 

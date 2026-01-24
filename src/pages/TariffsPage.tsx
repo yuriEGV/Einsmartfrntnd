@@ -202,31 +202,32 @@ const TariffsPage = () => {
 
             {/* Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="bg-[#11355a] p-6 text-white flex justify-between items-center">
-                            <h2 className="text-xl font-bold">
-                                {modalMode === 'create' ? 'Nueva Tarifa' : 'Editar Tarifa'}
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 md:pl-[300px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-md shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white overflow-hidden animate-in zoom-in-95 duration-500">
+                        <div className="bg-[#11355a] p-10 text-white relative overflow-hidden">
+                            <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
+                                {modalMode === 'create' ? 'Nueva Tarifa' : 'Costo del Servicio'}
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="text-white/60 hover:text-white">✕</button>
+                            <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">GESTIÓN DE ARANCELES</p>
+                            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
                         </div>
-                        <form onSubmit={handleSave} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Nombre</label>
+                        <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRE DE LA TARIFA</label>
                                 <input
                                     required
                                     placeholder="Ej: Mensualidad Marzo 2026"
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
                                     value={formData.name}
                                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Monto</label>
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">VALOR MONETARIO ($)</label>
                                 <input
                                     required
                                     type="number"
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
                                     value={formData.amount}
                                     onChange={e => setFormData({ ...formData, amount: Number(e.target.value) })}
                                 />

@@ -226,18 +226,19 @@ const PaymentsPage = () => {
 
             {/* Assign Modal */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="bg-[#11355a] p-6 text-white flex justify-between items-center">
-                            <h2 className="text-xl font-bold">Asignar Cobro a Estudiante</h2>
-                            <button onClick={() => setShowModal(false)} className="text-white/60 hover:text-white">✕</button>
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 md:pl-[300px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-md shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white overflow-hidden animate-in zoom-in-95 duration-500">
+                        <div className="bg-[#11355a] p-10 text-white relative overflow-hidden">
+                            <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">Asignar Cobro</h2>
+                            <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">FINANZAS Y RECAUDACIÓN</p>
+                            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
                         </div>
-                        <form onSubmit={handleAssignPayment} className="p-6 space-y-4">
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Estudiante</label>
+                        <form onSubmit={handleAssignPayment} className="p-10 space-y-6 bg-slate-50/30">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ESTUDIANTE DESTINATARIO</label>
                                 <select
                                     required
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
                                     value={formData.estudianteId}
                                     onChange={e => setFormData({ ...formData, estudianteId: e.target.value })}
                                 >
@@ -247,20 +248,15 @@ const PaymentsPage = () => {
                                     ))}
                                 </select>
                             </div>
-                            <div>
-                                <label className="block text-sm font-bold text-gray-700 mb-1">Motivo / Concepto del Cobro</label>
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">MOTIVO / CONCEPTO DEL COBRO</label>
                                 <select
                                     required
-                                    className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:border-blue-500 outline-none font-bold"
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
                                     value={formData.tariffId}
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
                                     <option value="">-- Seleccionar --</option>
-                                    <optgroup label="Conceptos Fijos">
-                                        <option value="MATRICULA">Matrícula (Valor Institucional)</option>
-                                        <option value="MENSUALIDAD">Mensualidad</option>
-                                        <option value="PASEO">Paseo de fin de año / Recreacional</option>
-                                    </optgroup>
                                     <optgroup label="Tarifas Especiales">
                                         {tariffs.filter(t => t.active ?? true).map(t => (
                                             <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
@@ -269,8 +265,8 @@ const PaymentsPage = () => {
                                 </select>
                             </div>
 
-                            <button type="submit" className="w-full bg-[#11355a] text-white py-3 rounded-xl font-bold mt-4 hover:bg-blue-800 transition-colors">
-                                Generar Cobro
+                            <button type="submit" className="w-full bg-[#11355a] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-blue-900/20 hover:bg-blue-900 transition-all">
+                                GENERAR COBRO ELECTRÓNICO
                             </button>
                         </form>
                     </div>
