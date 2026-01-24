@@ -256,11 +256,6 @@ const PaymentsPage = () => {
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
                                     <option value="">-- Seleccionar --</option>
-                                    <optgroup label="Conceptos Fijos">
-                                        <option value="MATRICULA">Matrícula (Valor Institucional)</option>
-                                        <option value="MENSUALIDAD">Mensualidad</option>
-                                        <option value="PASEO">Paseo de fin de año / Recreacional</option>
-                                    </optgroup>
                                     <optgroup label="Tarifas Especiales">
                                         {tariffs.filter(t => t.active ?? true).map(t => (
                                             <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>

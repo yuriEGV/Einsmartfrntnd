@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap, Save } from 'lucide-react';
@@ -24,6 +25,7 @@ interface Teacher {
 
 const CoursesPage = () => {
     const { canManageCourses, isSuperAdmin } = usePermissions();
+    const navigate = useNavigate();
     // const { tenant } = useTenant(); // Not used currently
     const [courses, setCourses] = useState<Course[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -233,7 +235,10 @@ const CoursesPage = () => {
                                     </div>
                                 </div>
 
-                                <button className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn">
+                                <button
+                                    onClick={() => navigate(`/courses/${course._id}/students`)}
+                                    className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                >
                                     <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
                                     Ver Lista de Alumnos
                                 </button>

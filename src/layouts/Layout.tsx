@@ -188,7 +188,9 @@ const Layout = () => {
                             <NavLink to="/tenants" icon={School}>Clientes</NavLink>
                         )}
 
-                        <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
+                        {(permissions.canManagePayments || permissions.isSuperAdmin) && (
+                            <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
+                        )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
                             <NavLink to="/finance-dashboard" icon={TrendingUp}>Finanzas Sostenedor</NavLink>
