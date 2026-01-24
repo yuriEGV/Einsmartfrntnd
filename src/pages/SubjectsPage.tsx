@@ -370,9 +370,9 @@ const SubjectsPage = () => {
                             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
                         </div>
 
-                        <div className="p-8 flex flex-col md:flex-row gap-8 overflow-hidden bg-slate-50/30">
+                        <div className="p-8 flex flex-col md:flex-row gap-8 overflow-hidden bg-slate-50/30 flex-1">
                             {/* Form Side - NOW MORE BALANCED AND CENTERED IN FEEL */}
-                            <div className="w-full md:w-[350px] flex flex-col gap-6 shrink-0">
+                            <div className="w-full md:w-[350px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
                                 <div className="bg-white p-6 rounded-3xl shadow-xl shadow-blue-900/5 border border-slate-100">
                                     <h3 className="font-black text-slate-800 text-xs uppercase mb-6 flex items-center gap-2 pb-4 border-b">
                                         <Plus size={18} className="text-blue-600" />
