@@ -323,7 +323,8 @@ const AnalyticsPage = () => {
                     </div>
                 </div>
             </div>
-            );
+        </div>
+    );
 };
 
-            export default AnalyticsPage;
+export default AnalyticsPage;
