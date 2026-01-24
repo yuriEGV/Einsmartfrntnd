@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
-import { usePermissions } from '../hooks/usePermissions';
 import expenseService from '../services/expenseService';
-import { useTenant } from '../context/TenantContext';
 import {
     DollarSign,
     TrendingUp,

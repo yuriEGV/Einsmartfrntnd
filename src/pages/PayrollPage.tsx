@@ -56,26 +56,11 @@ const PayrollPage: React.FC = () => {
                 }
                 setPayments(fetchedPayments);
 
-                // Obtener usuarios para selección en el formulario
-                let fetchedUsers: UserData[] = [];
-                if (user?.role === 'admin') {
-                    // Admins pueden ver todos los usuarios del tenant, o filtrar por rol
-                    fetchedUsers = await getUsers(user?.tenantId);
-                } else if (user?.role === 'sostenedor') {
-                    // Sostenedores solo ven usuarios de su tenant
-                    fetchedUsers = await getUsers(user?.tenantId);
-                }
-                // Filtrar para excluir estudiantes y apoderados, ya que los pagos de nómina son para personal
-                fetchedUsers = fetchedUsers.filter(u =>
-                    u.role !== 'student' && u.role !== 'apoderado'
-                );
-                setUsers(fetchedUsers);
-
             } catch (err) {
                 console.error('Error fetching payroll data:', err);
                 setError('Error al cargar los datos de nómina o usuarios.');
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
