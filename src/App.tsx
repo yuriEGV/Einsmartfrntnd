@@ -17,6 +17,7 @@ import SchoolSettingsPage from './pages/SchoolSettingsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CoursesPage from './pages/CoursesPage';
+import CourseStudentsPage from './pages/CourseStudentsPage';
 import SubjectsPage from './pages/SubjectsPage';
 import EvaluationsPage from './pages/EvaluationsPage';
 import AttendancePage from './pages/AttendancePage';
@@ -50,6 +51,7 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/my-payments" element={<GuardianPaymentsPage />} />
             <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
             <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/evaluations" element={<EvaluationsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />

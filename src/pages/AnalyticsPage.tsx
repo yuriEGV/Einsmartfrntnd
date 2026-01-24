@@ -201,130 +201,129 @@ const AnalyticsPage = () => {
                     </div>
                 </div>
 
-            </div>
 
-            {/* Debtor Ranking (Visible only to Admin/Sostenedor potentially? Check backend rules or assume safe here) */}
-            <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
-                <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
-                    <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
-                        <Target size={24} className="text-rose-300" />
-                        Ranking de Morosidad (Top Deudores)
-                    </h2>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead className="bg-rose-50">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Apoderado Responsable</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Estudiante</th>
-                                <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Deuda Total</th>
-                                <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-rose-100">
-                            {debtorRanking && debtorRanking.length > 0 ? (
-                                debtorRanking.map((debtor: any) => (
-                                    <tr key={debtor._id} className="hover:bg-rose-50/50 transition-colors">
-                                        <td className="px-6 py-4">
-                                            <div className="font-black text-gray-800">{debtor.guardianName || 'Sin Apoderado'}</div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="font-bold text-gray-600">{debtor.studentName}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="text-xl font-black text-rose-600">${debtor.totalDebt.toLocaleString()}</div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <div className="flex flex-col items-center gap-1">
-                                                <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                    {debtor.overdueCount} Vencidos
-                                                </span>
-                                                {debtor.pendingCount > 0 && (
-                                                    <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                        {debtor.pendingCount} Pendientes
+
+                {/* Debtor Ranking (Visible only to Admin/Sostenedor potentially? Check backend rules or assume safe here) */}
+                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                    <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
+                        <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                            <Target size={24} className="text-rose-300" />
+                            Ranking de Morosidad (Top Deudores)
+                        </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead className="bg-rose-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Apoderado Responsable</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Estudiante</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Deuda Total</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-rose-100">
+                                {debtorRanking && debtorRanking.length > 0 ? (
+                                    debtorRanking.map((debtor: any) => (
+                                        <tr key={debtor._id} className="hover:bg-rose-50/50 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="font-black text-gray-800">{debtor.guardianName || 'Sin Apoderado'}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-gray-600">{debtor.studentName}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="text-xl font-black text-rose-600">${debtor.totalDebt.toLocaleString()}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="flex flex-col items-center gap-1">
+                                                    <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                        {debtor.overdueCount} Vencidos
                                                     </span>
-                                                )}
-                                            </div>
+                                                    {debtor.pendingCount > 0 && (
+                                                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                            {debtor.pendingCount} Pendientes
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-400 font-bold">
+                                            No hay registros de deuda pendientes.
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-8 text-center text-gray-400 font-bold">
-                                        No hay registros de deuda pendientes.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </div>
 
-            {/* Student Performance Table */}
-            <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
-                <div
-                    className="px-8 py-5 flex items-center justify-between"
-                    style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
-                >
-                    <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
-                        <Target size={24} className="text-blue-300" />
-                        Rendimiento por Estudiante y Materia
-                    </h2>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Estudiante</th>
-                                <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Materias</th>
-                                <th className="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-widest">Promedio General</th>
-                                <th className="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-widest">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {studentAnalytics.slice(0, 20).map((student: any) => (
-                                <tr key={student._id} className="hover:bg-blue-50/30 transition-colors">
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-gray-800">{student.studentName}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {student.subjectAverages.map((subject: any, idx: number) => (
-                                                <div
-                                                    key={idx}
-                                                    className={`px-3 py-1 rounded-full text-xs font-bold ${subject.average >= 4.0
-                                                        ? 'bg-emerald-100 text-emerald-700'
-                                                        : 'bg-rose-100 text-rose-700'
-                                                        }`}
-                                                >
-                                                    {subject.subject}: {subject.average.toFixed(1)}
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <div className={`text-2xl font-black ${student.overallAverage >= 4.0 ? 'text-emerald-600' : 'text-rose-600'
-                                            }`}>
-                                            {student.overallAverage.toFixed(2)}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${student.passingStatus === 'Aprueba'
-                                            ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
-                                            : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
-                                            }`}>
-                                            {student.passingStatus}
-                                        </span>
-                                    </td>
+                {/* Student Performance Table */}
+                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                    <div
+                        className="px-8 py-5 flex items-center justify-between"
+                        style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
+                    >
+                        <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                            <Target size={24} className="text-blue-300" />
+                            Rendimiento por Estudiante y Materia
+                        </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead className="bg-gray-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Estudiante</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-gray-500 uppercase tracking-widest">Materias</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-widest">Promedio General</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-gray-500 uppercase tracking-widest">Estado</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {studentAnalytics.slice(0, 20).map((student: any) => (
+                                    <tr key={student._id} className="hover:bg-blue-50/30 transition-colors">
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-gray-800">{student.studentName}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="flex flex-wrap gap-2">
+                                                {student.subjectAverages.map((subject: any, idx: number) => (
+                                                    <div
+                                                        key={idx}
+                                                        className={`px-3 py-1 rounded-full text-xs font-bold ${subject.average >= 4.0
+                                                            ? 'bg-emerald-100 text-emerald-700'
+                                                            : 'bg-rose-100 text-rose-700'
+                                                            }`}
+                                                    >
+                                                        {subject.subject}: {subject.average.toFixed(1)}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <div className={`text-2xl font-black ${student.overallAverage >= 4.0 ? 'text-emerald-600' : 'text-rose-600'
+                                                }`}>
+                                                {student.overallAverage.toFixed(2)}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-center">
+                                            <span className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest ${student.passingStatus === 'Aprueba'
+                                                ? 'bg-emerald-100 text-emerald-700 border-2 border-emerald-300'
+                                                : 'bg-rose-100 text-rose-700 border-2 border-rose-300'
+                                                }`}>
+                                                {student.passingStatus}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
-        </div >
-    );
+            );
 };
 
-export default AnalyticsPage;
+            export default AnalyticsPage;
