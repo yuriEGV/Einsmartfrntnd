@@ -108,7 +108,10 @@ const ClassBookPage = () => {
     };
 
     const filteredSubjects = formData.courseId
-        ? subjects.filter(s => s.courseId?._id === formData.courseId)
+        ? subjects.filter(s => s.courseId && (
+            (typeof s.courseId === 'object' && s.courseId._id === formData.courseId) ||
+            s.courseId === formData.courseId
+        ))
         : [];
 
     return (

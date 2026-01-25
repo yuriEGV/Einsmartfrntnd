@@ -91,8 +91,8 @@ const GuardiansPage = () => {
     const filteredGuardians = guardians.filter(g => {
         const fullName = `${g.nombres || ''} ${g.apellidos || ''}`.toLowerCase();
         const rut = (g.rut || '').toLowerCase();
-        const studentName = typeof g.estudianteId === 'object'
-            ? `${g.estudianteId?.nombres || ''} ${g.estudianteId?.apellidos || ''}`.toLowerCase()
+        const studentName = (g.estudianteId && typeof g.estudianteId === 'object')
+            ? `${g.estudianteId.nombres || ''} ${g.estudianteId.apellidos || ''}`.toLowerCase()
             : '';
 
         return fullName.includes(searchTerm.toLowerCase()) ||
@@ -171,7 +171,7 @@ const GuardiansPage = () => {
                                     <div className="flex items-center gap-3 text-slate-500">
                                         <UserIcon size={16} className="text-slate-300" />
                                         <span className="text-xs font-bold uppercase tracking-tight">
-                                            Estudiante: {typeof g.estudianteId === 'object' ? `${g.estudianteId.nombres} ${g.estudianteId.apellidos}` : 'No cargado'}
+                                            Estudiante: {(g.estudianteId && typeof g.estudianteId === 'object') ? `${g.estudianteId.nombres} ${g.estudianteId.apellidos}` : 'No cargado'}
                                         </span>
                                     </div>
                                 </div>
