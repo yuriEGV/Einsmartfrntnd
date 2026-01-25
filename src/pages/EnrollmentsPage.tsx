@@ -50,6 +50,7 @@ const EnrollmentsPage = () => {
         status: 'confirmada',
         fee: 0,
         notes: '',
+        metodoPago: 'transferencia',
         // Direct creation data
         newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
         newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
@@ -175,6 +176,7 @@ const EnrollmentsPage = () => {
                 status: 'confirmada',
                 fee: 0,
                 notes: '',
+                metodoPago: 'transferencia',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
                 newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
@@ -504,6 +506,18 @@ const EnrollmentsPage = () => {
                                                 </div>
                                             ))}
                                         </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Método de Pago Preferido</label>
+                                        <select
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 transition-all outline-none font-bold"
+                                            value={formData.metodoPago}
+                                            onChange={e => setFormData({ ...formData, metodoPago: e.target.value })}
+                                        >
+                                            <option value="transferencia">Transferencia Bancaria</option>
+                                            <option value="efectivo">Efectivo / Caja</option>
+                                            <option value="mercadopago">Mercado Pago / Online</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Notas Adicionales</label>
