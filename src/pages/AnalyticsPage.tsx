@@ -2,7 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
-import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer } from 'lucide-react';
+import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle } from 'lucide-react';
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer
+} from 'recharts';
 
 const AnalyticsPage = () => {
     const { tenant } = useTenant();
@@ -11,6 +15,7 @@ const AnalyticsPage = () => {
     const [annotationRankings, setAnnotationRankings] = useState<any>(null);
     const [studentAnalytics, setStudentAnalytics] = useState([]);
     const [debtorRanking, setDebtorRanking] = useState([]);
+    const [performanceTrends, setPerformanceTrends] = useState([]);
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -19,16 +24,18 @@ const AnalyticsPage = () => {
 
     const fetchAnalytics = async () => {
         try {
-            const [topRes, annotRes, studentRes, debtRes] = await Promise.all([
+            const [topRes, annotRes, studentRes, debtRes, trendRes] = await Promise.all([
                 api.get('/analytics/top-students?limit=10'),
                 api.get('/analytics/annotations-ranking'),
                 api.get('/analytics/students'),
-                api.get('/analytics/debtors')
+                api.get('/analytics/debtors'),
+                api.get('/analytics/performance-trends')
             ]);
             setTopStudents(topRes.data);
             setAnnotationRankings(annotRes.data);
             setStudentAnalytics(studentRes.data);
             setDebtorRanking(debtRes.data);
+            setPerformanceTrends(trendRes.data);
         } catch (err) {
             console.error('Error fetching analytics:', err);
         } finally {
@@ -127,6 +134,72 @@ const AnalyticsPage = () => {
                     <div className="p-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {renderTopStudents()}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Trends Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2 bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                        <div className="px-8 py-5 bg-blue-600">
+                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                                <TrendingUp size={24} />
+                                Tendencia de Rendimiento Académico
+                            </h2>
+                        </div>
+                        <div className="p-8 h-[400px]">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={performanceTrends}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                    <XAxis
+                                        dataKey="month"
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                                    />
+                                    <YAxis
+                                        domain={[1, 7]}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                                    />
+                                    <Tooltip
+                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                        labelStyle={{ fontWeight: 'black', color: '#1e293b' }}
+                                    />
+                                    <Line
+                                        type="monotone"
+                                        dataKey="average"
+                                        stroke="#2563eb"
+                                        strokeWidth={4}
+                                        dot={{ r: 6, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+                                        activeDot={{ r: 8, strokeWidth: 0 }}
+                                    />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden flex flex-col">
+                        <div className="px-8 py-5 bg-amber-500">
+                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                                <AlertCircle size={24} />
+                                Alerta de Riesgo
+                            </h2>
+                        </div>
+                        <div className="p-8 flex-1 flex flex-col items-center justify-center text-center space-y-4">
+                            <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center">
+                                <AlertCircle size={40} className="text-amber-500" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-slate-800">Alumnos en Riesgo</h3>
+                                <p className="text-sm text-slate-500 font-bold mt-2">
+                                    {(studentAnalytics.filter((s: any) => s.overallAverage < 4.0).length)} estudiantes presentan promedios insuficientes.
+                                </p>
+                            </div>
+                            <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
+                                Ver Listado de Riesgo
+                            </button>
                         </div>
                     </div>
                 </div>

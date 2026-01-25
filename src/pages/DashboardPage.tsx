@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
+import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -25,6 +25,7 @@ const DashboardPage = () => {
     const [recentGrades, setRecentGrades] = useState([]);
     // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
     const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [pendingSignatures, setPendingSignatures] = useState([]);
 
     useEffect(() => {
         if (user) {
@@ -41,13 +42,15 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
         try {
             // Parallel fetch
-            const [eventsRes, statsRes] = await Promise.all([
+            const [eventsRes, statsRes, signaturesRes] = await Promise.all([
                 api.get('/events'),
-                (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } })
+                (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
+                (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] })
             ]);
 
             setUpcomingEvents(eventsRes.data.slice(0, 3));
             if (statsRes.data) setStats(statsRes.data);
+            if (signaturesRes.data) setPendingSignatures(signaturesRes.data);
 
             if (user?.role === 'student' || user?.role === 'apoderado') {
                 const gradesRes = await api.get('/grades');
@@ -78,6 +81,27 @@ const DashboardPage = () => {
 
     return (
         <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
+            {/* Alertas Regulatorias */}
+            {pendingSignatures.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-rose-600 text-white rounded-3xl shadow-xl shadow-rose-200">
+                            <ShieldAlert size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-rose-900 uppercase tracking-tighter">Pendiente de Firma Digital</h3>
+                            <p className="text-sm font-bold text-rose-700/70">Tienes {pendingSignatures.length} registros en el Libro de Clases sin firmar.</p>
+                        </div>
+                    </div>
+                    <a
+                        href="/class-book"
+                        className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 active:scale-95"
+                    >
+                        Ir al Libro de Clases <ChevronRight size={18} />
+                    </a>
+                </div>
+            )}
+
             {/* Header / Welcome - Compact on Mobile */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
                 <div className="space-y-1">

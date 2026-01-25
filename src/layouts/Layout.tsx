@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen, UserCog
+    Bell, Search, BookOpen, UserCog, Database
 } from 'lucide-react';
 
 const Layout = () => {
@@ -169,7 +169,11 @@ const Layout = () => {
                         </div>
 
                         {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/subjects" icon={BookOpen}>Ramos</NavLink>
+                            <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
+                        )}
+
+                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
@@ -177,7 +181,11 @@ const Layout = () => {
                         )}
 
                         {(user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/curriculum-material" icon={ClipboardList}>Curriculum</NavLink>
+                            <NavLink to="/question-bank" icon={Database}>Banco de Preguntas</NavLink>
+                        )}
+
+                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (

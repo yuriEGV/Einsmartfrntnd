@@ -30,6 +30,8 @@ import PayrollForm from './components/PayrollForm'; // Importar el formulario de
 import SostenedorDashboard from './pages/SostenedorDashboard';
 import CollectionsPage from './pages/CollectionsPage';
 import GuardiansPage from './pages/GuardiansPage';
+import ClassBookPage from './pages/ClassBookPage';
+import QuestionBankPage from './pages/QuestionBankPage';
 
 function App() {
   return (
@@ -67,6 +69,8 @@ function App() {
             <Route path="/finance-dashboard" element={<SostenedorDashboard />} />
             <Route path="/collections" element={<CollectionsPage />} />
             <Route path="/guardians" element={<GuardiansPage />} />
+            <Route path="/class-book" element={<ClassBookPage />} />
+            <Route path="/question-bank" element={<QuestionBankPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 
