@@ -20,6 +20,7 @@ interface Guardian {
     parentesco: string;
     tipo: 'principal' | 'secundario';
     estudianteId: Student | string;
+    financialStatus?: 'solvente' | 'moroso' | 'exento';
 }
 
 const GuardiansPage = () => {
@@ -177,10 +178,15 @@ const GuardiansPage = () => {
                             </div>
 
                             <div className="mt-6 pt-6 border-t border-slate-50 flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                <span>{g.parentesco}</span>
-                                <span className={`px-2 py-1 rounded-lg ${g.tipo === 'principal' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'}`}>
-                                    {g.tipo}
-                                </span>
+                                <div className="flex gap-2">
+                                    <span className={`px-2 py-1 rounded-lg ${g.tipo === 'principal' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-50 text-slate-500'}`}>
+                                        {g.tipo}
+                                    </span>
+                                    <span className={g.parentesco ? 'px-2 py-1 bg-slate-50 rounded-lg' : ''}>{g.parentesco}</span>
+                                </div>
+                                <div className={`px-3 py-1 rounded-full font-black tracking-tighter ${g.financialStatus === 'moroso' ? 'bg-rose-500 text-white shadow-lg shadow-rose-900/20' : 'bg-emerald-500 text-white shadow-lg shadow-emerald-900/20'}`}>
+                                    {g.financialStatus || 'solvente'}
+                                </div>
                             </div>
                         </div>
                     ))}

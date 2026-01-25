@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
+import {
+    UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
+    DollarSign, UserCheck, CreditCard, ChevronRight, Save
+} from 'lucide-react';
 
 interface Course {
     _id: string;
@@ -506,6 +509,39 @@ const EnrollmentsPage = () => {
                                                 </div>
                                             ))}
                                         </div>
+                                        {tariffs.length === 0 && (
+                                            <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl flex items-start gap-3">
+                                                <AlertCircle className="text-orange-500 shrink-0" size={20} />
+                                                <div>
+                                                    <p className="text-xs text-orange-700 font-bold mb-1 uppercase tracking-widest">No hay tarifas predefinidas</p>
+                                                    <p className="text-[10px] text-orange-600 font-medium leading-relaxed">
+                                                        No hemos encontrado aranceles configurados para este colegio. El sistema acaba de generar valores por defecto (Matrícula y Mensualidad). Por favor, presiona el botón de recargar si no ves nada o ingresa un monto manual abajo.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={fetchTariffs}
+                                                        className="mt-3 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all"
+                                                    >
+                                                        Recargar Aranceles
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="pt-4 border-t border-dashed border-emerald-100">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Monto Adicional / Otro Arancel ($)</label>
+                                        <div className="relative">
+                                            <DollarSign className="absolute left-3 top-3 text-emerald-500" size={18} />
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="Ej: 50000 (Opcional)"
+                                                className="w-full pl-10 pr-4 py-3 bg-emerald-50/30 border-2 border-emerald-100 rounded-xl focus:border-emerald-500 transition-all outline-none font-bold text-emerald-700"
+                                                value={formData.fee || ''}
+                                                onChange={e => setFormData({ ...formData, fee: Number(e.target.value) || 0 })}
+                                            />
+                                        </div>
+                                        <p className="text-[9px] text-slate-400 mt-2 font-medium">Este valor se sumará al total inicial pero no generará un recibo automático por separado.</p>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Método de Pago Preferido</label>
