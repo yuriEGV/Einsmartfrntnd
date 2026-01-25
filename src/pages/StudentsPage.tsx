@@ -13,6 +13,7 @@ interface Student {
     email: string;
     grado: string;
     edad?: number;
+    guardian?: { nombre: string; apellidos: string; correo: string; telefono: string };
 }
 
 const StudentsPage = () => {
@@ -257,6 +258,15 @@ const StudentsPage = () => {
                                         <span className="font-black text-slate-300 mr-1 opacity-50">EXP:</span>
                                         {student.matricula || student.rut || 'NO REGISTRADO'}
                                     </div>
+                                    {student.guardian && (
+                                        <div className="pt-2 border-t border-slate-100 mt-2">
+                                            <div className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1">Apoderado Responsable</div>
+                                            <div className="text-xs font-bold text-slate-700 flex justify-between">
+                                                <span>{student.guardian.nombre} {student.guardian.apellidos}</span>
+                                                <span className="text-blue-500">{student.guardian.telefono}</span>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {canManageStudents && (
