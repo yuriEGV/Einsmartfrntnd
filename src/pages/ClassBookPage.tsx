@@ -43,8 +43,11 @@ const ClassBookPage = () => {
 
     useEffect(() => {
         fetchInitialData();
-        fetchLogs();
     }, []);
+
+    useEffect(() => {
+        fetchLogs();
+    }, [selectedCourse, selectedSubject]);
 
     const fetchInitialData = async () => {
         try {

@@ -16,20 +16,35 @@ const AnalyticsPage = () => {
     const [studentAnalytics, setStudentAnalytics] = useState([]);
     const [debtorRanking, setDebtorRanking] = useState([]);
     const [performanceTrends, setPerformanceTrends] = useState([]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [selectedCourse, setSelectedCourse] = useState('');
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        fetchAnalytics();
+        fetchInitialData();
     }, []);
 
+    useEffect(() => {
+        fetchAnalytics();
+    }, [selectedCourse]);
+
+    const fetchInitialData = async () => {
+        try {
+            const res = await api.get('/courses');
+            setCourses(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
     const fetchAnalytics = async () => {
         try {
+            const params = selectedCourse ? `?courseId=${selectedCourse}` : '';
             const [topRes, annotRes, studentRes, debtRes, trendRes] = await Promise.all([
-                api.get('/analytics/top-students?limit=10'),
-                api.get('/analytics/annotations-ranking'),
-                api.get('/analytics/students'),
-                api.get('/analytics/debtors'),
-                api.get('/analytics/performance-trends')
+                api.get(`/analytics/top-students?limit=10${params ? `&${params.slice(1)}` : ''}`),
+                api.get(`/analytics/annotations-ranking${params}`),
+                api.get(`/analytics/students${params}`),
+                api.get(`/analytics/debtors`),
+                api.get(`/analytics/performance-trends${params}`)
             ]);
             setTopStudents(topRes.data);
             setAnnotationRankings(annotRes.data);
@@ -81,7 +96,8 @@ const AnalyticsPage = () => {
                     </div>
                     <div className="flex-1">
                         <div className="font-black text-gray-800 text-lg">{student.studentName}</div>
-                        <div className="text-xs text-gray-500 font-bold uppercase">{student.grado}</div>
+                        <div className="text-[10px] text-blue-600 font-black uppercase tracking-widest bg-blue-50 px-2 py-0.5 rounded-md inline-block mb-1">Apod: {student.guardianName || 'N/A'}</div>
+                        <div className="text-xs text-gray-500 font-bold uppercase block">{student.grado}</div>
                     </div>
                     <div className="text-right">
                         <div className="text-3xl font-black text-blue-600">{student.overallAverage ? student.overallAverage.toFixed(2) : '0.00'}</div>
@@ -102,12 +118,25 @@ const AnalyticsPage = () => {
                     </h1>
                     <p className="text-gray-500 text-lg mt-2">Métricas de estudiantes, promedios y comportamiento</p>
                 </div>
-                <button
-                    onClick={handlePrint}
-                    className="flex items-center gap-2 px-8 py-4 bg-white text-gray-700 rounded-3xl font-black border-2 border-gray-100 hover:bg-gray-50 transition-all shadow-xl shadow-gray-200/50"
-                >
-                    <Printer size={20} /> Imprimir Reporte Completo
-                </button>
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
+                    <div className="flex-1">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Filtrar por Curso</label>
+                        <select
+                            className="w-full px-6 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700"
+                            value={selectedCourse}
+                            onChange={e => setSelectedCourse(e.target.value)}
+                        >
+                            <option value="">Todos los cursos</option>
+                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                        </select>
+                    </div>
+                    <button
+                        onClick={handlePrint}
+                        className="flex items-center gap-2 px-8 py-4 bg-white text-gray-700 rounded-3xl font-black border-2 border-gray-100 hover:bg-gray-50 transition-all shadow-xl shadow-gray-200/50"
+                    >
+                        <Printer size={20} /> Imprimir Reporte
+                    </button>
+                </div>
             </div>
 
             <div className="space-y-8" ref={printRef}>
@@ -349,6 +378,7 @@ const AnalyticsPage = () => {
                                         <tr key={student._id} className="hover:bg-blue-50/30 transition-colors">
                                             <td className="px-6 py-4">
                                                 <div className="font-bold text-gray-800">{student.studentName}</div>
+                                                <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Apod: {student.guardianName || 'N/A'}</div>
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex flex-wrap gap-2">
