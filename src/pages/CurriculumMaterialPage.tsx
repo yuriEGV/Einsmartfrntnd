@@ -182,11 +182,17 @@ const CurriculumMaterialPage = () => {
     });
 
     const availableSubjects = selectedCourse
-        ? subjects.filter(s => s.courseId === selectedCourse)
+        ? subjects.filter(s => {
+            const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
+            return sCourseId === selectedCourse;
+        })
         : [];
 
     const modalSubjects = formData.courseId
-        ? subjects.filter(s => s.courseId === formData.courseId)
+        ? subjects.filter(s => {
+            const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
+            return sCourseId === formData.courseId;
+        })
         : [];
 
     if (!permissions.isSuperAdmin && !permissions.user?.role?.includes('sostenedor') && !permissions.user?.role?.includes('admin') && !permissions.user?.role?.includes('teacher')) {
@@ -248,9 +254,16 @@ const CurriculumMaterialPage = () => {
                             }}
                         >
                             <option value="">Todos los cursos</option>
-                            {courses.map(c => (
-                                <option key={c._id} value={c._id}>{c.name}</option>
-                            ))}
+                            {/* Unique-ify courses by name to avoid visual duplicates */}
+                            {Array.from(new Set(courses.map(c => c.name)))
+                                .sort()
+                                .map(name => {
+                                    const course = courses.find(c => c.name === name);
+                                    return (
+                                        <option key={course?._id} value={course?._id}>{name}</option>
+                                    );
+                                })
+                            }
                         </select>
                     </div>
                     <div>

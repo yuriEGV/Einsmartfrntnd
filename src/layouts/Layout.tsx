@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen, UserCog, Database, CreditCard, User
+    Bell, Search, BookOpen, UserCog, Database, CreditCard, User, Clock
 } from 'lucide-react';
 
 const Layout = () => {
@@ -186,6 +186,10 @@ const Layout = () => {
 
                         {(user?.role === 'teacher' || user?.role === 'admin') && (
                             <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
+                        )}
+
+                        {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (
+                            <NavLink to="/admin-days" icon={Clock}>Días Administrativos</NavLink>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (

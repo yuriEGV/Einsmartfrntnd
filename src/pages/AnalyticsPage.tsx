@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
-import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle } from 'lucide-react';
+import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, ShieldCheck } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer
@@ -74,9 +74,14 @@ const AnalyticsPage = () => {
     const renderTopStudents = () => {
         if (!topStudents || topStudents.length === 0) {
             return (
-                <div className="col-span-2 p-12 text-center text-gray-400 font-bold border-4 border-dashed rounded-3xl">
-                    <Trophy size={48} className="mx-auto mb-4 opacity-20" />
-                    No hay suficientes datos para generar el ranking aún.
+                <div className="col-span-2 p-16 text-center bg-gray-50 rounded-[3rem] border-4 border-dashed border-gray-100">
+                    <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shadow-xl mx-auto mb-6 text-blue-200">
+                        <Trophy size={40} />
+                    </div>
+                    <h3 className="text-xl font-black text-gray-400 uppercase tracking-tighter">Sin Datos Académicos</h3>
+                    <p className="text-gray-400 font-bold max-w-sm mx-auto mt-2 italic">
+                        Aún no se han registrado calificaciones para este periodo. Comience registrando notas en la sección pedagógica para ver el ranking.
+                    </p>
                 </div>
             );
         }
@@ -176,36 +181,43 @@ const AnalyticsPage = () => {
                                 Tendencia de Rendimiento Académico
                             </h2>
                         </div>
-                        <div className="p-8 h-[400px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={performanceTrends}>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                    <XAxis
-                                        dataKey="month"
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
-                                    />
-                                    <YAxis
-                                        domain={[1, 7]}
-                                        axisLine={false}
-                                        tickLine={false}
-                                        tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
-                                        labelStyle={{ fontWeight: 'black', color: '#1e293b' }}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="average"
-                                        stroke="#2563eb"
-                                        strokeWidth={4}
-                                        dot={{ r: 6, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
-                                        activeDot={{ r: 8, strokeWidth: 0 }}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
+                        <div className="p-8 h-[400px] relative">
+                            {performanceTrends.length === 0 ? (
+                                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-10">
+                                    <TrendingUp size={64} className="text-slate-100 mb-4" />
+                                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin registros históricos suficientes</p>
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={performanceTrends}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                                        <XAxis
+                                            dataKey="month"
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                                        />
+                                        <YAxis
+                                            domain={[1, 7]}
+                                            axisLine={false}
+                                            tickLine={false}
+                                            tick={{ fill: '#94a3b8', fontSize: 12, fontWeight: 'bold' }}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                                            labelStyle={{ fontWeight: 'black', color: '#1e293b' }}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="average"
+                                            stroke="#2563eb"
+                                            strokeWidth={4}
+                                            dot={{ r: 6, fill: '#2563eb', strokeWidth: 2, stroke: '#fff' }}
+                                            activeDot={{ r: 8, strokeWidth: 0 }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            )}
                         </div>
                     </div>
 
@@ -259,8 +271,9 @@ const AnalyticsPage = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-10 text-center text-gray-400 text-sm font-bold border-2 border-dashed rounded-2xl">
-                                    Sin anotaciones registradas.
+                                <div className="p-16 text-center text-slate-300 font-black uppercase tracking-[0.2em] text-[10px] border-2 border-dashed border-slate-50 mx-4 mb-4 rounded-3xl bg-slate-50/30">
+                                    <Star size={32} className="mx-auto mb-4 opacity-50" />
+                                    Sin registros positivos
                                 </div>
                             )}
                         </div>
@@ -291,8 +304,9 @@ const AnalyticsPage = () => {
                                     </div>
                                 ))
                             ) : (
-                                <div className="p-10 text-center text-gray-400 text-sm font-bold border-2 border-dashed rounded-2xl">
-                                    Todo en orden. Sin registros negativos.
+                                <div className="p-16 text-center text-slate-300 font-black uppercase tracking-[0.2em] text-[10px] border-2 border-dashed border-slate-50 mx-4 mb-4 rounded-3xl bg-slate-50/30">
+                                    <ThumbsDown size={32} className="mx-auto mb-4 opacity-50" />
+                                    Todo en orden
                                 </div>
                             )}
                         </div>
@@ -345,8 +359,9 @@ const AnalyticsPage = () => {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={4} className="px-6 py-8 text-center text-gray-400 font-bold">
-                                            No hay registros de deuda pendientes.
+                                        <td colSpan={4} className="px-6 py-20 text-center">
+                                            <ShieldCheck size={48} className="mx-auto text-slate-100 mb-4" />
+                                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin deudas vencidas registradas</p>
                                         </td>
                                     </tr>
                                 )}

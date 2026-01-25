@@ -33,6 +33,7 @@ import GuardiansPage from './pages/GuardiansPage';
 import ClassBookPage from './pages/ClassBookPage';
 import QuestionBankPage from './pages/QuestionBankPage';
 import ProfilePage from './pages/ProfilePage';
+import AdminDaysPage from './pages/AdminDaysPage';
 
 function App() {
   return (
@@ -73,6 +74,7 @@ function App() {
             <Route path="/class-book" element={<ClassBookPage />} />
             <Route path="/question-bank" element={<QuestionBankPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin-days" element={<AdminDaysPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

@@ -108,10 +108,10 @@ const ClassBookPage = () => {
     };
 
     const filteredSubjects = formData.courseId
-        ? subjects.filter(s => s.courseId && (
-            (typeof s.courseId === 'object' && s.courseId._id === formData.courseId) ||
-            s.courseId === formData.courseId
-        ))
+        ? subjects.filter(s => {
+            const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
+            return sCourseId === formData.courseId;
+        })
         : [];
 
     return (
@@ -187,7 +187,15 @@ const ClassBookPage = () => {
                                         onChange={e => setFormData({ ...formData, courseId: e.target.value, subjectId: '' })}
                                     >
                                         <option value="">-- Seleccionar Curso --</option>
-                                        {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                        {Array.from(new Set(courses.map(c => c.name)))
+                                            .sort()
+                                            .map(name => {
+                                                const course = courses.find(c => c.name === name);
+                                                return (
+                                                    <option key={course?._id} value={course?._id}>{name}</option>
+                                                );
+                                            })
+                                        }
                                     </select>
                                     <input
                                         type="date"
@@ -257,7 +265,15 @@ const ClassBookPage = () => {
                                 onChange={e => setSelectedCourse(e.target.value)}
                             >
                                 <option value="">Todos los cursos</option>
-                                {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                {Array.from(new Set(courses.map(c => c.name)))
+                                    .sort()
+                                    .map(name => {
+                                        const course = courses.find(c => c.name === name);
+                                        return (
+                                            <option key={course?._id} value={course?._id}>{name}</option>
+                                        );
+                                    })
+                                }
                             </select>
                         </div>
                         <div className="flex-1 min-w-[200px]">
