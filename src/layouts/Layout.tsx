@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen, UserCog, Database
+    Bell, Search, BookOpen, UserCog, Database, CreditCard
 } from 'lucide-react';
 
 const Layout = () => {
@@ -211,6 +211,10 @@ const Layout = () => {
                         {/* Nuevo enlace para Nóminas */}
                         {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
                             <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
+                        )}
+
+                        {(permissions.isSostenedor || permissions.isSuperAdmin) && (
+                            <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
                         )}
                     </div>
                 </nav>
