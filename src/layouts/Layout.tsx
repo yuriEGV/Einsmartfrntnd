@@ -8,7 +8,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen, UserCog, Database, CreditCard
+    Bell, Search, BookOpen, UserCog, Database, CreditCard, User
 } from 'lucide-react';
 
 const Layout = () => {
@@ -222,14 +222,14 @@ const Layout = () => {
                 {/* Premium Profile Section */}
                 <div className="p-8 border-t border-white/5 bg-black/20 relative z-20">
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="relative group">
+                        <Link to="/profile" className="relative group">
                             <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
-                                {user?.name?.substring(0, 1) || 'A'}
+                                {user?.name?.substring(0, 1) || <User size={20} />}
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#11355a] shadow-lg"></div>
-                        </div>
+                        </Link>
                         <div className="min-w-0">
-                            <div className="text-sm font-black text-white truncate leading-tight">{user?.name || 'Invitado'}</div>
+                            <Link to="/profile" className="text-sm font-black text-white truncate leading-tight hover:text-blue-200 block transition-colors">{user?.name || 'Invitado'}</Link>
                             <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block">{user?.role}</div>
                         </div>
                     </div>
