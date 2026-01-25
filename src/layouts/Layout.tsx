@@ -64,7 +64,7 @@ const Layout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="h-screen bg-[#f8fafc] flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-100 selection:text-blue-900">
             {/* Mobile Header - High Fidelity */}
             <header
                 className="md:hidden flex items-center justify-between px-6 py-4 text-white z-[70] sticky top-0 shadow-2xl backdrop-blur-xl border-b border-white/5"
