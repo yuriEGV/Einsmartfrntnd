@@ -677,44 +677,58 @@ const EnrollmentsPage = () => {
                                 ))}
                             </div>
 
-                            {/* Desktop Table View */}
+                            {/* Desktop Table View - Grouped by Course */}
                             <div className="hidden md:block overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="text-xs font-black text-gray-400 uppercase tracking-widest border-b">
-                                            <th className="pb-4 pt-2 px-4">Estudiante</th>
-                                            <th className="pb-4 pt-2 px-4">Curso</th>
-                                            <th className="pb-4 pt-2 px-4">Periodo</th>
-                                            <th className="pb-4 pt-2 px-4">Fecha</th>
-                                            <th className="pb-4 pt-2 px-4 text-right">Monto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {filteredEnrollments.map(enrollment => (
-                                            <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors group">
-                                                <td className="py-4 px-4 font-bold text-gray-800">
-                                                    {enrollment.estudianteId
-                                                        ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
-                                                        : 'Desconocido'}
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">
-                                                        {enrollment.courseId?.name || 'N/A'}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-4 text-sm text-gray-500 font-medium">
-                                                    {enrollment.period}
-                                                </td>
-                                                <td className="py-4 px-4 text-xs text-gray-400">
-                                                    {new Date(enrollment.createdAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="py-4 px-4 text-right font-mono font-bold text-emerald-600">
-                                                    ${enrollment.fee.toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {Object.entries(
+                                    filteredEnrollments.reduce((acc, e) => {
+                                        const cname = e.courseId?.name || 'Sin Curso';
+                                        if (!acc[cname]) acc[cname] = [];
+                                        acc[cname].push(e);
+                                        return acc;
+                                    }, {} as Record<string, Enrollment[]>)
+                                ).map(([courseName, group]) => (
+                                    <div key={courseName} className="mb-10">
+                                        <div className="bg-slate-50 px-6 py-4 border-l-4 border-[#11355a] mb-4 flex items-center justify-between rounded-r-xl">
+                                            <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest flex items-center gap-3">
+                                                <BookOpen size={16} />
+                                                CURSO: {courseName}
+                                            </h3>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-slate-100 italic">
+                                                {group.length} {group.length === 1 ? 'Alumno' : 'Alumnos'}
+                                            </span>
+                                        </div>
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b">
+                                                    <th className="pb-4 pt-2 px-6">Estudiante</th>
+                                                    <th className="pb-4 pt-2 px-6">Periodo</th>
+                                                    <th className="pb-4 pt-2 px-6">Fecha Matrícula</th>
+                                                    <th className="pb-4 pt-2 px-6 text-right">Monto Pagado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {group.map(enrollment => (
+                                                    <tr key={enrollment._id} className="hover:bg-blue-50/30 transition-all group">
+                                                        <td className="py-5 px-6 font-black text-slate-700 text-sm">
+                                                            {enrollment.estudianteId
+                                                                ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
+                                                                : 'Desconocido'}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                                            {enrollment.period}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-[10px] text-slate-400 font-bold">
+                                                            {new Date(enrollment.createdAt).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-right font-black text-emerald-600 font-mono text-sm tracking-tighter">
+                                                            ${enrollment.fee.toLocaleString()}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ))}
                             </div>
                         </>
                     )}

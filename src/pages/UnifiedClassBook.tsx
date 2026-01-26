@@ -62,6 +62,15 @@ const UnifiedClassBook = () => {
 
     const [bankQuestions, setBankQuestions] = useState<any[]>([]);
     const [searchQuestion, setSearchQuestion] = useState('');
+    const [classStartTime, setClassStartTime] = useState<number | null>(null);
+    const [elapsedSeconds, setElapsedSeconds] = useState(0);
+    const [showQuestionForm, setShowQuestionForm] = useState(false);
+    const [newQuestionData, setNewQuestionData] = useState({
+        questionText: '',
+        type: 'multiple_choice',
+        difficulty: 'medium',
+        options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }]
+    });
 
     // -------------------------------------------------------------------------
     // Data Fetching
@@ -126,29 +135,62 @@ const UnifiedClassBook = () => {
         finally { setLoading(false); }
     };
 
+    useEffect(() => {
+        let interval: any;
+        if (classStartTime) {
+            interval = setInterval(() => {
+                setElapsedSeconds(Math.floor((Date.now() - classStartTime) / 1000));
+            }, 1000);
+        } else {
+            setElapsedSeconds(0);
+        }
+        return () => clearInterval(interval);
+    }, [classStartTime]);
+
     useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate]);
 
     // -------------------------------------------------------------------------
     // Actions
     // -------------------------------------------------------------------------
 
+    const handleStartClass = async () => {
+        try {
+            const res = await api.post('/class-logs/start', { courseId: selectedCourse, subjectId: selectedSubject });
+            if (res.data.startTime) {
+                setClassStartTime(new Date(res.data.startTime).getTime());
+            } else {
+                setClassStartTime(Date.now());
+            }
+            alert('¡Clase iniciada! El cronómetro está corriendo.');
+        } catch (err) { alert('Error al iniciar clase'); }
+    };
+
     const handleSaveLog = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const res = await api.post('/class-logs', { ...logFormData, courseId: selectedCourse, subjectId: selectedSubject });
+            const res = await api.post('/class-logs', {
+                ...logFormData,
+                courseId: selectedCourse,
+                subjectId: selectedSubject,
+                startTime: classStartTime ? new Date(classStartTime).toISOString() : undefined
+            });
             // Automatic signature upon creation
             await api.post(`/class-logs/${res.data._id}/sign`);
 
-            alert('Clase registrada y firmada digitalmente');
+            setClassStartTime(null); // Stop timer
+            alert('Clase registrada y firmada digitalmente. Cronómetro detenido.');
             setShowLogForm(false);
             refreshTabContent();
         } catch (err) { alert('Error al procesar el registro'); }
     };
 
-    const handleSignLog = async (id: string) => {
+    const handleSignLog = async (id: string, logStartTime?: string) => {
         if (!window.confirm('¿Firmar registro?')) return;
         try {
             await api.post(`/class-logs/${id}/sign`);
+            if (logStartTime && new Date(logStartTime).getTime() === classStartTime) {
+                setClassStartTime(null);
+            }
             refreshTabContent();
         } catch (err) { alert('Error al firmar'); }
     };
@@ -172,6 +214,7 @@ const UnifiedClassBook = () => {
             });
         }
 
+        setShowQuestionForm(false); // Reset form
         // Fetch bank questions for context (Subject and Grade)
         try {
             const res = await api.get(`/questions?subjectId=${selectedSubject}`);
@@ -228,6 +271,25 @@ const UnifiedClassBook = () => {
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al guardar la evaluación');
         }
+    };
+
+    const handleAddQuestionToBank = async () => {
+        try {
+            const res = await api.post('/questions', {
+                ...newQuestionData,
+                subjectId: selectedSubject,
+                grade: courses.find(c => (typeof c._id === 'object' ? (c._id as any)._id : c._id) === selectedCourse)?.level || ''
+            });
+            setBankQuestions([res.data, ...bankQuestions]);
+            setEvalFormData({ ...evalFormData, questions: [...evalFormData.questions, res.data._id] });
+            setShowQuestionForm(false);
+            setNewQuestionData({
+                questionText: '',
+                type: 'multiple_choice',
+                difficulty: 'medium',
+                options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }]
+            });
+        } catch (err) { alert('Error al crear pregunta'); }
     };
 
     // -------------------------------------------------------------------------
@@ -302,6 +364,16 @@ const UnifiedClassBook = () => {
                         {tab.label}
                     </button>
                 ))}
+
+                {classStartTime && (
+                    <div className="flex items-center gap-4 bg-orange-50 px-8 py-5 rounded-[2rem] shadow-xl border border-orange-200 animate-pulse ml-4">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <div className="text-xl font-mono font-black text-orange-900">
+                            {Math.floor(elapsedSeconds / 60)}:{(elapsedSeconds % 60).toString().padStart(2, '0')}
+                        </div>
+                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">En curso</span>
+                    </div>
+                )}
             </div>
 
             {/* Content Logic */}
@@ -324,7 +396,14 @@ const UnifiedClassBook = () => {
                     {activeTab === 'leccionario' && (
                         <div className="space-y-8">
                             <div className="flex justify-between items-center px-4">
-                                <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Historial del Leccionario</h2>
+                                <div className="flex items-center gap-4">
+                                    <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Historial del Leccionario</h2>
+                                    {!classStartTime && isStaff && (
+                                        <button onClick={handleStartClass} className="bg-orange-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-orange-900/20">
+                                            Comenzar Clase
+                                        </button>
+                                    )}
+                                </div>
                                 <button onClick={() => setShowLogForm(true)} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
                                     NUEVA ENTRADA
                                 </button>
@@ -376,7 +455,7 @@ const UnifiedClassBook = () => {
                                         </div>
                                         <div className="md:w-48 flex flex-col justify-center gap-2">
                                             {!log.isSigned && (
-                                                <button onClick={() => handleSignLog(log._id)} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Firmar Libro</button>
+                                                <button onClick={() => handleSignLog(log._id, log.startTime)} className="w-full py-4 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:bg-blue-700 transition-all">Firmar Libro</button>
                                             )}
                                         </div>
                                     </div>
@@ -623,10 +702,67 @@ const UnifiedClassBook = () => {
 
                             {/* Question Bank Selection */}
                             <div className="space-y-4 pt-4 border-t border-slate-100">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center justify-between">
-                                    Banco de Preguntas
-                                    <span className="text-emerald-600 font-bold">{evalFormData.questions.length} seleccionadas</span>
-                                </label>
+                                <div className="flex items-center justify-between ml-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        Banco de Preguntas
+                                        <span className="text-emerald-600 font-bold ml-2">{evalFormData.questions.length} seleccionadas</span>
+                                    </label>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowQuestionForm(!showQuestionForm)}
+                                        className="text-[9px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50 transition-all font-bold"
+                                    >
+                                        {showQuestionForm ? 'Cancelar' : '+ Nueva Pregunta'}
+                                    </button>
+                                </div>
+
+                                {showQuestionForm && (
+                                    <div className="bg-slate-50 p-6 rounded-3xl border-2 border-indigo-100 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic font-bold">Enunciado</label>
+                                            <textarea
+                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 text-sm font-bold"
+                                                placeholder="Ej: ¿Cuál es el resultado de...?"
+                                                value={newQuestionData.questionText}
+                                                onChange={e => setNewQuestionData({ ...newQuestionData, questionText: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            {newQuestionData.options.map((opt, i) => (
+                                                <div key={i} className="flex gap-2">
+                                                    <input
+                                                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold"
+                                                        placeholder={`Opción ${String.fromCharCode(65 + i)}`}
+                                                        value={opt.text}
+                                                        onChange={e => {
+                                                            const opts = [...newQuestionData.options];
+                                                            opts[i].text = e.target.value;
+                                                            setNewQuestionData({ ...newQuestionData, options: opts });
+                                                        }}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            const opts = newQuestionData.options.map((o, idx) => ({ ...o, isCorrect: i === idx }));
+                                                            setNewQuestionData({ ...newQuestionData, options: opts });
+                                                        }}
+                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center border ${opt.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-900/50' : 'bg-white border-slate-200 text-slate-200'}`}
+                                                    >
+                                                        <ShieldCheck size={16} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={handleAddQuestionToBank}
+                                            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all mt-2"
+                                        >
+                                            Guardar y Añadir a la Prueba
+                                        </button>
+                                    </div>
+                                )}
+
                                 <div className="relative">
                                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                                     <input
