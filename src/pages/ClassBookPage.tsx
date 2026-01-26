@@ -6,7 +6,7 @@ import {
     BookOpen, CheckCircle, Clock, ShieldCheck,
     Save, Calendar as CalendarIcon,
     AlertCircle, FileText, Target, X, Search,
-    UserCheck, UserX
+    UserCheck, UserX, BarChart3, Info
 } from 'lucide-react';
 
 interface ClassLog {
@@ -28,10 +28,23 @@ const ClassBookPage = () => {
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [fetchingStudents, setFetchingStudents] = useState(false);
 
     // Attendance Integration
     const [classStudents, setClassStudents] = useState<any[]>([]);
     const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
+
+    // Grades Modal
+    const [showGradesModal, setShowGradesModal] = useState(false);
+    const [selectedStudentForGrades, setSelectedStudentForGrades] = useState<any>(null);
+    const [studentGrades, setStudentGrades] = useState<any[]>([]);
+    const [loadingGrades, setLoadingGrades] = useState(false);
+
+    // Past Attendance Detail
+    const [showAttDetailModal, setShowAttDetailModal] = useState(false);
+    const [attDetailData, setAttDetailData] = useState<any[]>([]);
+    const [loadingAttDetail, setLoadingAttDetail] = useState(false);
+    const [selectedLogForAtt, setSelectedLogForAtt] = useState<any>(null);
 
     // Filters & Form
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -79,6 +92,7 @@ const ClassBookPage = () => {
     };
 
     const fetchClassStudents = async () => {
+        setFetchingStudents(true);
         try {
             const res = await api.get(`/estudiantes?cursoId=${formData.courseId}`);
             const studs = res.data;
@@ -89,6 +103,38 @@ const ClassBookPage = () => {
             setAttendanceMap(initialAtt);
         } catch (error) {
             console.error("Error fetching students:", error);
+        } finally {
+            setFetchingStudents(false);
+        }
+    };
+
+    const fetchStudentGrades = async (student: any) => {
+        setLoadingGrades(true);
+        setSelectedStudentForGrades(student);
+        setShowGradesModal(true);
+        try {
+            const res = await api.get(`/grades/student/${student._id}`);
+            // Show last 5 grades
+            setStudentGrades(res.data.slice(-5));
+        } catch (error) {
+            console.error("Error fetching grades:", error);
+        } finally {
+            setLoadingGrades(false);
+        }
+    };
+
+    const fetchAttendanceDetail = async (log: any) => {
+        setLoadingAttDetail(true);
+        setSelectedLogForAtt(log);
+        setShowAttDetailModal(true);
+        try {
+            const dateStr = new Date(log.date).toISOString().split('T')[0];
+            const res = await api.get(`/attendance?courseId=${log.courseId._id}&fecha=${dateStr}`);
+            setAttDetailData(res.data);
+        } catch (error) {
+            console.error("Error fetching attendance detail:", error);
+        } finally {
+            setLoadingAttDetail(false);
         }
     };
 
@@ -304,10 +350,20 @@ const ClassBookPage = () => {
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                     {classStudents.map(student => (
-                                        <div key={student._id} className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
-                                            <div className="truncate pr-2">
-                                                <div className="text-xs font-black text-slate-700 truncate">{student.apellidos}, {student.nombres}</div>
-                                                <div className="text-[9px] text-slate-400 font-mono">{student.rut}</div>
+                                        <div key={student._id} className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between group/item transition-all hover:shadow-md">
+                                            <div className="truncate pr-2 flex items-center gap-3">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => fetchStudentGrades(student)}
+                                                    className="p-1.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all opacity-0 group-hover/item:opacity-100"
+                                                    title="Ver Notas"
+                                                >
+                                                    <BarChart3 size={14} />
+                                                </button>
+                                                <div className="truncate">
+                                                    <div className="text-xs font-black text-slate-700 truncate">{student.apellidos}, {student.nombres}</div>
+                                                    <div className="text-[9px] text-slate-400 font-mono">{student.rut}</div>
+                                                </div>
                                             </div>
                                             <button
                                                 type="button"
@@ -442,8 +498,8 @@ const ClassBookPage = () => {
                                                     <Target size={14} /> FIRMAR DIGITAL
                                                 </button>
                                             )}
-                                            <button className="w-full bg-slate-50 text-slate-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-100 hover:bg-white hover:text-blue-600 transition-all">
-                                                VER DETALLE
+                                            <button className="w-full bg-slate-50 text-slate-400 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest border border-slate-100 hover:bg-white hover:text-blue-600 transition-all flex items-center justify-center gap-2" onClick={() => fetchAttendanceDetail(log)}>
+                                                <Info size={14} /> VER ASISTENCIA
                                             </button>
                                         </div>
                                     </div>
@@ -452,6 +508,98 @@ const ClassBookPage = () => {
                         )}
                     </div>
                 </>
+            )}
+
+            {/* Grades Modal */}
+            {showGradesModal && selectedStudentForGrades && (
+                <div className="fixed inset-0 bg-[#0a192f]/60 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+                        <div className="bg-[#11355a] p-8 text-white">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight">{selectedStudentForGrades.apellidos}, {selectedStudentForGrades.nombres}</h2>
+                                    <p className="text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] mt-1">ÚLTIMAS CALIFICACIONES</p>
+                                </div>
+                                <button onClick={() => setShowGradesModal(false)} className="text-white/40 hover:text-white transition-all"><X size={24} /></button>
+                            </div>
+                        </div>
+                        <div className="p-8">
+                            {loadingGrades ? (
+                                <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div></div>
+                            ) : studentGrades.length === 0 ? (
+                                <p className="text-center text-slate-400 font-bold py-10">Sin calificaciones registradas.</p>
+                            ) : (
+                                <div className="space-y-4">
+                                    {studentGrades.map((g: any) => (
+                                        <div key={g._id} className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div>
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">{g.evaluationId?.title || 'Evaluación'}</div>
+                                                <div className="text-sm font-black text-slate-700">{new Date(g.createdAt).toLocaleDateString()}</div>
+                                            </div>
+                                            <div className={`text-xl font-black ${g.score >= 4 ? 'text-blue-600' : 'text-rose-600'}`}>
+                                                {g.score.toFixed(1)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <button onClick={() => setShowGradesModal(false)} className="w-full mt-6 py-4 bg-slate-100 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">
+                                CERRAR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Attendance Detail Modal */}
+            {showAttDetailModal && selectedLogForAtt && (
+                <div className="fixed inset-0 bg-[#0a192f]/60 backdrop-blur-md flex items-center justify-center p-6 z-50 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-2xl overflow-hidden animate-in zoom-in-95 duration-300 border border-slate-100">
+                        <div className="bg-emerald-600 p-8 text-white">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight uppercase">Detalle de Asistencia</h2>
+                                    <p className="text-emerald-100 text-[10px] font-black uppercase tracking-[0.2em] mt-1">
+                                        {selectedLogForAtt.courseId?.name} • {new Date(selectedLogForAtt.date).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <button onClick={() => setShowAttDetailModal(false)} className="text-white/40 hover:text-white transition-all"><X size={24} /></button>
+                            </div>
+                        </div>
+                        <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                            {loadingAttDetail ? (
+                                <div className="flex justify-center p-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div></div>
+                            ) : attDetailData.length === 0 ? (
+                                <div className="text-center py-10 space-y-3">
+                                    <AlertCircle size={40} className="mx-auto text-amber-500 opacity-50" />
+                                    <p className="text-slate-400 font-bold">No se encontró registro detallado de asistencia para este día.</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {attDetailData.map((att: any) => (
+                                        <div key={att._id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                            <div className="truncate">
+                                                <div className="text-xs font-black text-slate-700 truncate">
+                                                    {att.estudianteId?.apellidos || 'Alumno'}, {att.estudianteId?.nombres || ''}
+                                                </div>
+                                                <div className="text-[9px] text-slate-400 font-mono">{att.estudianteId?.rut}</div>
+                                            </div>
+                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${att.estado === 'presente' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                                }`}>
+                                                {att.estado}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-8 border-t bg-slate-50/50">
+                            <button onClick={() => setShowAttDetailModal(false)} className="w-full py-4 bg-white text-slate-600 border border-slate-200 shadow-sm rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all">
+                                CERRAR DETALLE
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
