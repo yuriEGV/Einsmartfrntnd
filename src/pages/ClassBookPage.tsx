@@ -575,39 +575,41 @@ const ClassBookPage = () => {
                                     <p className="text-slate-400 font-bold">No se encontró registro detallado de asistencia para este día.</p>
                                 </div>
                             ) : (
-                                <div className="space-y-6 mb-8">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Tema Tratado</div>
-                                            <div className="text-lg font-black text-slate-800">{selectedLogForAtt.topic}</div>
-                                        </div>
-                                        <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
-                                            <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Actividades Realizadas</div>
-                                            <div className="text-sm font-bold text-slate-600 leading-relaxed">{selectedLogForAtt.activities}</div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-4 px-2">
-                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Lista de Asistencia</h3>
-                                        <div className="h-[1px] flex-1 bg-slate-100"></div>
-                                    </div>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {attDetailData.map((att: any) => (
-                                        <div key={att._id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
-                                            <div className="truncate">
-                                                <div className="text-xs font-black text-slate-700 truncate">
-                                                    {att.estudianteId?.apellidos || 'Alumno'}, {att.estudianteId?.nombres || ''}
-                                                </div>
-                                                <div className="text-[9px] text-slate-400 font-mono">{att.estudianteId?.rut}</div>
+                                <>
+                                    <div className="space-y-6 mb-8">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Tema Tratado</div>
+                                                <div className="text-lg font-black text-slate-800">{selectedLogForAtt.topic}</div>
                                             </div>
-                                            <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${att.estado === 'presente' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
-                                                }`}>
-                                                {att.estado}
-                                            </span>
+                                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                                <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-2">Actividades Realizadas</div>
+                                                <div className="text-sm font-bold text-slate-600 leading-relaxed">{selectedLogForAtt.activities}</div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
+
+                                        <div className="flex items-center gap-4 px-2">
+                                            <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Lista de Asistencia</h3>
+                                            <div className="h-[1px] flex-1 bg-slate-100"></div>
+                                        </div>
+                                    </div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {attDetailData.map((att: any) => (
+                                            <div key={att._id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                                <div className="truncate">
+                                                    <div className="text-xs font-black text-slate-700 truncate">
+                                                        {att.estudianteId?.apellidos || 'Alumno'}, {att.estudianteId?.nombres || ''}
+                                                    </div>
+                                                    <div className="text-[9px] text-slate-400 font-mono">{att.estudianteId?.rut}</div>
+                                                </div>
+                                                <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${att.estado === 'presente' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                                    }`}>
+                                                    {att.estado}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </>
                             )}
                         </div>
                         <div className="p-8 border-t bg-slate-50/50">
