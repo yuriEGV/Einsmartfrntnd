@@ -173,7 +173,7 @@ const UnifiedClassBook = () => {
                 date: evalFormData.date,
                 category: evalFormData.category,
                 courseId: selectedCourse,
-                subject: subjects.find(s => s._id === selectedSubject)?.name || 'General'
+                subjectId: selectedSubject
             };
             if (evalFormData._id) {
                 await api.put(`/evaluations/${evalFormData._id}`, payload);
@@ -182,7 +182,9 @@ const UnifiedClassBook = () => {
             }
             setShowEvalModal(false);
             refreshTabContent();
-        } catch (err) { alert('Error'); }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al guardar la evaluación');
+        }
     };
 
     // -------------------------------------------------------------------------

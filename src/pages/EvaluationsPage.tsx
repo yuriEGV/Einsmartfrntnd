@@ -85,25 +85,32 @@ const EvaluationsPage = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Prepare payload without _id for creation
-            const { _id, ...cleanFormData } = formData;
+            // Prepare payload
+            const selectedSubjectObj = subjects.find(s => s.name === formData.subject);
             const payload = {
-                ...cleanFormData,
-                subject: formData.subject // Model expects string name currently
+                title: formData.title,
+                date: formData.date,
+                category: formData.category,
+                courseId: formData.courseId,
+                subjectId: selectedSubjectObj?._id,
+                maxScore: formData.maxScore
             };
+
+            if (!payload.subjectId) {
+                alert('Por favor seleccione una asignatura válida');
+                return;
+            }
 
             if (modalMode === 'create') {
                 await api.post('/evaluations', payload);
             } else {
-                // For update, we can include _id in URL or exclude it from body if needed, 
-                // but usually PUT bodies are fine. API probably expects updates via ID in URL.
                 await api.put(`/evaluations/${formData._id}`, payload);
             }
             setShowModal(false);
             fetchData();
         } catch (error: any) {
             console.error(error);
-            alert(error.response?.data?.message || 'Error al guardar');
+            alert(error.response?.data?.message || 'Error al guardar la evaluación');
         }
     };
 
