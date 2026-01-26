@@ -8,8 +8,11 @@ import {
     LayoutGrid, List,
     Trash2, X, ShieldCheck
 } from 'lucide-react';
+import { usePermissions } from '../hooks/usePermissions';
 
 const UnifiedClassBook = () => {
+    const { isStaff, user } = usePermissions();
+    const isStudent = user?.role === 'student';
     // UI State
     const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'notas' | 'evaluaciones'>('leccionario');
     const [loading, setLoading] = useState(true);
@@ -107,9 +110,13 @@ const UnifiedClassBook = () => {
                 setGrades(gradesRes.data);
             } else if (activeTab === 'evaluaciones') {
                 const res = await api.get(`/evaluations?courseId=${selectedCourse}`);
-                setEvaluations(res.data.filter((e: any) =>
+                let filtered = res.data.filter((e: any) =>
                     (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
-                ));
+                );
+                if (isStudent) {
+                    filtered = filtered.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa');
+                }
+                setEvaluations(filtered);
             }
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
@@ -473,9 +480,11 @@ const UnifiedClassBook = () => {
                         <div className="space-y-8">
                             <div className="flex justify-between items-center px-4">
                                 <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Cronograma de Evaluaciones</h2>
-                                <button onClick={() => { setEvalFormData({ _id: '', title: '', date: new Date().toISOString().split('T')[0], category: 'planificada' }); setShowEvalModal(true); }} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
-                                    PROGRAMAR PRUEBA
-                                </button>
+                                {isStaff && (
+                                    <button onClick={() => { setEvalFormData({ _id: '', title: '', date: new Date().toISOString().split('T')[0], category: 'planificada' }); setShowEvalModal(true); }} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                        PROGRAMAR PRUEBA
+                                    </button>
+                                )}
                             </div>
 
                             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">

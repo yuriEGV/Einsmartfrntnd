@@ -22,6 +22,7 @@ interface Student {
     nombres: string;
     apellidos: string;
     rut: string;
+    grado?: string;
 }
 
 const AttendancePage = () => {
@@ -269,7 +270,16 @@ const AttendancePage = () => {
                             <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
                                 {viewMode === 'current' ? 'Presencia Hoy' : 'Bitácora Histórica'}
                             </h3>
-                            <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1">Sincronizado con el libro de clases oficial</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                                    Sincronizado con el libro de clases oficial
+                                </span>
+                                {students.length > 0 && students[0].grado && (
+                                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[8px] font-black uppercase border border-blue-100">
+                                        Curso: {students[0].grado}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         {viewMode === 'current' && (
                             <div className="w-full md:w-auto flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">

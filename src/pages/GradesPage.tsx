@@ -82,7 +82,12 @@ const GradesPage = () => {
             ]);
             setGrades(gradesRes.data);
             setStudents(studentsRes.data);
-            setEvaluations(evalsRes.data);
+
+            // Filter surprise evaluations for students
+            const isStudent = permissions.user?.role === 'student';
+            const allEvals = evalsRes.data;
+            setEvaluations(isStudent ? allEvals.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa') : allEvals);
+
             setCourses(coursesRes.data);
             setSubjects(subjectsRes.data);
         } catch (error) {
@@ -201,13 +206,15 @@ const GradesPage = () => {
                         />
                     </div>
 
-                    <button
-                        onClick={() => window.location.href = '/evaluations'}
-                        className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
-                    >
-                        <Plus size={20} />
-                        CREAR PRUEBA
-                    </button>
+                    {permissions.isStaff && (
+                        <button
+                            onClick={() => window.location.href = '/evaluations'}
+                            className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
+                        >
+                            <Plus size={20} />
+                            CREAR PRUEBA
+                        </button>
+                    )}
                     {canManageGrades && (
                         <button
                             onClick={() => {
