@@ -26,9 +26,8 @@ const ClassBookPage = () => {
     const permissions = usePermissions();
     const [logs, setLogs] = useState<ClassLog[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [fetchingStudents, setFetchingStudents] = useState(false);
 
     // Attendance Integration
     const [classStudents, setClassStudents] = useState<any[]>([]);

@@ -260,7 +260,12 @@ const UnifiedClassBook = () => {
             </div>
 
             {/* Content Logic */}
-            {!selectedCourse || !selectedSubject ? (
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-40 animate-pulse">
+                    <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+                    <p className="text-slate-400 font-black uppercase tracking-widest text-[10px]">Cargando información segura...</p>
+                </div>
+            ) : !selectedCourse || !selectedSubject ? (
                 <div className="bg-white rounded-[4rem] p-40 text-center border-4 border-dashed border-slate-100">
                     <LayoutGrid size={80} className="mx-auto text-slate-100 mb-8" />
                     <h2 className="text-3xl font-black text-slate-300 uppercase tracking-tighter">Seleccione Curso & Asignatura</h2>
