@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
@@ -16,6 +17,9 @@ const Layout = () => {
     const { tenant } = useTenant();
     const permissions = usePermissions();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -37,6 +41,43 @@ const Layout = () => {
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, []);
+
+    // Notifications logic
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get('/user-notifications');
+            setNotifications(res.data);
+            setUnreadCount(res.data.filter((n: any) => !n.isRead).length);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchNotifications();
+            const interval = setInterval(fetchNotifications, 60000); // Poll every minute
+            return () => clearInterval(interval);
+        }
+    }, [user]);
+
+    const markAsRead = async (id: string) => {
+        try {
+            await api.put(`/user-notifications/${id}/read`);
+            fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const markAllRead = async () => {
+        try {
+            await api.put('/user-notifications/mark-all-read');
+            fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const closeMenu = () => setIsMenuOpen(false);
 
@@ -259,11 +300,46 @@ const Layout = () => {
                             className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 px-12 py-3 rounded-2xl outline-none text-sm font-bold text-slate-600 transition-all shadow-inner placeholder:font-bold placeholder:text-slate-300"
                         />
                     </div>
-                    <div className="flex items-center gap-4">
-                        <button className="p-3 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-2xl transition-all border border-slate-100 shadow-sm relative">
+                    <div className="flex items-center gap-4 relative">
+                        <button
+                            onClick={() => setIsNotifOpen(!isNotifOpen)}
+                            className="p-3 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-2xl transition-all border border-slate-100 shadow-sm relative"
+                        >
                             <Bell size={20} />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                            )}
                         </button>
+
+                        {/* Notifications Dropdown */}
+                        {isNotifOpen && (
+                            <div className="absolute top-full right-0 mt-4 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 z-[100] overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                                <div className="p-5 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Notificaciones</h3>
+                                    {unreadCount > 0 && (
+                                        <button onClick={markAllRead} className="text-[10px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-widest">Marcar todo</button>
+                                    )}
+                                </div>
+                                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                                    {notifications.length === 0 ? (
+                                        <div className="p-10 text-center text-slate-300 font-bold text-xs uppercase italic">Sin avisos nuevos</div>
+                                    ) : (
+                                        notifications.map((n) => (
+                                            <div
+                                                key={n._id}
+                                                onClick={() => markAsRead(n._id)}
+                                                className={`p-5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative ${!n.isRead ? 'bg-blue-50/30' : ''}`}
+                                            >
+                                                {!n.isRead && <div className="absolute top-6 left-2 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>}
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{n.title}</div>
+                                                <p className="text-xs font-bold text-slate-600 leading-relaxed mb-1">{n.message}</p>
+                                                <div className="text-[9px] font-bold text-slate-300 uppercase">{new Date(n.createdAt).toLocaleString()}</div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </header>
 

@@ -56,6 +56,11 @@ const CurriculumMaterialPage = () => {
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
 
+    // Temp states for non-reactive filter
+    const [tempSearch, setTempSearch] = useState('');
+    const [tempCourse, setTempCourse] = useState('');
+    const [tempSubject, setTempSubject] = useState('');
+
     // Modal State
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
@@ -181,10 +186,16 @@ const CurriculumMaterialPage = () => {
         return matchesSearch && matchesCourse && matchesSubject;
     });
 
-    const availableSubjects = selectedCourse
+    const handleSearch = () => {
+        setSearchTerm(tempSearch);
+        setSelectedCourse(tempCourse);
+        setSelectedSubject(tempSubject);
+    };
+
+    const availableSubjects = tempCourse
         ? subjects.filter(s => {
             const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
-            return sCourseId === selectedCourse;
+            return sCourseId === tempCourse;
         })
         : [];
 
@@ -229,7 +240,7 @@ const CurriculumMaterialPage = () => {
 
             {/* Filters */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">Buscar</label>
                         <div className="relative">
@@ -238,8 +249,8 @@ const CurriculumMaterialPage = () => {
                                 type="text"
                                 placeholder="Buscar por título..."
                                 className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
+                                value={tempSearch}
+                                onChange={e => setTempSearch(e.target.value)}
                             />
                         </div>
                     </div>
@@ -247,14 +258,13 @@ const CurriculumMaterialPage = () => {
                         <label className="block text-sm font-bold text-gray-700 mb-2">Curso</label>
                         <select
                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold"
-                            value={selectedCourse}
+                            value={tempCourse}
                             onChange={e => {
-                                setSelectedCourse(e.target.value);
-                                setSelectedSubject('');
+                                setTempCourse(e.target.value);
+                                setTempSubject('');
                             }}
                         >
                             <option value="">Todos los cursos</option>
-                            {/* Unique-ify courses by name to avoid visual duplicates */}
                             {Array.from(new Set(courses.map(c => c.name)))
                                 .sort()
                                 .map(name => {
@@ -270,15 +280,23 @@ const CurriculumMaterialPage = () => {
                         <label className="block text-sm font-bold text-gray-700 mb-2">Asignatura</label>
                         <select
                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 outline-none transition-all font-bold"
-                            value={selectedSubject}
-                            onChange={e => setSelectedSubject(e.target.value)}
-                            disabled={!selectedCourse}
+                            value={tempSubject}
+                            onChange={e => setTempSubject(e.target.value)}
+                            disabled={!tempCourse}
                         >
                             <option value="">Todas las asignaturas</option>
                             {availableSubjects.map(s => (
                                 <option key={s._id} value={s._id}>{s.name}</option>
                             ))}
                         </select>
+                    </div>
+                    <div>
+                        <button
+                            onClick={handleSearch}
+                            className="w-full bg-[#11355a] text-white py-3.5 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/10 flex items-center justify-center gap-2"
+                        >
+                            <Search size={16} /> BUSCAR
+                        </button>
                     </div>
                 </div>
             </div>

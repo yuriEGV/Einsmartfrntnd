@@ -4,8 +4,8 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import {
     BookOpen, CheckCircle, Clock, ShieldCheck,
-    Save, Filter, Calendar as CalendarIcon,
-    AlertCircle, FileText, Target, X
+    Save, Calendar as CalendarIcon,
+    AlertCircle, FileText, Target, X, Search
 } from 'lucide-react';
 
 interface ClassLog {
@@ -46,8 +46,9 @@ const ClassBookPage = () => {
     }, []);
 
     useEffect(() => {
-        fetchLogs();
-    }, [selectedCourse, selectedSubject]);
+        // Only load on initial mount or when requested. 
+        // fetchLogs(); 
+    }, []);
 
     const fetchInitialData = async () => {
         try {
@@ -289,9 +290,9 @@ const ClassBookPage = () => {
                         </div>
                         <button
                             onClick={fetchLogs}
-                            className="p-3.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+                            className="px-6 py-3.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 font-black text-xs uppercase tracking-widest flex items-center gap-2"
                         >
-                            <Filter size={20} />
+                            <Search size={14} /> BUSCAR
                         </button>
                     </div>
 

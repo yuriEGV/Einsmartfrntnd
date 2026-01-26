@@ -21,6 +21,7 @@ const StudentsPage = () => {
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [tempSearch, setTempSearch] = useState('');
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -200,9 +201,16 @@ const StudentsPage = () => {
                     type="text"
                     placeholder="Buscar alumnos por nombre, RUT o correo electrónico..."
                     className="flex-1 outline-none text-slate-700 font-extrabold text-sm md:text-base bg-transparent py-4 placeholder:text-slate-300 placeholder:font-bold"
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
+                    value={tempSearch}
+                    onChange={e => setTempSearch(e.target.value)}
+                    onKeyPress={e => e.key === 'Enter' && setSearchTerm(tempSearch)}
                 />
+                <button
+                    onClick={() => setSearchTerm(tempSearch)}
+                    className="mr-2 bg-[#11355a] text-white px-6 py-2 rounded-xl font-black text-xs hover:bg-blue-900 transition-all active:scale-95 flex items-center gap-2"
+                >
+                    <Search size={14} /> BUSCAR
+                </button>
             </div>
 
             {/* Grouped Lists */}
