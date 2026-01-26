@@ -5,7 +5,7 @@ import {
     BookOpen, ClipboardList,
     Calendar,
     UserCheck, BarChart3, AlertCircle,
-    LayoutGrid, List,
+    LayoutGrid, List, Search, Save,
     Trash2, X, ShieldCheck
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
@@ -56,8 +56,12 @@ const UnifiedClassBook = () => {
         _id: '',
         title: '',
         date: new Date().toISOString().split('T')[0],
-        category: 'planificada' as 'planificada' | 'sorpresa'
+        category: 'planificada' as 'planificada' | 'sorpresa',
+        questions: [] as string[]
     });
+
+    const [bankQuestions, setBankQuestions] = useState<any[]>([]);
+    const [searchQuestion, setSearchQuestion] = useState('');
 
     // -------------------------------------------------------------------------
     // Data Fetching
@@ -131,11 +135,14 @@ const UnifiedClassBook = () => {
     const handleSaveLog = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/class-logs', { ...logFormData, courseId: selectedCourse, subjectId: selectedSubject });
-            alert('Registro guardado');
+            const res = await api.post('/class-logs', { ...logFormData, courseId: selectedCourse, subjectId: selectedSubject });
+            // Automatic signature upon creation
+            await api.post(`/class-logs/${res.data._id}/sign`);
+
+            alert('Clase registrada y firmada digitalmente');
             setShowLogForm(false);
             refreshTabContent();
-        } catch (err) { alert('Error al guardar log'); }
+        } catch (err) { alert('Error al procesar el registro'); }
     };
 
     const handleSignLog = async (id: string) => {
@@ -144,6 +151,34 @@ const UnifiedClassBook = () => {
             await api.post(`/class-logs/${id}/sign`);
             refreshTabContent();
         } catch (err) { alert('Error al firmar'); }
+    };
+
+    const openEvalModal = async (ev?: any) => {
+        if (ev) {
+            setEvalFormData({
+                _id: ev._id,
+                title: ev.title,
+                date: new Date(ev.date).toISOString().split('T')[0],
+                category: ev.category || 'planificada',
+                questions: ev.questions || []
+            });
+        } else {
+            setEvalFormData({
+                _id: '',
+                title: '',
+                date: new Date().toISOString().split('T')[0],
+                category: 'planificada',
+                questions: []
+            });
+        }
+
+        // Fetch bank questions for context (Subject and Grade)
+        try {
+            const res = await api.get(`/questions?subjectId=${selectedSubject}`);
+            setBankQuestions(res.data);
+        } catch (err) { console.error(err); }
+
+        setShowEvalModal(true);
     };
 
     const handleSaveAttendance = async () => {
@@ -180,7 +215,8 @@ const UnifiedClassBook = () => {
                 date: evalFormData.date,
                 category: evalFormData.category,
                 courseId: selectedCourse,
-                subjectId: selectedSubject
+                subjectId: selectedSubject,
+                questions: evalFormData.questions
             };
             if (evalFormData._id) {
                 await api.put(`/evaluations/${evalFormData._id}`, payload);
@@ -481,7 +517,7 @@ const UnifiedClassBook = () => {
                             <div className="flex justify-between items-center px-4">
                                 <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Cronograma de Evaluaciones</h2>
                                 {isStaff && (
-                                    <button onClick={() => { setEvalFormData({ _id: '', title: '', date: new Date().toISOString().split('T')[0], category: 'planificada' }); setShowEvalModal(true); }} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                    <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
                                         PROGRAMAR PRUEBA
                                     </button>
                                 )}
@@ -508,7 +544,7 @@ const UnifiedClassBook = () => {
                                             )}
                                         </div>
                                         <div className="flex gap-2 pt-6 border-t border-slate-50">
-                                            <button onClick={() => { setEvalFormData({ _id: ev._id, title: ev.title, date: new Date(ev.date).toISOString().split('T')[0], category: ev.category || 'planificada' }); setShowEvalModal(true); }} className="flex-1 py-3 bg-slate-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-50 transition-colors">Editar</button>
+                                            <button onClick={() => openEvalModal(ev)} className="flex-1 py-3 bg-slate-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-50 transition-colors">Editar</button>
                                             <button onClick={async () => { if (window.confirm('¿Eliminar?')) { await api.delete(`/evaluations/${ev._id}`); refreshTabContent(); } }} className="px-4 py-3 bg-slate-50 text-rose-400 rounded-xl hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
                                         </div>
                                     </div>
@@ -566,7 +602,7 @@ const UnifiedClassBook = () => {
                             <h2 className="text-xl font-bold flex items-center gap-3"><Calendar size={24} /> {evalFormData._id ? 'Editar Evaluación' : 'Programar Nueva Prueba'}</h2>
                             <button onClick={() => setShowEvalModal(false)} className="text-white/40 hover:text-white"><X size={32} /></button>
                         </div>
-                        <form onSubmit={handleSaveEval} className="p-10 space-y-8">
+                        <form onSubmit={handleSaveEval} className="p-10 space-y-8 max-h-[70vh] overflow-y-auto">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Título de la Evaluación</label>
                                 <input required placeholder="Ej: Control de Lecture #2" value={evalFormData.title} onChange={e => setEvalFormData({ ...evalFormData, title: e.target.value })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-emerald-500 outline-none font-bold" />
@@ -577,17 +613,69 @@ const UnifiedClassBook = () => {
                                     <input type="date" required value={evalFormData.date} onChange={e => setEvalFormData({ ...evalFormData, date: e.target.value })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-emerald-500 outline-none font-bold" />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Tipo</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Tipo / Categoría</label>
                                     <select value={evalFormData.category} onChange={e => setEvalFormData({ ...evalFormData, category: e.target.value as any })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-emerald-500 outline-none font-bold">
-                                        <option value="planificada">Planificada</option>
-                                        <option value="sorpresa">Sorpresa</option>
+                                        <option value="planificada">Evaluación Planificada</option>
+                                        <option value="sorpresa">Evaluación Sorpresa</option>
                                     </select>
                                 </div>
                             </div>
-                            <div className="bg-emerald-50 p-6 rounded-[1.5rem] border border-emerald-100 text-[10px] text-emerald-700 font-bold leading-relaxed">
-                                Las evaluaciones planificadas aparecen en el calendario de alumnos. Las sorpresas lanzan alertas instantáneas al realizarse.
+
+                            {/* Question Bank Selection */}
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2 flex items-center justify-between">
+                                    Banco de Preguntas
+                                    <span className="text-emerald-600 font-bold">{evalFormData.questions.length} seleccionadas</span>
+                                </label>
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                    <input
+                                        placeholder="Filtrar preguntas del banco..."
+                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold"
+                                        value={searchQuestion}
+                                        onChange={e => setSearchQuestion(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+                                    {bankQuestions
+                                        .filter(q => q.questionText.toLowerCase().includes(searchQuestion.toLowerCase()))
+                                        .map(q => {
+                                            const isSelected = evalFormData.questions.includes(q._id);
+                                            return (
+                                                <button
+                                                    key={q._id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newQs = isSelected
+                                                            ? evalFormData.questions.filter(id => id !== q._id)
+                                                            : [...evalFormData.questions, q._id];
+                                                        setEvalFormData({ ...evalFormData, questions: newQs });
+                                                    }}
+                                                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between group ${isSelected ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-slate-100 border-dashed hover:border-emerald-200'}`}
+                                                >
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{q.difficulty} • {q.type}</div>
+                                                        <div className="text-xs font-bold text-slate-700 truncate">{q.questionText}</div>
+                                                    </div>
+                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 text-transparent'}`}>
+                                                        <ShieldCheck size={14} />
+                                                    </div>
+                                                </button>
+                                            );
+                                        })
+                                    }
+                                </div>
                             </div>
-                            <button type="submit" className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/30 hover:scale-[1.02] transition-all">ESTABLECER EVALUACIÓN</button>
+
+                            <div className="bg-emerald-50 p-6 rounded-[1.5rem] border border-emerald-100 text-[10px] text-emerald-700 font-bold leading-relaxed">
+                                {evalFormData.category === 'planificada'
+                                    ? 'Las evaluaciones planificadas aparecen en el calendario de alumnos y se notifican con antelación.'
+                                    : 'Las evaluaciones sorpresa lanzan alertas instantáneas al realizarse y no aparecen en el calendario previo.'}
+                            </div>
+                            <button type="submit" className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/30 hover:scale-[1.02] transition-all flex items-center justify-center gap-3">
+                                <Save size={20} />
+                                {evalFormData._id ? 'ACTUALIZAR EVALUACIÓN' : 'PUBLICAR EVALUACIÓN'}
+                            </button>
                         </form>
                     </div>
                 </div>
