@@ -196,11 +196,18 @@ const Layout = () => {
                         <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
                     )}
 
-                    <NavLink to="/grades" icon={ClipboardList}>Notas</NavLink>
+                    {/* Redundant links hidden for teachers to favor unified dashboard */}
+                    {(user?.role !== 'teacher') && (
+                        <>
+                            <NavLink to="/grades" icon={ClipboardList}>Notas Globales</NavLink>
+                            <NavLink to="/attendance" icon={CheckCircle2}>Asistencia Global</NavLink>
+                        </>
+                    )}
+
                     {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
                         <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
                     )}
-                    <NavLink to="/attendance" icon={CheckCircle2}>Asistencia</NavLink>
+
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
                     <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
 
