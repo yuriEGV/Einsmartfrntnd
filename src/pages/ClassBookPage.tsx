@@ -32,6 +32,7 @@ const ClassBookPage = () => {
     // Attendance Integration
     const [classStudents, setClassStudents] = useState<any[]>([]);
     const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
+    const [fetchingStudents, setFetchingStudents] = useState(false);
 
     // Grades Modal
     const [showGradesModal, setShowGradesModal] = useState(false);
@@ -103,7 +104,7 @@ const ClassBookPage = () => {
         } catch (error) {
             console.error("Error fetching students:", error);
         } finally {
-            // No-op
+            setFetchingStudents(false);
         }
     };
 
@@ -343,6 +344,7 @@ const ClassBookPage = () => {
                                         Registro de Asistencia ({classStudents.length} Alumnos)
                                     </h3>
                                     <div className="flex gap-2 text-[10px] font-bold uppercase text-slate-400">
+                                        {fetchingStudents && <span className="flex items-center gap-1 animate-pulse"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Cargando...</span>}
                                         <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Presente</span>
                                         <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Ausente</span>
                                     </div>
