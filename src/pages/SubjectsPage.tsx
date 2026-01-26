@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X, Printer, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, User, Target, Check, X, Printer, Save, ChevronRight } from 'lucide-react';
 import { useReactToPrint } from 'react-to-print';
 import { useRef } from 'react';
 
@@ -39,6 +39,8 @@ const SubjectsPage = () => {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [viewMode, setViewMode] = useState<'folders' | 'list'>('folders');
+    const [selectedFolderName, setSelectedFolderName] = useState<string | null>(null);
 
     // Modal Asignatura
     const [showModal, setShowModal] = useState(false);
@@ -129,6 +131,16 @@ const SubjectsPage = () => {
         s.courseId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    // Grouping by Name
+    const groupedSubjects = filteredSubjects.reduce((acc, subj) => {
+        const key = subj.name.trim().toUpperCase();
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(subj);
+        return acc;
+    }, {} as Record<string, Subject[]>);
+
+    const folderKeys = Object.keys(groupedSubjects).sort();
+
     const canManage = canManageSubjects || isSuperAdmin;
 
     const fetchObjectives = async (subjectId: string) => {
@@ -214,61 +226,107 @@ const SubjectsPage = () => {
             </div>
 
             {loading ? <p className="text-center py-20 text-gray-400 font-bold animate-pulse">Cargando Asignaturas...</p> : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
-                    {filteredSubjects.map(subj => (
-                        <div key={subj._id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col">
-                            <div className="flex justify-between items-start mb-4">
-                                <div>
-                                    <h3 className="font-black text-xl text-slate-800 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{subj.name}</h3>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100/50">
-                                            {subj.courseId?.name || 'Común'}
-                                        </span>
-                                    </div>
-                                </div>
-                                {canManage && (
-                                    <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
-                                        <button onClick={() => {
-                                            setModalMode('edit');
-                                            setFormData({
-                                                _id: subj._id,
-                                                name: subj.name,
-                                                courseId: subj.courseId?._id,
-                                                teacherId: subj.teacherId?._id
-                                            });
-                                            setShowModal(true);
-                                        }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
-                                            <Edit size={18} />
-                                        </button>
-                                        <button onClick={() => handleDelete(subj._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-
-                            <div className="mt-auto space-y-4">
-                                <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-500 shadow-sm">
-                                        <User size={20} />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Docente Guía</p>
-                                        <p className="text-sm font-black text-slate-700 truncate">{subj.teacherId?.name || 'No asignado'}</p>
-                                    </div>
-                                </div>
-
+                <>
+                    {viewMode === 'folders' && !searchTerm ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-in fade-in">
+                            {folderKeys.map(name => (
                                 <button
-                                    onClick={() => handleOpenObjectives(subj)}
-                                    className="w-full bg-[#11355a] text-white py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/10 active:scale-95 uppercase tracking-widest"
+                                    key={name}
+                                    onClick={() => {
+                                        setSelectedFolderName(name);
+                                        setViewMode('list');
+                                    }}
+                                    className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 hover:shadow-xl hover:translate-y-[-5px] transition-all group text-left flex flex-col h-full relative overflow-hidden"
                                 >
-                                    <Target size={18} className="text-blue-300" />
-                                    Planificación y Cobertura
+                                    <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 rounded-full -translate-y-1/2 translate-x-1/2 opacity-50 group-hover:scale-125 transition-transform" />
+
+                                    <div className="mb-4 p-4 bg-blue-50 text-blue-600 rounded-2xl w-fit group-hover:bg-blue-600 group-hover:text-white transition-colors relative z-10">
+                                        <BookOpen size={32} />
+                                    </div>
+
+                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight mb-1 relative z-10 line-clamp-2">
+                                        {name}
+                                    </h3>
+
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest relative z-10">
+                                        {groupedSubjects[name].length} {groupedSubjects[name].length === 1 ? 'Curso' : 'Cursos'}
+                                    </p>
                                 </button>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {viewMode === 'list' && !searchTerm && (
+                                <button
+                                    onClick={() => {
+                                        setViewMode('folders');
+                                        setSelectedFolderName(null);
+                                    }}
+                                    className="flex items-center gap-2 text-slate-500 font-bold hover:text-[#11355a] transition-colors mb-4"
+                                >
+                                    <ChevronRight className="rotate-180" size={20} />
+                                    Volver a Carpetas
+                                </button>
+                            )}
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 animate-in fade-in">
+                                {(searchTerm ? filteredSubjects : groupedSubjects[selectedFolderName || ''] || []).map(subj => (
+                                    <div key={subj._id} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group flex flex-col">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div>
+                                                <h3 className="font-black text-xl text-slate-800 leading-tight group-hover:text-blue-600 transition-colors uppercase tracking-tight">{subj.name}</h3>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100/50">
+                                                        {subj.courseId?.name || 'Común'}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            {canManage && (
+                                                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
+                                                    <button onClick={() => {
+                                                        setModalMode('edit');
+                                                        setFormData({
+                                                            _id: subj._id,
+                                                            name: subj.name,
+                                                            courseId: subj.courseId?._id,
+                                                            teacherId: subj.teacherId?._id
+                                                        });
+                                                        setShowModal(true);
+                                                    }} className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all">
+                                                        <Edit size={18} />
+                                                    </button>
+                                                    <button onClick={() => handleDelete(subj._id)} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="mt-auto space-y-4">
+                                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-blue-500 shadow-sm">
+                                                    <User size={20} />
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest leading-none mb-1">Docente Guía</p>
+                                                    <p className="text-sm font-black text-slate-700 truncate">{subj.teacherId?.name || 'No asignado'}</p>
+                                                </div>
+                                            </div>
+
+                                            <button
+                                                onClick={() => handleOpenObjectives(subj)}
+                                                className="w-full bg-[#11355a] text-white py-4 rounded-2xl font-black text-xs flex items-center justify-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/10 active:scale-95 uppercase tracking-widest"
+                                            >
+                                                <Target size={18} className="text-blue-300" />
+                                                Planificación y Cobertura
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    ))}
-                </div>
+                    )}
+                </>
             )}
 
             {/* Modal Asignatura */}
