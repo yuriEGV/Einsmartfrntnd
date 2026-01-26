@@ -103,7 +103,7 @@ const ClassBookPage = () => {
         } catch (error) {
             console.error("Error fetching students:", error);
         } finally {
-            setFetchingStudents(false);
+            // No-op
         }
     };
 
