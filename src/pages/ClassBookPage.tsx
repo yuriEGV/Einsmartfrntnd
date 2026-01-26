@@ -78,6 +78,20 @@ const ClassBookPage = () => {
         }
     };
 
+    const fetchClassStudents = async () => {
+        try {
+            const res = await api.get(`/estudiantes?cursoId=${formData.courseId}`);
+            const studs = res.data;
+            setClassStudents(studs);
+
+            const initialAtt: Record<string, string> = {};
+            studs.forEach((s: any) => initialAtt[s._id] = 'presente');
+            setAttendanceMap(initialAtt);
+        } catch (error) {
+            console.error("Error fetching students:", error);
+        }
+    };
+
     const fetchLogs = async () => {
         setLoading(true);
         try {
@@ -302,8 +316,8 @@ const ClassBookPage = () => {
                                                     [student._id]: prev[student._id] === 'presente' ? 'ausente' : 'presente'
                                                 }))}
                                                 className={`p-2 rounded-lg transition-all ${attendanceMap[student._id] === 'presente'
-                                                        ? 'bg-emerald-50 text-emerald-600 hover:bg-rose-50 hover:text-rose-600'
-                                                        : 'bg-rose-50 text-rose-600 hover:bg-emerald-50 hover:text-emerald-600'
+                                                    ? 'bg-emerald-50 text-emerald-600 hover:bg-rose-50 hover:text-rose-600'
+                                                    : 'bg-rose-50 text-rose-600 hover:bg-emerald-50 hover:text-emerald-600'
                                                     }`}
                                             >
                                                 {attendanceMap[student._id] === 'presente' ? <UserCheck size={16} /> : <UserX size={16} />}
