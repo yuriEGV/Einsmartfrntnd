@@ -43,8 +43,14 @@ const GradesPage = () => {
     const [grades, setGrades] = useState<Grade[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
     const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const printRef = useRef<HTMLDivElement>(null);
+
+    // Filter selections
+    const [selectedCourse, setSelectedCourse] = useState('');
+    const [selectedSubject, setSelectedSubject] = useState('');
 
     // UI - Search and Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -67,14 +73,18 @@ const GradesPage = () => {
 
     const fetchInitialData = async () => {
         try {
-            const [gradesRes, studentsRes, evalsRes] = await Promise.all([
+            const [gradesRes, studentsRes, evalsRes, coursesRes, subjectsRes] = await Promise.all([
                 api.get('/grades'),
                 api.get('/estudiantes'),
-                api.get('/evaluations')
+                api.get('/evaluations'),
+                api.get('/courses'),
+                api.get('/subjects')
             ]);
             setGrades(gradesRes.data);
             setStudents(studentsRes.data);
             setEvaluations(evalsRes.data);
+            setCourses(coursesRes.data);
+            setSubjects(subjectsRes.data);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -114,10 +124,48 @@ const GradesPage = () => {
         }
     };
 
-    const filteredGrades = grades.filter(g =>
-        (g.estudianteId?.nombres + ' ' + g.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        g.evaluationId?.title?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredGrades = grades.filter(g => {
+        const matchesSearch = (g.estudianteId?.nombres + ' ' + g.estudianteId?.apellidos).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            g.evaluationId?.title?.toLowerCase().includes(searchTerm.toLowerCase());
+
+        // Filter by Course/Subject if selected
+        let matchesCourse = true;
+        let matchesSubject = true;
+
+        if (selectedCourse) {
+            // Find evaluations for this course? 
+            // Better: evaluations have courseId or we match by subject courseId.
+            // Assuming evaluationId has subject reference
+            const ev = evaluations.find(e => e._id === g.evaluationId?._id);
+            // This is complex if data is not populated. Let's rely on backend filtering eventually, 
+            // but for now, simple string matching if subject name includes course? 
+            // Or just check evaluation subject course.
+        }
+
+        return matchesSearch;
+    });
+
+    const displayedGrades = filteredGrades.filter(g => {
+        if (!selectedCourse && !selectedSubject) return true;
+
+        // Find subject for this grade's evaluation
+        const evalItem = evaluations.find(e => e._id === g.evaluationId?._id);
+        if (!evalItem) return false;
+
+        // Find subject record to check courseId
+        const subjectRecord = subjects.find(s => s.name === evalItem.subject &&
+            (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse);
+
+        if (selectedCourse && !selectedSubject) {
+            return subjectRecord !== undefined;
+        }
+
+        if (selectedSubject) {
+            return subjectRecord?._id === selectedSubject;
+        }
+
+        return true;
+    });
 
     const filteredStudents = students.filter(s =>
         (s.nombres + ' ' + s.apellidos + ' ' + (s.rut || '')).toLowerCase().includes(studentSearch.toLowerCase())
@@ -134,18 +182,45 @@ const GradesPage = () => {
                     <p className="text-gray-500 font-medium">Registro académico oficial del establecimiento.</p>
                 </div>
 
-                <div className="flex w-full md:w-auto gap-3">
-                    {permissions.user?.role !== 'student' && permissions.user?.role !== 'apoderado' && (
-                        <div className="relative flex-1 md:w-64">
-                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                            <input
-                                placeholder="Buscar por alumno o evaluación..."
-                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-                    )}
+                <div className="flex flex-wrap w-full md:w-auto gap-3">
+                    <select
+                        className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
+                        value={selectedCourse}
+                        onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
+                    >
+                        <option value="">Curso: Todos</option>
+                        {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                    </select>
+
+                    <select
+                        className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
+                        value={selectedSubject}
+                        onChange={e => setSelectedSubject(e.target.value)}
+                        disabled={!selectedCourse}
+                    >
+                        <option value="">Asignatura: Todas</option>
+                        {subjects
+                            .filter(s => (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse)
+                            .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                    </select>
+
+                    <div className="relative flex-1 md:w-64">
+                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <input
+                            placeholder="Buscar alumno..."
+                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                            value={searchTerm}
+                            onChange={e => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+
+                    <button
+                        onClick={() => window.location.href = '/evaluations'}
+                        className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
+                    >
+                        <Plus size={20} />
+                        CREAR PRUEBA
+                    </button>
                     {canManageGrades && (
                         <button
                             onClick={() => {

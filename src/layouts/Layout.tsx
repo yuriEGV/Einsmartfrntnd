@@ -184,10 +184,8 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
-                    {(permissions.canManageStudents || user?.role === 'apoderado' || user?.role === 'student') && (
-                        <NavLink to="/students" icon={Users}>
-                            {(user?.role === 'apoderado' || user?.role === 'student') ? 'Mi Ficha' : 'Alumnos'}
-                        </NavLink>
+                    {(permissions.canManageStudents || user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher') && (
+                        <NavLink to="/students" icon={Users}>Alumnos</NavLink>
                     )}
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
@@ -200,7 +198,7 @@ const Layout = () => {
 
                     <NavLink to="/grades" icon={ClipboardList}>Notas</NavLink>
                     {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
-                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones</NavLink>
+                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
                     )}
                     <NavLink to="/attendance" icon={CheckCircle2}>Asistencia</NavLink>
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
