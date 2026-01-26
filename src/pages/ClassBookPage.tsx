@@ -5,7 +5,8 @@ import { usePermissions } from '../hooks/usePermissions';
 import {
     BookOpen, CheckCircle, Clock, ShieldCheck,
     Save, Calendar as CalendarIcon,
-    AlertCircle, FileText, Target, X, Search
+    AlertCircle, FileText, Target, X, Search,
+    UserCheck, UserX
 } from 'lucide-react';
 
 interface ClassLog {
@@ -28,6 +29,10 @@ const ClassBookPage = () => {
     const [subjects, setSubjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
+    // Attendance Integration
+    const [classStudents, setClassStudents] = useState<any[]>([]);
+    const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
+
     // Filters & Form
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -44,6 +49,16 @@ const ClassBookPage = () => {
     useEffect(() => {
         fetchInitialData();
     }, []);
+
+    // Fetch students when course selected in form
+    useEffect(() => {
+        if (formData.courseId) {
+            fetchClassStudents();
+        } else {
+            setClassStudents([]);
+            setAttendanceMap({});
+        }
+    }, [formData.courseId]);
 
     useEffect(() => {
         // Only load on initial mount or when requested. 
@@ -82,8 +97,22 @@ const ClassBookPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/class-logs', formData);
-            alert('Libro de clase actualizado correctamente');
+            const logRes = await api.post('/class-logs', formData);
+
+            // Also save attendance if students are loaded
+            if (classStudents.length > 0) {
+                const attendancePayload = {
+                    courseId: formData.courseId,
+                    fecha: formData.date,
+                    students: Object.entries(attendanceMap).map(([estudianteId, estado]) => ({
+                        estudianteId,
+                        estado
+                    }))
+                };
+                await api.post('/attendance/bulk', attendancePayload);
+            }
+
+            alert('Libro de clase y asistencia actualizados correctamente');
             setShowForm(false);
             setFormData({
                 ...formData,
@@ -91,6 +120,8 @@ const ClassBookPage = () => {
                 activities: '',
                 objectives: []
             });
+            setClassStudents([]);
+            setAttendanceMap({});
             fetchLogs();
         } catch (error: any) {
             alert(error.response?.data?.message || 'Error al guardar el registro');

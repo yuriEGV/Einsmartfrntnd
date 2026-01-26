@@ -130,7 +130,7 @@ const EvaluationsPage = () => {
         e.subject.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const canManage = canEditGrades || isSuperAdmin;
+    const canManage = canEditGrades || isSuperAdmin || usePermissions().isTeacher;
 
     return (
         <div className="p-6">
