@@ -29,6 +29,7 @@ import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de N
 import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
 import SostenedorDashboard from './pages/SostenedorDashboard';
 import CollectionsPage from './pages/CollectionsPage';
+import GuardiansPage from './pages/GuardiansPage';
 import QuestionBankPage from './pages/QuestionBankPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminDaysPage from './pages/AdminDaysPage';

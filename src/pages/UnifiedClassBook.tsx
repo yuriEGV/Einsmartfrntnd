@@ -1,24 +1,18 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { usePermissions } from '../hooks/usePermissions';
-import { useReactToPrint } from 'react-to-print';
 import {
     BookOpen, ClipboardList,
-    Search, Calendar,
+    Calendar,
     UserCheck, BarChart3, AlertCircle,
-    ChevronRight, LayoutGrid, List,
+    LayoutGrid, List,
     Trash2, X, ShieldCheck
 } from 'lucide-react';
 
 const UnifiedClassBook = () => {
-    const permissions = usePermissions();
-    const canManageGrades = permissions.canEditGrades || permissions.user?.role === 'teacher';
-
     // UI State
     const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'notas' | 'evaluaciones'>('leccionario');
     const [loading, setLoading] = useState(true);
-    const printRef = useRef<HTMLDivElement>(null);
 
     // Shared Context
     const [courses, setCourses] = useState<any[]>([]);

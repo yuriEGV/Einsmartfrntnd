@@ -129,19 +129,6 @@ const GradesPage = () => {
             g.evaluationId?.title?.toLowerCase().includes(searchTerm.toLowerCase());
 
         // Filter by Course/Subject if selected
-        let matchesCourse = true;
-        let matchesSubject = true;
-
-        if (selectedCourse) {
-            // Find evaluations for this course? 
-            // Better: evaluations have courseId or we match by subject courseId.
-            // Assuming evaluationId has subject reference
-            const ev = evaluations.find(e => e._id === g.evaluationId?._id);
-            // This is complex if data is not populated. Let's rely on backend filtering eventually, 
-            // but for now, simple string matching if subject name includes course? 
-            // Or just check evaluation subject course.
-        }
-
         return matchesSearch;
     });
 
@@ -266,7 +253,7 @@ const GradesPage = () => {
                     </div>
                     {/* Mobile Card Grid - Optimized for all touch devices */}
                     <div className="md:hidden p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        {filteredGrades.map((grade) => (
+                        {displayedGrades.map((grade) => (
                             <div key={grade._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="min-w-0">
@@ -318,7 +305,7 @@ const GradesPage = () => {
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-100">
-                                {filteredGrades.map((grade) => (
+                                {displayedGrades.map((grade) => (
                                     <tr key={grade._id} className="hover:bg-blue-50/30 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="text-sm font-bold text-gray-800">
@@ -361,7 +348,7 @@ const GradesPage = () => {
                             </tbody>
                         </table>
                     </div>
-                    {filteredGrades.length === 0 && <div className="p-12 text-center text-gray-400 font-medium">No se encontraron calificaciones registradas.</div>}
+                    {displayedGrades.length === 0 && <div className="p-12 text-center text-gray-400 font-medium">No se encontraron calificaciones registradas.</div>}
                 </div>
             )}
 
