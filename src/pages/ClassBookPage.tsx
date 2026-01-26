@@ -275,6 +275,45 @@ const ClassBookPage = () => {
                             />
                         </div>
 
+                        {/* Attendance Section within Form */}
+                        {classStudents.length > 0 && (
+                            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-sm font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                                        <UserCheck size={18} className="text-blue-500" />
+                                        Registro de Asistencia ({classStudents.length} Alumnos)
+                                    </h3>
+                                    <div className="flex gap-2 text-[10px] font-bold uppercase text-slate-400">
+                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-500"></div> Presente</span>
+                                        <span className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div> Ausente</span>
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {classStudents.map(student => (
+                                        <div key={student._id} className="bg-white p-3 rounded-xl border border-slate-200 flex items-center justify-between">
+                                            <div className="truncate pr-2">
+                                                <div className="text-xs font-black text-slate-700 truncate">{student.apellidos}, {student.nombres}</div>
+                                                <div className="text-[9px] text-slate-400 font-mono">{student.rut}</div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => setAttendanceMap(prev => ({
+                                                    ...prev,
+                                                    [student._id]: prev[student._id] === 'presente' ? 'ausente' : 'presente'
+                                                }))}
+                                                className={`p-2 rounded-lg transition-all ${attendanceMap[student._id] === 'presente'
+                                                        ? 'bg-emerald-50 text-emerald-600 hover:bg-rose-50 hover:text-rose-600'
+                                                        : 'bg-rose-50 text-rose-600 hover:bg-emerald-50 hover:text-emerald-600'
+                                                    }`}
+                                            >
+                                                {attendanceMap[student._id] === 'presente' ? <UserCheck size={16} /> : <UserX size={16} />}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <div className="pt-6">
                             <button
                                 type="submit"
