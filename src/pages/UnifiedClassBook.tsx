@@ -60,6 +60,10 @@ const UnifiedClassBook = () => {
         questions: [] as string[]
     });
 
+    // Question Bank Filters
+    const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
+    const [typeFilter, setTypeFilter] = useState<'all' | 'multiple_choice' | 'open' | 'true_false'>('all');
+
     const [bankQuestions, setBankQuestions] = useState<any[]>([]);
     const [searchQuestion, setSearchQuestion] = useState('');
     const [classStartTime, setClassStartTime] = useState<number | null>(null);
@@ -116,6 +120,7 @@ const UnifiedClassBook = () => {
                     api.get('/evaluations'),
                     api.get(`/estudiantes?cursoId=${selectedCourse}`)
                 ]);
+                console.log('DEBUG VISIBILITY - Students found:', studRes.data.length);
                 setStudents(studRes.data);
                 setEvaluations(evalsRes.data.filter((e: any) =>
                     (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
@@ -131,7 +136,9 @@ const UnifiedClassBook = () => {
                 }
                 setEvaluations(filtered);
             }
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error('REFRESH TAB ERROR:', err);
+        }
         finally { setLoading(false); }
     };
 
@@ -161,8 +168,8 @@ const UnifiedClassBook = () => {
             } else {
                 setClassStartTime(Date.now());
             }
-            alert('¡Clase iniciada! El cronómetro está corriendo.');
-        } catch (err) { alert('Error al iniciar clase'); }
+            // Stealth: No alerts
+        } catch (err) { console.error('Error starting stealth timer', err); }
     };
 
     const handleSaveLog = async (e: React.FormEvent) => {
@@ -278,7 +285,7 @@ const UnifiedClassBook = () => {
             const res = await api.post('/questions', {
                 ...newQuestionData,
                 subjectId: selectedSubject,
-                grade: courses.find(c => (typeof c._id === 'object' ? (c._id as any)._id : c._id) === selectedCourse)?.level || ''
+                grade: courses.find(c => (typeof c._id === 'object' ? (c._id as any)._id : c._id) === selectedCourse)?.level || 'Sin Nivel'
             });
             setBankQuestions([res.data, ...bankQuestions]);
             setEvalFormData({ ...evalFormData, questions: [...evalFormData.questions, res.data._id] });
@@ -289,7 +296,10 @@ const UnifiedClassBook = () => {
                 difficulty: 'medium',
                 options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }]
             });
-        } catch (err) { alert('Error al crear pregunta'); }
+        } catch (err: any) {
+            console.error(err);
+            alert(`Error al crear pregunta: ${err.response?.data?.message || err.message}`);
+        }
     };
 
     // -------------------------------------------------------------------------
@@ -398,13 +408,8 @@ const UnifiedClassBook = () => {
                             <div className="flex justify-between items-center px-4">
                                 <div className="flex items-center gap-4">
                                     <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Historial del Leccionario</h2>
-                                    {!classStartTime && isStaff && (
-                                        <button onClick={handleStartClass} className="bg-orange-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-orange-900/20">
-                                            Comenzar Clase
-                                        </button>
-                                    )}
                                 </div>
-                                <button onClick={() => setShowLogForm(true)} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
+                                <button onClick={() => { setShowLogForm(true); handleStartClass(); }} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
                                     NUEVA ENTRADA
                                 </button>
                             </div>
@@ -700,8 +705,8 @@ const UnifiedClassBook = () => {
                                 </div>
                             </div>
 
-                            {/* Question Bank Selection */}
-                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                            {/* Question Bank Selection - Redesigned & UX Enhanced */}
+                            <div className="space-y-4 pt-6 border-t border-slate-100">
                                 <div className="flex items-center justify-between ml-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                         Banco de Preguntas
@@ -710,28 +715,46 @@ const UnifiedClassBook = () => {
                                     <button
                                         type="button"
                                         onClick={() => setShowQuestionForm(!showQuestionForm)}
-                                        className="text-[9px] font-black text-indigo-600 uppercase tracking-widest border border-indigo-200 px-3 py-1 rounded-lg hover:bg-indigo-50 transition-all font-bold"
+                                        className={`flex items-center gap-2 text-[9px] font-black uppercase tracking-widest px-4 py-2 rounded-xl transition-all border-2 ${showQuestionForm ? 'bg-rose-50 border-rose-200 text-rose-500' : 'bg-indigo-50 border-indigo-200 text-indigo-600 hover:shadow-lg'}`}
                                     >
-                                        {showQuestionForm ? 'Cancelar' : '+ Nueva Pregunta'}
+                                        {showQuestionForm ? <X size={12} /> : '+'}
+                                        {showQuestionForm ? 'Cancelar' : 'Crear Pregunta'}
                                     </button>
                                 </div>
 
                                 {showQuestionForm && (
-                                    <div className="bg-slate-50 p-6 rounded-3xl border-2 border-indigo-100 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                                    <div className="bg-slate-50 p-8 rounded-[2.5rem] border-2 border-indigo-100 space-y-5 animate-in slide-in-from-top-4 duration-500 shadow-2xl shadow-indigo-900/5">
                                         <div className="space-y-2">
-                                            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic font-bold">Enunciado</label>
+                                            <div className="flex justify-between items-end">
+                                                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic ml-2">Enunciado de la Pregunta</label>
+                                                <div className="flex gap-2 mb-1">
+                                                    {(['easy', 'medium', 'hard'] as const).map(d => (
+                                                        <button
+                                                            key={d}
+                                                            type="button"
+                                                            onClick={() => setNewQuestionData({ ...newQuestionData, difficulty: d })}
+                                                            className={`px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-tighter border-2 transition-all ${newQuestionData.difficulty === d ? 'bg-indigo-600 border-indigo-600 text-white' : 'bg-white border-slate-200 text-slate-400'}`}
+                                                        >
+                                                            {d === 'easy' ? 'Fácil' : d === 'medium' ? 'Medio' : 'Difícil'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                             <textarea
-                                                className="w-full px-4 py-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 text-sm font-bold"
-                                                placeholder="Ej: ¿Cuál es el resultado de...?"
+                                                className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 outline-none focus:border-indigo-500 transition-all text-sm font-bold bg-white"
+                                                placeholder="Ej: ¿Cuál es el resultado de la siguiente operación...?"
+                                                rows={3}
                                                 value={newQuestionData.questionText}
                                                 onChange={e => setNewQuestionData({ ...newQuestionData, questionText: e.target.value })}
                                             />
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
+
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                             {newQuestionData.options.map((opt, i) => (
-                                                <div key={i} className="flex gap-2">
+                                                <div key={i} className="flex items-center gap-3 bg-white p-3 rounded-2xl border-2 border-slate-100 group focus-within:border-indigo-200 transition-all">
+                                                    <span className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 group-focus-within:bg-indigo-50 group-focus-within:text-indigo-500">{String.fromCharCode(65 + i)}</span>
                                                     <input
-                                                        className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-xs font-bold"
+                                                        className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-slate-700"
                                                         placeholder={`Opción ${String.fromCharCode(65 + i)}`}
                                                         value={opt.text}
                                                         onChange={e => {
@@ -746,57 +769,137 @@ const UnifiedClassBook = () => {
                                                             const opts = newQuestionData.options.map((o, idx) => ({ ...o, isCorrect: i === idx }));
                                                             setNewQuestionData({ ...newQuestionData, options: opts });
                                                         }}
-                                                        className={`w-8 h-8 rounded-lg flex items-center justify-center border ${opt.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm shadow-emerald-900/50' : 'bg-white border-slate-200 text-slate-200'}`}
+                                                        className={`w-10 h-10 rounded-xl flex items-center justify-center border-2 transition-all ${opt.isCorrect ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-500/30 rotate-0' : 'bg-slate-50 border-slate-100 text-slate-300 hover:border-emerald-200 hover:text-emerald-400'}`}
                                                     >
-                                                        <ShieldCheck size={16} />
+                                                        <ShieldCheck size={18} />
                                                     </button>
                                                 </div>
                                             ))}
                                         </div>
+
                                         <button
                                             type="button"
                                             onClick={handleAddQuestionToBank}
-                                            className="w-full py-3 bg-indigo-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all mt-2"
+                                            className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black text-[11px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-900/20 active:scale-95"
                                         >
-                                            Guardar y Añadir a la Prueba
+                                            Guardar en Repositorio y Vincular
                                         </button>
                                     </div>
                                 )}
 
-                                <div className="relative">
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                                    <input
-                                        placeholder="Filtrar preguntas del banco..."
-                                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold"
-                                        value={searchQuestion}
-                                        onChange={e => setSearchQuestion(e.target.value)}
-                                    />
+                                {/* Improved Search and Filters */}
+                                <div className="space-y-4">
+                                    <div className="flex flex-col md:flex-row gap-4">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                            <input
+                                                placeholder="Buscador inteligente de preguntas..."
+                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs font-black text-slate-600 placeholder:text-slate-300 outline-none focus:border-indigo-400 transition-all font-bold"
+                                                value={searchQuestion}
+                                                onChange={e => setSearchQuestion(e.target.value)}
+                                            />
+                                        </div>
+                                        <div className="flex flex-wrap gap-4 items-center p-2 bg-slate-50 rounded-[2rem] border-2 border-slate-100">
+                                            <div className="flex gap-1 items-center px-2 mr-2 border-r border-slate-200">
+                                                <List size={14} className="text-slate-400" />
+                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Filtros</span>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                {(['all', 'easy', 'medium', 'hard'] as const).map(d => (
+                                                    <button
+                                                        key={d}
+                                                        type="button"
+                                                        onClick={() => setDifficultyFilter(d)}
+                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${difficultyFilter === d ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    >
+                                                        {d === 'all' ? 'Toda Dificultad' : d === 'easy' ? 'Fácil' : d === 'medium' ? 'Medio' : 'Difícil'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
+                                            <div className="flex gap-2">
+                                                {(['all', 'multiple_choice', 'open', 'true_false'] as const).map(t => (
+                                                    <button
+                                                        key={t}
+                                                        type="button"
+                                                        onClick={() => setTypeFilter(t)}
+                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${typeFilter === t ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    >
+                                                        {t === 'all' ? 'Todos los Tipos' : t === 'multiple_choice' ? 'Alternativas' : t === 'open' ? 'Abierta' : 'V/F'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="space-y-2 max-h-48 overflow-y-auto pr-2 custom-scrollbar">
+
+                                <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar p-2">
                                     {bankQuestions
-                                        .filter(q => q.questionText.toLowerCase().includes(searchQuestion.toLowerCase()))
+                                        .filter(q => {
+                                            const matchesText = q.questionText.toLowerCase().includes(searchQuestion.toLowerCase());
+                                            const matchesDiff = difficultyFilter === 'all' || q.difficulty === difficultyFilter;
+                                            const matchesType = typeFilter === 'all' || q.type === typeFilter;
+                                            return matchesText && matchesDiff && matchesType;
+                                        })
+                                        .sort((a, b) => {
+                                            const subA = (a.subjectId?.name || '').toLowerCase();
+                                            const subB = (b.subjectId?.name || '').toLowerCase();
+                                            if (subA !== subB) return subA.localeCompare(subB);
+
+                                            const gradeA = (a.grade || a.subjectId?.grade || '').toLowerCase();
+                                            const gradeB = (b.grade || b.subjectId?.grade || '').toLowerCase();
+                                            if (gradeA !== gradeB) return gradeA.localeCompare(gradeB);
+
+                                            return a.questionText.localeCompare(b.questionText);
+                                        })
                                         .map(q => {
                                             const isSelected = evalFormData.questions.includes(q._id);
                                             return (
-                                                <button
+                                                <div
                                                     key={q._id}
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const newQs = isSelected
-                                                            ? evalFormData.questions.filter(id => id !== q._id)
-                                                            : [...evalFormData.questions, q._id];
-                                                        setEvalFormData({ ...evalFormData, questions: newQs });
-                                                    }}
-                                                    className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center justify-between group ${isSelected ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-slate-100 border-dashed hover:border-emerald-200'}`}
+                                                    className={`group p-5 rounded-[2rem] border-2 transition-all relative overflow-hidden ${isSelected ? 'bg-indigo-50/50 border-indigo-500 shadow-xl shadow-indigo-900/5' : 'bg-white border-slate-100 hover:border-indigo-200'}`}
                                                 >
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">{q.difficulty} • {q.type}</div>
-                                                        <div className="text-xs font-bold text-slate-700 truncate">{q.questionText}</div>
+                                                    <div className="flex items-start justify-between gap-4 relative z-10">
+                                                        <div className="flex-1 min-w-0 cursor-pointer" onClick={() => {
+                                                            const newQs = isSelected
+                                                                ? evalFormData.questions.filter(id => id !== q._id)
+                                                                : [...evalFormData.questions, q._id];
+                                                            setEvalFormData({ ...evalFormData, questions: newQs });
+                                                        }} >
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 font-bold">{q.subjectId?.name || 'S/A'}</span>
+                                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-lg border font-bold ${q.difficulty === 'hard' ? 'text-rose-500 bg-rose-50 border-rose-100' : q.difficulty === 'medium' ? 'text-amber-500 bg-amber-50 border-amber-100' : 'text-emerald-500 bg-emerald-50 border-emerald-100'}`}>
+                                                                    {q.difficulty}
+                                                                </span>
+                                                            </div>
+                                                            <div className="text-sm font-black text-slate-700 leading-relaxed mb-3 pr-4">{q.questionText}</div>
+                                                            <div className="text-[8px] font-black text-indigo-300 uppercase italic opacity-0 group-hover:opacity-100 transition-opacity">Ver Opciones ↑</div>
+
+                                                            {/* Options Preview - More Friendly Grid */}
+                                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 opacity-0 group-hover:opacity-100 max-h-0 group-hover:max-h-80 transition-all duration-500 overflow-hidden">
+                                                                {q.options?.map((opt: any, i: number) => (
+                                                                    <div key={i} className={`flex items-center gap-3 p-2 rounded-xl border ${opt.isCorrect ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                                                                        <div className={`w-2 h-2 rounded-full ${opt.isCorrect ? 'bg-emerald-500' : 'bg-slate-300'}`}></div>
+                                                                        <span className="text-[10px] font-bold">{opt.text}</span>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                const newQs = isSelected
+                                                                    ? evalFormData.questions.filter(id => id !== q._id)
+                                                                    : [...evalFormData.questions, q._id];
+                                                                setEvalFormData({ ...evalFormData, questions: newQs });
+                                                            }}
+                                                            className={`w-12 h-12 rounded-2xl border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600 text-white shadow-lg' : 'bg-slate-50 border-slate-100 text-slate-200 group-hover:border-indigo-200 group-hover:text-indigo-300'}`}
+                                                        >
+                                                            <ShieldCheck size={24} />
+                                                        </button>
                                                     </div>
-                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-200 text-transparent'}`}>
-                                                        <ShieldCheck size={14} />
-                                                    </div>
-                                                </button>
+                                                    {isSelected && <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/5 rotate-45 translate-x-16 -translate-y-16"></div>}
+                                                </div>
                                             );
                                         })
                                     }

@@ -102,9 +102,19 @@ const QuestionBankPage = () => {
         }
     };
 
-    const filteredQuestions = questions.filter(q =>
-        q.questionText.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredQuestions = questions
+        .filter(q => q.questionText.toLowerCase().includes(searchTerm.toLowerCase()))
+        .sort((a, b) => {
+            const subA = (a.subjectId?.name || '').toLowerCase();
+            const subB = (b.subjectId?.name || '').toLowerCase();
+            if (subA !== subB) return subA.localeCompare(subB);
+
+            const gradeA = (a.grade || '').toLowerCase();
+            const gradeB = (b.grade || '').toLowerCase();
+            if (gradeA !== gradeB) return gradeA.localeCompare(gradeB);
+
+            return a.questionText.localeCompare(b.questionText);
+        });
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -207,15 +217,16 @@ const QuestionBankPage = () => {
                                         {q.questionText}
                                     </h3>
                                     {q.type === 'multiple_choice' && (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 opacity-60 group-hover:opacity-100 transition-all duration-500 max-h-24 group-hover:max-h-96 overflow-hidden">
                                             {q.options.map((opt, i) => (
-                                                <div key={i} className={`p-4 rounded-xl border-2 flex items-center justify-between ${opt.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-500'}`}>
-                                                    <span className="font-bold text-sm">{opt.text}</span>
+                                                <div key={i} className={`p-4 rounded-xl border-2 flex items-center justify-between ${opt.isCorrect ? 'bg-emerald-50 border-emerald-200 text-emerald-700 font-black' : 'bg-slate-50 border-slate-100 text-slate-500 font-bold'}`}>
+                                                    <span className="text-sm">{opt.text}</span>
                                                     {opt.isCorrect && <CheckCircle size={16} />}
                                                 </div>
                                             ))}
                                         </div>
                                     )}
+                                    <div className="text-[10px] font-black text-indigo-300 uppercase italic opacity-0 group-hover:opacity-100 transition-opacity">↑ Vista Previa de Opciones</div>
                                 </div>
                                 <div className="flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                     <button
