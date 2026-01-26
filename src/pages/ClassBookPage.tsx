@@ -111,7 +111,7 @@ const ClassBookPage = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const logRes = await api.post('/class-logs', formData);
+            await api.post('/class-logs', formData);
 
             // Also save attendance if students are loaded
             if (classStudents.length > 0) {
