@@ -199,6 +199,9 @@ const Layout = () => {
                     )}
 
                     <NavLink to="/grades" icon={ClipboardList}>Notas</NavLink>
+                    {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
+                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones</NavLink>
+                    )}
                     <NavLink to="/attendance" icon={CheckCircle2}>Asistencia</NavLink>
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
                     <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
