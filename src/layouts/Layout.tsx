@@ -9,7 +9,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen, UserCog, Database, CreditCard, User, Clock
+    Bell, BookOpen, UserCog, Database, CreditCard, User, Clock
 } from 'lucide-react';
 
 const Layout = () => {
@@ -290,16 +290,8 @@ const Layout = () => {
 
             {/* Main Application Area */}
             <main className="flex-1 bg-slate-50 md:h-screen overflow-y-auto relative custom-scrollbar">
-                {/* Desktop Top Bar - Subtile but useful */}
-                <header className="hidden md:flex items-center justify-between px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-40">
-                    <div className="relative flex-1 max-w-md group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Buscar estudiantes, notas o reportes..."
-                            className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 px-12 py-3 rounded-2xl outline-none text-sm font-bold text-slate-600 transition-all shadow-inner placeholder:font-bold placeholder:text-slate-300"
-                        />
-                    </div>
+                {/* Desktop Top Bar - Notifications only */}
+                <header className="hidden md:flex items-center justify-end px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-40">
                     <div className="flex items-center gap-4 relative">
                         <button
                             onClick={() => setIsNotifOpen(!isNotifOpen)}

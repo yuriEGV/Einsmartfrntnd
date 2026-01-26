@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer
@@ -125,14 +126,23 @@ const AnalyticsPage = () => {
                 </div>
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col md:flex-row gap-6 items-center">
                     <div className="flex-1">
-                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Filtrar por Curso</label>
+                        <label className="block text-sm font-black text-slate-700 uppercase tracking-widest mb-3 ml-1">Filtrar por Curso</label>
                         <select
-                            className="w-full px-6 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700"
+                            className="w-full px-6 py-5 text-lg bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-800 appearance-none"
+                            style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em', paddingRight: '2.5rem' }}
                             value={selectedCourse}
                             onChange={e => setSelectedCourse(e.target.value)}
                         >
                             <option value="">Todos los cursos</option>
-                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                            {Array.from(new Set(courses.map(c => c.name)))
+                                .sort()
+                                .map(name => {
+                                    const course = courses.find(c => c.name === name);
+                                    return (
+                                        <option key={course?._id} value={course?._id}>{name}</option>
+                                    );
+                                })
+                            }
                         </select>
                     </div>
                     <button
@@ -237,10 +247,13 @@ const AnalyticsPage = () => {
                                 <p className="text-sm text-slate-500 font-bold mt-2">
                                     {(studentAnalytics.filter((s: any) => s.overallAverage < 4.0).length)} estudiantes presentan promedios insuficientes.
                                 </p>
+                                <Link
+                                    to="/students?filter=at-risk"
+                                    className="flex items-center justify-center gap-2 px-8 py-5 bg-black text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-gray-900 transition-all shadow-2xl border-2 border-transparent hover:border-gray-700 active:scale-95"
+                                >
+                                    Ver Listado de Riesgo
+                                </Link>
                             </div>
-                            <button className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all">
-                                Ver Listado de Riesgo
-                            </button>
                         </div>
                     </div>
                 </div>
