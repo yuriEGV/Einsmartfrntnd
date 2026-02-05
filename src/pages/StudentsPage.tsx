@@ -178,18 +178,7 @@ const StudentsPage = () => {
                         Gestión académica y expedientes
                     </p>
                 </div>
-                {canManageStudents && (
-                    <button
-                        onClick={() => {
-                            setModalMode('create');
-                            setCurrentStudent({});
-                            setShowModal(true);
-                        }}
-                        className="w-full md:w-auto bg-[#11355a] text-white px-8 py-4 px-10 rounded-[1.5rem] flex items-center justify-center gap-3 hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 font-black uppercase text-xs tracking-widest"
-                    >
-                        <Plus size={20} /> NUEVO ALUMNO
-                    </button>
-                )}
+
             </div>
 
             {/* Enhanced Search Bar */}
@@ -348,10 +337,10 @@ const StudentsPage = () => {
                             >
                                 <div className="relative z-10">
                                     <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
-                                        {modalMode === 'create' ? 'Matricular Alumno' : 'Actualizar Ficha'}
+                                        Actualizar Ficha
                                     </h2>
                                     <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
-                                        {modalMode === 'create' ? 'ALTA DE NUEVO ESTUDIANTE' : 'MODIFICACIÓN DE EXPEDIENTE'}
+                                        MODIFICACIÓN DE EXPEDIENTE
                                     </p>
                                 </div>
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
@@ -438,7 +427,7 @@ const StudentsPage = () => {
                                         className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
                                     >
                                         <Plus size={18} />
-                                        {modalMode === 'create' ? 'CONFIRMAR MATRÍCULA' : 'GUARDAR CAMBIOS'}
+                                        GUARDAR CAMBIOS
                                     </button>
                                 </div>
                             </form>

@@ -24,8 +24,8 @@ interface Guardian {
 }
 
 const GuardiansPage = () => {
-    const { isSostenedor, isSuperAdmin } = usePermissions();
-    const canManage = isSostenedor || isSuperAdmin;
+    const { isSostenedor, isSuperAdmin, isDirector, isTeacher } = usePermissions();
+    const canManage = isSostenedor || isSuperAdmin || isDirector || isTeacher;
 
     const [guardians, setGuardians] = useState<Guardian[]>([]);
     const [loading, setLoading] = useState(true);
