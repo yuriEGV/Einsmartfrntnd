@@ -4,8 +4,8 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import {
     Plus, Search, Edit2, Trash2, X, Check,
-    Briefcase, Book, AlertCircle, Loader2,
-    ChevronRight, Info
+    Briefcase, AlertCircle, Loader2,
+    Info
 } from 'lucide-react';
 
 interface Career {
@@ -168,8 +168,8 @@ const CareersPage = () => {
 
                             <div className="flex items-start justify-between mb-6 relative z-10">
                                 <div className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest ${career.type === 'tecnico-profesional'
-                                        ? 'bg-orange-50 text-orange-600 border border-orange-100'
-                                        : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
+                                    ? 'bg-orange-50 text-orange-600 border border-orange-100'
+                                    : 'bg-indigo-50 text-indigo-600 border border-indigo-100'
                                     }`}>
                                     {career.type === 'tecnico-profesional' ? 'Técnico Profesional' : 'Científico Humanista'}
                                 </div>
