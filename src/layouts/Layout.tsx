@@ -258,7 +258,7 @@ const Layout = () => {
                             <NavLink to="/careers" icon={GraduationCap}>Gestión de Carreras</NavLink>
                         )}
 
-                        {(permissions.canManagePayments || permissions.isSuperAdmin) && (
+                        {(permissions.canManagePayments || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
                             <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
                         )}
 
@@ -271,7 +271,7 @@ const Layout = () => {
                             <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
                         )}
 
-                        {(permissions.isSostenedor || permissions.isSuperAdmin) && (
+                        {(permissions.isSostenedor || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
                             <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
                         )}
                     </div>

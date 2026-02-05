@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -33,6 +34,11 @@ const PaymentsPage = () => {
     // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
     const permissions = usePermissions();
     const { tenant } = useTenant();
+
+    if (tenant && tenant.paymentType !== 'paid') {
+        return <Navigate to="/" replace />;
+    }
+
     // Assuming PaymentsPage is visible to Admin/Sostenedor/Parents(future).
     // For now manage payments (assigning debts or paying).
 
