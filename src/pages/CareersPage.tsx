@@ -254,7 +254,7 @@ const CareersPage = () => {
                 showModal && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10">
                         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowModal(false)} />
-                        <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
                             {/* Modal Header */}
                             <div className="p-10 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
@@ -271,7 +271,7 @@ const CareersPage = () => {
                             </div>
 
                             {/* Modal Content */}
-                            <form onSubmit={handleSubmit} className="p-10">
+                            <form onSubmit={handleSubmit} className="p-10 overflow-y-auto custom-scrollbar">
                                 <div className="space-y-8">
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Nombre de la Especialidad</label>

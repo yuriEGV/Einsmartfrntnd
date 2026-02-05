@@ -306,7 +306,7 @@ const UnifiedClassBook = () => {
                 courseId: selectedCourse,
                 subjectId: selectedSubject,
                 objectives: selectedOAs,
-                questions: selectedBankQuestions,
+                questions: selectedBankQuestions.map((q: any) => q._id),
                 category: 'planificada'
             };
 
@@ -1088,6 +1088,52 @@ const UnifiedClassBook = () => {
                             {wizardStep === 3 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4">
                                     <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-4">Seleccionar Preguntas del Banco</h3>
+
+                                    {/* Real-time Difficulty Meter */}
+                                    <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-6">
+                                        <div className="flex justify-between items-end">
+                                            <div className="flex flex-col">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Dificultad Global de la Prueba</label>
+                                                <span className="text-[9px] font-bold text-slate-300">Basado en {selectedBankQuestions.length} preguntas seleccionadas</span>
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-lg font-black uppercase tracking-tighter ${(() => {
+                                                    const total = selectedBankQuestions.length || 1;
+                                                    const easy = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length;
+                                                    const medium = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length;
+                                                    const hard = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length;
+                                                    const score = (easy * 1 + medium * 2 + hard * 3) / total;
+                                                    if (score < 1.6) return 'text-emerald-500';
+                                                    if (score < 2.4) return 'text-amber-500';
+                                                    return 'text-rose-500';
+                                                })()}`}>
+                                                    {(() => {
+                                                        const total = selectedBankQuestions.length || 1;
+                                                        const easy = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length;
+                                                        const medium = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length;
+                                                        const hard = bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length;
+                                                        const score = (easy * 1 + medium * 2 + hard * 3) / total;
+                                                        if (score < 1.6) return 'Básica';
+                                                        if (score < 2.4) return 'Intermedia';
+                                                        return 'Avanzada';
+                                                    })()}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Progress Bars */}
+                                        <div className="flex h-3 rounded-full overflow-hidden bg-slate-100">
+                                            <div className="bg-emerald-400 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
+                                            <div className="bg-amber-400 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
+                                            <div className="bg-rose-500 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
+                                        </div>
+
+                                        <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 pt-1">
+                                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div>Fácil</div>
+                                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400"></div>Media</div>
+                                            <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div>Difícil</div>
+                                        </div>
+                                    </div>
                                     <div className="grid gap-4">
                                         {bankQuestions.map((q: any) => (
                                             <label key={q._id} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-4 ${selectedBankQuestions.includes(q._id) ? 'border-amber-500 bg-amber-50' : 'border-slate-100 hover:border-amber-200'}`}>
