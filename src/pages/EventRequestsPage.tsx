@@ -48,7 +48,7 @@ const EventRequestsPage = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const response = permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin'
+            const response = permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director'
                 ? await api.get('/event-requests')
                 : await api.get('/event-requests/my');
             setRequests(response.data);
@@ -126,7 +126,7 @@ const EventRequestsPage = () => {
                         Propuestas de actividades y reuniones para aprobación directiva.
                     </p>
                 </div>
-                {!permissions.isSuperAdmin && permissions.user?.role !== 'sostenedor' && permissions.user?.role !== 'admin' && !permissions.isStudent && (
+                {!permissions.isSuperAdmin && permissions.user?.role !== 'sostenedor' && permissions.user?.role !== 'admin' && permissions.user?.role !== 'director' && !permissions.isStudent && (
                     <button
                         onClick={() => setShowModal(true)}
                         className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
@@ -170,7 +170,7 @@ const EventRequestsPage = () => {
                                     </div>
 
                                     <div>
-                                        {(permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin') && (
+                                        {(permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director') && (
                                             <div className="flex items-center gap-2 mb-1">
                                                 <User size={14} className="text-slate-400" />
                                                 <span className="font-black text-slate-700 uppercase tracking-tight text-sm">{req.userId?.name || 'Desconocido'}</span>
@@ -192,7 +192,7 @@ const EventRequestsPage = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {req.status === 'pendiente' && (permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin') ? (
+                                    {req.status === 'pendiente' && (permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director') ? (
                                         <>
                                             <button
                                                 onClick={() => handleUpdateStatus(req._id, 'aprobado')}

@@ -14,7 +14,15 @@ interface Career {
     description: string;
     type: 'cientifico-humanista' | 'tecnico-profesional';
     code?: string;
+    teachers?: { _id: string; name: string }[];
+    headTeacher?: { _id: string; name: string };
     createdAt: string;
+}
+
+interface User {
+    _id: string;
+    name: string;
+    email: string;
 }
 
 const CareersPage = () => {
@@ -28,8 +36,11 @@ const CareersPage = () => {
         name: '',
         description: '',
         type: 'cientifico-humanista',
-        code: ''
+        code: '',
+        teachers: [] as string[],
+        headTeacher: ''
     });
+    const [availableTeachers, setAvailableTeachers] = useState<User[]>([]);
 
     useEffect(() => {
         fetchCareers();
@@ -38,10 +49,14 @@ const CareersPage = () => {
     const fetchCareers = async () => {
         try {
             setLoading(true);
-            const res = await api.get('/careers');
+            const [res, teachersRes] = await Promise.all([
+                api.get('/careers'),
+                api.get('/users?role=teacher')
+            ]);
             setCareers(res.data);
+            setAvailableTeachers(teachersRes.data);
         } catch (error) {
-            console.error('Error fetching careers:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
@@ -57,7 +72,9 @@ const CareersPage = () => {
             }
             setShowModal(false);
             setEditingCareer(null);
-            setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '' });
+            setShowModal(false);
+            setEditingCareer(null);
+            setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '' });
             fetchCareers();
         } catch (error: any) {
             alert(error.response?.data?.message || 'Error al guardar carrera');
@@ -80,7 +97,9 @@ const CareersPage = () => {
             name: career.name,
             description: career.description || '',
             type: career.type,
-            code: career.code || ''
+            code: career.code || '',
+            teachers: career.teachers?.map(t => t._id) || [],
+            headTeacher: career.headTeacher?._id || ''
         });
         setShowModal(true);
     };
@@ -117,7 +136,7 @@ const CareersPage = () => {
                 <button
                     onClick={() => {
                         setEditingCareer(null);
-                        setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '' });
+                        setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '' });
                         setShowModal(true);
                     }}
                     className="bg-[#11355a] text-white px-8 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 self-start md:self-center"
@@ -183,6 +202,25 @@ const CareersPage = () => {
                                 {career.description || 'Sin descripción detallada para esta especialidad.'}
                             </p>
 
+                            {/* Teachers Info */}
+                            <div className="mb-6 space-y-2">
+                                {career.headTeacher && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-purple-100">Jefe Carrera</div>
+                                        <span className="text-xs font-bold text-slate-600">{career.headTeacher.name}</span>
+                                    </div>
+                                )}
+                                {career.teachers && career.teachers.length > 0 && (
+                                    <div className="flex flex-wrap gap-1">
+                                        {career.teachers.map(t => (
+                                            <span key={t._id} className="text-[10px] bg-slate-50 text-slate-500 px-2 py-1 rounded-lg border border-slate-100 font-bold">
+                                                {t.name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
                             <div className="flex items-center justify-between pt-6 border-t border-slate-50 relative z-10">
                                 <div className="flex items-center gap-2">
                                     <button
@@ -206,92 +244,133 @@ const CareersPage = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
-                </div>
+                    ))
+                    }
+                </div >
             )}
 
             {/* Professional Modal Component */}
-            {showModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10">
-                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowModal(false)} />
-                    <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
-                        {/* Modal Header */}
-                        <div className="p-10 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg">
-                                    <Briefcase size={24} />
-                                </div>
-                                <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">
-                                    {editingCareer ? 'Editar Carrera' : 'Nueva Especialidad'}
-                                </h2>
-                            </div>
-                            <button onClick={() => setShowModal(false)} className="p-3 text-slate-400 hover:text-slate-800 transition-colors">
-                                <X size={24} />
-                            </button>
-                        </div>
-
-                        {/* Modal Content */}
-                        <form onSubmit={handleSubmit} className="p-10">
-                            <div className="space-y-8">
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Nombre de la Especialidad</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner"
-                                        placeholder="Ej: Técnico en Programación"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Tipo de Formación</label>
-                                        <select
-                                            className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner appearance-none"
-                                            value={formData.type}
-                                            onChange={e => setFormData({ ...formData, type: e.target.value as any })}
-                                        >
-                                            <option value="cientifico-humanista">Científico Humanista</option>
-                                            <option value="tecnico-profesional">Técnico Profesional</option>
-                                        </select>
+            {
+                showModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-10">
+                        <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowModal(false)} />
+                        <div className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+                            {/* Modal Header */}
+                            <div className="p-10 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-white shadow-lg">
+                                        <Briefcase size={24} />
                                     </div>
+                                    <h2 className="text-2xl font-black text-slate-800 tracking-tighter uppercase">
+                                        {editingCareer ? 'Editar Carrera' : 'Nueva Especialidad'}
+                                    </h2>
+                                </div>
+                                <button onClick={() => setShowModal(false)} className="p-3 text-slate-400 hover:text-slate-800 transition-colors">
+                                    <X size={24} />
+                                </button>
+                            </div>
+
+                            {/* Modal Content */}
+                            <form onSubmit={handleSubmit} className="p-10">
+                                <div className="space-y-8">
                                     <div>
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Código Identificador (Opcional)</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Nombre de la Especialidad</label>
                                         <input
+                                            required
                                             type="text"
                                             className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner"
-                                            placeholder="Ej: TP-PROG-2024"
-                                            value={formData.code}
-                                            onChange={e => setFormData({ ...formData, code: e.target.value })}
+                                            placeholder="Ej: Técnico en Programación"
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Tipo de Formación</label>
+                                            <select
+                                                className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner appearance-none"
+                                                value={formData.type}
+                                                onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                                            >
+                                                <option value="cientifico-humanista">Científico Humanista</option>
+                                                <option value="tecnico-profesional">Técnico Profesional</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Código Identificador (Opcional)</label>
+                                            <input
+                                                type="text"
+                                                className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner"
+                                                placeholder="Ej: TP-PROG-2024"
+                                                value={formData.code}
+                                                onChange={e => setFormData({ ...formData, code: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Jefe de Carrera</label>
+                                            <select
+                                                className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner appearance-none"
+                                                value={formData.headTeacher}
+                                                onChange={e => setFormData({ ...formData, headTeacher: e.target.value })}
+                                            >
+                                                <option value="">-- Seleccionar --</option>
+                                                {availableTeachers.map(t => (
+                                                    <option key={t._id} value={t._id}>{t.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Docentes Asociados</label>
+                                            <div className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner max-h-40 overflow-y-auto">
+                                                {availableTeachers.map(t => (
+                                                    <div key={t._id} className="flex items-center gap-3 mb-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`teacher-${t._id}`}
+                                                            checked={formData.teachers.includes(t._id)}
+                                                            onChange={e => {
+                                                                const newTeachers = e.target.checked
+                                                                    ? [...formData.teachers, t._id]
+                                                                    : formData.teachers.filter(id => id !== t._id);
+                                                                setFormData({ ...formData, teachers: newTeachers });
+                                                            }}
+                                                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                        />
+                                                        <label htmlFor={`teacher-${t._id}`} className="text-xs text-slate-600 cursor-pointer select-none">{t.name}</label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Descripción Breve</label>
+                                        <textarea
+                                            className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner resize-none h-32"
+                                            placeholder="Describa el perfil de egreso o los objetivos de esta carrera..."
+                                            value={formData.description}
+                                            onChange={e => setFormData({ ...formData, description: e.target.value })}
                                         />
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Descripción Breve</label>
-                                    <textarea
-                                        className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner resize-none h-32"
-                                        placeholder="Describa el perfil de egreso o los objetivos de esta carrera..."
-                                        value={formData.description}
-                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    />
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full mt-12 bg-indigo-600 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center justify-center gap-4 group"
-                            >
-                                <Check size={20} className="group-hover:scale-125 transition-transform" />
-                                {editingCareer ? 'Actualizar Datos' : 'Registrar Carrera'}
-                            </button>
-                        </form>
+                                <button
+                                    type="submit"
+                                    className="w-full mt-12 bg-indigo-600 text-white py-6 rounded-3xl font-black uppercase tracking-[0.2em] text-xs shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 transition-all flex items-center justify-center gap-4 group"
+                                >
+                                    <Check size={20} className="group-hover:scale-125 transition-transform" />
+                                    {editingCareer ? 'Actualizar Datos' : 'Registrar Carrera'}
+                                </button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 };
 
