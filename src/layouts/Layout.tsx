@@ -255,6 +255,10 @@ const Layout = () => {
                             <NavLink to="/tenants" icon={School}>Clientes</NavLink>
                         )}
 
+                        {(permissions.isAdmin || permissions.isSuperAdmin) && (
+                            <NavLink to="/careers" icon={GraduationCap}>Gestión de Carreras</NavLink>
+                        )}
+
                         {(permissions.canManagePayments || permissions.isSuperAdmin) && (
                             <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
                         )}

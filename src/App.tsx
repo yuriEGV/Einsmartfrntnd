@@ -36,6 +36,7 @@ import AdminDaysPage from './pages/AdminDaysPage';
 import EventRequestsPage from './pages/EventRequestsPage';
 import UnifiedClassBook from './pages/UnifiedClassBook';
 import ForcePasswordReset from './pages/ForcePasswordReset';
+import CareersPage from './pages/CareersPage';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function App() {
             <Route path="/audit" element={<AuditLogPage />} />
             <Route path="/tenants" element={<TenantsPage />} />
             <Route path="/settings" element={<SchoolSettingsPage />} />
+            <Route path="/careers" element={<CareersPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/my-payments" element={<GuardianPaymentsPage />} />
