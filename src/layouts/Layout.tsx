@@ -9,7 +9,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, BookOpen, UserCog, Database, CreditCard, User, Clock
+    Bell, BookOpen, Database, CreditCard, User, Clock
 } from 'lucide-react';
 
 const Layout = () => {
