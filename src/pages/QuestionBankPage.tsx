@@ -28,7 +28,7 @@ const QuestionBankPage = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [filterSubject, setFilterSubject] = useState('');
-    const [filterDifficulty] = useState('');
+    const [filterDifficulty, setFilterDifficulty] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -178,6 +178,19 @@ const QuestionBankPage = () => {
                     >
                         <option value="">Todas</option>
                         {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Dificultad</label>
+                    <select
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-indigo-500 outline-none font-bold"
+                        value={filterDifficulty}
+                        onChange={e => setFilterDifficulty(e.target.value)}
+                    >
+                        <option value="">Todas</option>
+                        <option value="easy">Fácil</option>
+                        <option value="medium">Media</option>
+                        <option value="hard">Difícil</option>
                     </select>
                 </div>
                 <button
