@@ -41,6 +41,7 @@ const PaymentsPage = () => {
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
 
     const [searchTerm, setSearchTerm] = useState('');
+    const [tempSearch, setTempSearch] = useState('');
     const [loading, setLoading] = useState(true);
 
     // Create Payment (Assign Debt)
@@ -158,14 +159,23 @@ const PaymentsPage = () => {
             </div>
 
             {permissions.user?.role !== 'student' && (
-                <div className="bg-white p-4 rounded-lg shadow-sm mb-6 border flex items-center gap-2 max-w-md">
-                    <Search className="text-gray-400" />
+                <div className="bg-white p-2 rounded-[1.5rem] shadow-xl shadow-blue-900/5 border border-slate-50 flex items-center gap-2 group mb-6 max-w-lg transition-all focus-within:ring-4 focus-within:ring-blue-500/5">
+                    <div className="p-3 text-slate-400 group-focus-within:text-blue-500 transition-colors">
+                        <Search size={22} />
+                    </div>
                     <input
                         placeholder="Buscar por estudiante o concepto..."
-                        className="flex-1 outline-none"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
+                        className="flex-1 outline-none text-slate-700 font-extrabold text-sm py-3 bg-transparent placeholder:text-slate-300 placeholder:font-bold"
+                        value={tempSearch}
+                        onChange={e => setTempSearch(e.target.value)}
+                        onKeyPress={e => e.key === 'Enter' && setSearchTerm(tempSearch)}
                     />
+                    <button
+                        onClick={() => setSearchTerm(tempSearch)}
+                        className="mr-2 bg-[#11355a] text-white px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-900 transition-all active:scale-95 flex items-center gap-2"
+                    >
+                        <Search size={14} /> BUSCAR
+                    </button>
                 </div>
             )}
 
@@ -257,10 +267,14 @@ const PaymentsPage = () => {
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
                                     <option value="">-- Seleccionar --</option>
-                                    <optgroup label="Tarifas Especiales">
-                                        {tariffs.filter(t => t.active ?? true).map(t => (
-                                            <option key={t._id} value={t._id}>{t.name} (${t.amount})</option>
-                                        ))}
+                                    <optgroup label="Tarifas Configuradas">
+                                        {tariffs.filter(t => t.active ?? true).length > 0 ? (
+                                            tariffs.filter(t => t.active ?? true).map(t => (
+                                                <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
+                                            ))
+                                        ) : (
+                                            <option disabled>No hay tarifas activas disponibles</option>
+                                        )}
                                     </optgroup>
                                 </select>
                             </div>

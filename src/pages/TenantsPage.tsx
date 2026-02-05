@@ -30,7 +30,9 @@ const TenantsPage = () => {
         address: '',
         phone: '',
         contactEmail: '',
-        logoUrl: ''
+        logoUrl: '',
+        sostenedorName: '',
+        sostenedorEmail: ''
     });
 
     useEffect(() => {
@@ -56,7 +58,11 @@ const TenantsPage = () => {
             if (modalMode === 'create') {
                 await api.post('/tenants', {
                     ...formData,
-                    theme: { logoUrl: formData.logoUrl }
+                    theme: { logoUrl: formData.logoUrl },
+                    sostenedor: {
+                        name: formData.sostenedorName,
+                        email: formData.sostenedorEmail
+                    }
                 });
             } else {
                 // Find existing tenant to preserve colors
@@ -72,7 +78,7 @@ const TenantsPage = () => {
                 });
             }
             setShowModal(false);
-            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '' });
+            setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '', sostenedorName: '', sostenedorEmail: '' });
             fetchTenants();
         } catch (err) {
             alert(`Error al ${modalMode === 'create' ? 'crear' : 'actualizar'} institución`);
@@ -99,7 +105,9 @@ const TenantsPage = () => {
             address: t.address || '',
             phone: t.phone || '',
             contactEmail: t.contactEmail || '',
-            logoUrl: (t as any).theme?.logoUrl || ''
+            logoUrl: (t as any).theme?.logoUrl || '',
+            sostenedorName: '',
+            sostenedorEmail: ''
         });
         setShowModal(true);
     };
@@ -132,8 +140,7 @@ const TenantsPage = () => {
                 <button
                     onClick={() => {
                         setModalMode('create');
-                        setModalMode('create');
-                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '' });
+                        setFormData({ name: '', domain: '', paymentType: 'paid', address: '', phone: '', contactEmail: '', logoUrl: '', sostenedorName: '', sostenedorEmail: '' });
                         setShowModal(true);
                     }}
                     className="w-full md:w-auto bg-blue-600 text-white px-6 md:px-8 py-4 rounded-2xl font-black flex items-center justify-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 text-sm md:text-base"
@@ -350,6 +357,31 @@ const TenantsPage = () => {
                                         onChange={e => setFormData({ ...formData, name: e.target.value })}
                                     />
                                 </div>
+                                {modalMode === 'create' && (
+                                    <>
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">NOMBRE DEL SOSTENEDOR (ACCESO INICIAL)</label>
+                                            <input
+                                                required
+                                                className="w-full px-8 py-5 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 shadow-inner"
+                                                placeholder="Ej: Juan Pérez"
+                                                value={formData.sostenedorName}
+                                                onChange={e => setFormData({ ...formData, sostenedorName: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">EMAIL DEL SOSTENEDOR (RECIBA ACCESO)</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                className="w-full px-8 py-5 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 shadow-inner"
+                                                placeholder="sostenedor@einsmart.cl"
+                                                value={formData.sostenedorEmail}
+                                                onChange={e => setFormData({ ...formData, sostenedorEmail: e.target.value })}
+                                            />
+                                        </div>
+                                    </>
+                                )}
 
                                 <div className="group">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">DOMINIO WEB / URL</label>

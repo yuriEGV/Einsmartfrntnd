@@ -17,6 +17,7 @@ export interface Permissions {
     canManageSubjects: boolean;
     isTeacher: boolean;
     isSostenedor: boolean;
+    isDirector: boolean;
     canManagePayments: boolean;
 }
 
@@ -24,10 +25,11 @@ export const usePermissions = (): Permissions => {
     const { user } = useAuth();
     const role = user?.role || 'guest';
 
-    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'teacher';
-    const isAdmin = role === 'admin' || role === 'sostenedor';
+    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher' || role === 'psicologo' || role === 'orientador' || role === 'asistente_aula' || role === 'secretario';
+    const isAdmin = role === 'admin' || role === 'sostenedor' || role === 'director';
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
+    const isDirector = role === 'director';
     const isSuperAdmin = role === 'admin';
 
     return {
@@ -46,6 +48,7 @@ export const usePermissions = (): Permissions => {
         canManageSubjects: isAdmin || isTeacher,
         isTeacher,
         isSostenedor,
-        canManagePayments: isSostenedor, // Solo sostenedor puede gestionar pagos y aranceles
+        isDirector,
+        canManagePayments: isSostenedor || isDirector, // Sostenedor y Director pueden gestionar pagos
     };
 };

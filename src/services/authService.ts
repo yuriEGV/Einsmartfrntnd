@@ -16,3 +16,8 @@ export const getCurrentUser = () => {
     if (userStr) return JSON.parse(userStr);
     return null;
 };
+
+export const updateProfile = async (data: any) => {
+    const response = await api.put('/auth/profile', data);
+    return response.data;
+};

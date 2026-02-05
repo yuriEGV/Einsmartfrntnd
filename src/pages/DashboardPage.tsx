@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin } from 'lucide-react';
+import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -23,8 +23,10 @@ const DashboardPage = () => {
 
     const [stats, setStats] = useState({ studentCount: 0, courseCount: 0 });
     const [recentGrades, setRecentGrades] = useState([]);
+    const [notifications, setNotifications] = useState([]); // [NEW] For Admin/Sostenedor
     // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
     const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [pendingSignatures, setPendingSignatures] = useState([]);
 
     useEffect(() => {
         if (user) {
@@ -41,13 +43,15 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
         try {
             // Parallel fetch
-            const [eventsRes, statsRes] = await Promise.all([
+            const [eventsRes, statsRes, signaturesRes] = await Promise.all([
                 api.get('/events'),
-                (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } })
+                (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
+                (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] })
             ]);
 
             setUpcomingEvents(eventsRes.data.slice(0, 3));
             if (statsRes.data) setStats(statsRes.data);
+            if (signaturesRes.data) setPendingSignatures(signaturesRes.data);
 
             if (user?.role === 'student' || user?.role === 'apoderado') {
                 const gradesRes = await api.get('/grades');
@@ -55,6 +59,10 @@ const DashboardPage = () => {
 
                 // const anotRes = await api.get('/anotaciones');
                 // setRecentAnotaciones(anotRes.data.slice(0, 5));
+            } else {
+                // [NEW] Fetch notifications for Admin/Sostenedor
+                const notifRes = await api.get('/user-notifications');
+                setNotifications(notifRes.data.slice(0, 5));
             }
         } catch (error) {
             console.error('Error loading dashboard data', error);
@@ -78,6 +86,27 @@ const DashboardPage = () => {
 
     return (
         <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
+            {/* Alertas Regulatorias */}
+            {pendingSignatures.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-rose-600 text-white rounded-3xl shadow-xl shadow-rose-200">
+                            <ShieldAlert size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-rose-900 uppercase tracking-tighter">Pendiente de Firma Digital</h3>
+                            <p className="text-sm font-bold text-rose-700/70">Tienes {pendingSignatures.length} registros en el Libro de Clases sin firmar.</p>
+                        </div>
+                    </div>
+                    <a
+                        href="/class-book"
+                        className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 active:scale-95"
+                    >
+                        Ir al Libro de Clases <ChevronRight size={18} />
+                    </a>
+                </div>
+            )}
+
             {/* Header / Welcome - Compact on Mobile */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
                 <div className="space-y-1">
@@ -204,9 +233,50 @@ const DashboardPage = () => {
                         </div>
                     </div>
                 )}
-            </div>
 
-            {/* Profile Management Section - Collapsed on smaller screens by design or just responsive */}
+                {/* [NEW] General Notifications for Admin/Sostenedor */}
+                {(user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher') && (
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mt-6">
+                        <div
+                            className="px-8 py-6"
+                            style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
+                        >
+                            <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
+                                <AlertCircle size={18} className="text-amber-300" /> NOTIFICACIONES
+                            </h2>
+                        </div>
+                        <div className="p-6 md:p-8 space-y-4">
+                            {notifications.map((notif: any) => (
+                                <div key={notif._id} className={`flex items-start gap-4 p-4 rounded-[1.5rem] transition-all border-2 group relative ${notif.isRead ? 'bg-white border-transparent hover:border-slate-100' : 'bg-blue-50/50 border-blue-100'}`}>
+                                    <div className="bg-blue-50 p-2.5 rounded-xl group-hover:scale-110 transition-transform shrink-0">
+                                        <AlertCircle className="text-blue-500" size={20} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-start">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{notif.type || 'Sistema'}</p>
+                                            <span className="text-[9px] font-bold text-gray-300">{new Date(notif.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                        <h4 className="font-bold text-slate-800 text-sm leading-tight mb-1">{notif.title}</h4>
+                                        <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{notif.message}</p>
+                                        {notif.link && (
+                                            <a href={notif.link} className="inline-block mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                                                Ver Detalles →
+                                            </a>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                            {notifications.length === 0 && (
+                                <div className="py-12 text-center">
+                                    <AlertCircle size={48} className="mx-auto text-gray-100 mb-4" />
+                                    <p className="text-gray-300 font-black uppercase tracking-widest text-[10px]">Sin notificaciones nuevas</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </div>
+            );
             {canEditProfile && (
                 <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                     <div

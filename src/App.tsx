@@ -29,6 +29,12 @@ import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de N
 import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
 import SostenedorDashboard from './pages/SostenedorDashboard';
 import CollectionsPage from './pages/CollectionsPage';
+import GuardiansPage from './pages/GuardiansPage';
+import QuestionBankPage from './pages/QuestionBankPage';
+import ProfilePage from './pages/ProfilePage';
+import AdminDaysPage from './pages/AdminDaysPage';
+import UnifiedClassBook from './pages/UnifiedClassBook';
+import ForcePasswordReset from './pages/ForcePasswordReset';
 
 function App() {
   return (
@@ -36,6 +42,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password-required" element={<ForcePasswordReset />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
@@ -65,6 +72,11 @@ function App() {
             <Route path="/payroll" element={<PayrollPage />} />
             <Route path="/finance-dashboard" element={<SostenedorDashboard />} />
             <Route path="/collections" element={<CollectionsPage />} />
+            <Route path="/guardians" element={<GuardiansPage />} />
+            <Route path="/class-book" element={<UnifiedClassBook />} />
+            <Route path="/question-bank" element={<QuestionBankPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/admin-days" element={<AdminDaysPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

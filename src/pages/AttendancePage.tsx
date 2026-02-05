@@ -22,6 +22,7 @@ interface Student {
     nombres: string;
     apellidos: string;
     rut: string;
+    grado?: string;
 }
 
 const AttendancePage = () => {
@@ -93,6 +94,14 @@ const AttendancePage = () => {
                 const studRes = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
                 studs = studRes.data;
             }
+
+            // Sort by Last Name (Apellidos)
+            studs.sort((a: Student, b: Student) => {
+                const nameA = `${a.apellidos} ${a.nombres}`.toLowerCase();
+                const nameB = `${b.apellidos} ${b.nombres}`.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+
             setStudents(studs);
 
             const attRes = await api.get(`/attendance?fecha=${selectedDate}`);
@@ -261,7 +270,16 @@ const AttendancePage = () => {
                             <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">
                                 {viewMode === 'current' ? 'Presencia Hoy' : 'Bitácora Histórica'}
                             </h3>
-                            <p className="text-slate-400 text-[9px] font-black uppercase tracking-widest mt-1">Sincronizado con el libro de clases oficial</p>
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                                    Sincronizado con el libro de clases oficial
+                                </span>
+                                {students.length > 0 && students[0].grado && (
+                                    <span className="bg-blue-50 text-blue-600 px-2 py-0.5 rounded text-[8px] font-black uppercase border border-blue-100">
+                                        Curso: {students[0].grado}
+                                    </span>
+                                )}
+                            </div>
                         </div>
                         {viewMode === 'current' && (
                             <div className="w-full md:w-auto flex items-center gap-4 bg-slate-50 p-2 rounded-2xl border border-slate-100">
@@ -335,136 +353,156 @@ const AttendancePage = () => {
                             </div>
 
                             {/* Hybrid View: Table for Desktop, Cards for Mobile */}
-                            <div className="hidden md:block bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
-                                <table className="min-w-full divide-y divide-slate-100">
-                                    <thead className="bg-slate-50/50">
-                                        <tr>
-                                            <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Nombre del Estudiante</th>
-                                            <th className="px-10 py-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estado de Presencia</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-white divide-y divide-slate-50">
-                                        {students.map((student) => (
-                                            <tr key={student._id} className="group hover:bg-blue-50/20 transition-all duration-300">
-                                                <td className="px-10 py-8">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#11355a] flex items-center justify-center font-black group-hover:bg-[#11355a] group-hover:text-white transition-all shadow-sm">
-                                                            {student.nombres.charAt(0)}
-                                                        </div>
-                                                        <div>
-                                                            <div className="text-lg font-black text-slate-700 tracking-tight flex items-center gap-2">
-                                                                {student.nombres} {student.apellidos}
-                                                            </div>
-                                                            <div className="text-[10px] text-blue-500 font-black font-mono tracking-tighter opacity-60 uppercase">
-                                                                ID: {student.rut}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td className="px-10 py-8">
-                                                    {!isStudentOrGuardian ? (
-                                                        <div className="flex justify-center gap-2 print:hidden">
-                                                            <button
-                                                                onClick={() => handleStatusChange(student._id, 'presente')}
-                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
-                                                                    ${attendance[student._id] === 'presente'
-                                                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/10 scale-105'
-                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-emerald-200 hover:text-emerald-500'}`}
-                                                            >
-                                                                <CheckCircle2 size={18} /> Presente
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleStatusChange(student._id, 'ausente')}
-                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
-                                                                    ${attendance[student._id] === 'ausente'
-                                                                        ? 'bg-rose-50 border-rose-500 text-rose-600 shadow-lg shadow-rose-500/10 scale-105'
-                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-rose-200 hover:text-rose-500'}`}
-                                                            >
-                                                                <XCircle size={18} /> Ausente
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleStatusChange(student._id, 'justificado')}
-                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
-                                                                    ${attendance[student._id] === 'justificado'
-                                                                        ? 'bg-amber-50 border-amber-500 text-amber-600 shadow-lg shadow-amber-500/10 scale-105'
-                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-amber-200 hover:text-amber-500'}`}
-                                                            >
-                                                                <Clock size={18} /> Justificado
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-center">
-                                                            <span className={`px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border-2
-                                                                ${attendance[student._id] === 'presente' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' :
-                                                                    attendance[student._id] === 'ausente' ? 'bg-rose-50 border-rose-500 text-rose-600' :
-                                                                        attendance[student._id] === 'justificado' ? 'bg-amber-50 border-amber-500 text-amber-600' : 'bg-slate-50 border-slate-200 text-slate-400'
-                                                                }`}>
-                                                                {attendance[student._id] || 'Pendiente'}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                    {/* Print View Status */}
-                                                    <div className="hidden print:block text-center font-black uppercase text-sm">
-                                                        {attendance[student._id] || 'PRESENTE'}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Mobile Grid View */}
-                            <div className="grid gap-4 md:hidden">
-                                {students.map(student => (
-                                    <div
-                                        key={student._id}
-                                        className={`bg-white p-6 rounded-[2.5rem] shadow-xl shadow-blue-900/5 transition-all duration-300
-                                            ${attendance[student._id] === 'ausente' ? 'border-l-[10px] border-rose-500' :
-                                                attendance[student._id] === 'justificado' ? 'border-l-[10px] border-amber-500' :
-                                                    'border-l-[10px] border-emerald-500'}
-                                        `}
-                                    >
-                                        <div className="flex items-center gap-4 mb-6">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 border border-slate-100 italic">
-                                                {student.nombres.charAt(0)}
+                            <div className="space-y-12">
+                                {Object.entries(
+                                    students.reduce((acc, s) => {
+                                        const grade = (s as any).grado || 'SIN ASIGNAR';
+                                        if (!acc[grade]) acc[grade] = [];
+                                        acc[grade].push(s);
+                                        return acc;
+                                    }, {} as Record<string, Student[]>)
+                                )
+                                    .sort((a, b) => a[0].localeCompare(b[0]))
+                                    .map(([grade, gradeStudents]) => (
+                                        <div key={grade} className="space-y-6">
+                                            <div className="flex items-center gap-4 px-2">
+                                                <div className="h-8 w-1.5 bg-blue-600 rounded-full"></div>
+                                                <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">{grade} <span className="text-slate-400 ml-2 text-sm font-bold">({gradeStudents.length} ALUMNOS)</span></h2>
                                             </div>
-                                            <div className="min-w-0">
-                                                <h3 className="font-black text-slate-800 text-md uppercase truncate leading-none mb-1">{student.nombres} {student.apellidos}</h3>
-                                                <div className="text-[9px] font-mono text-slate-400 font-bold opacity-60 uppercase">{student.rut}</div>
+
+                                            <div className="hidden md:block bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
+                                                <table className="min-w-full divide-y divide-slate-100">
+                                                    <thead className="bg-slate-50/50">
+                                                        <tr>
+                                                            <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Nombre del Estudiante</th>
+                                                            <th className="px-10 py-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estado de Presencia</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="bg-white divide-y divide-slate-50">
+                                                        {gradeStudents.map((student) => (
+                                                            <tr key={student._id} className="group hover:bg-blue-50/20 transition-all duration-300">
+                                                                <td className="px-10 py-8">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#11355a] flex items-center justify-center font-black group-hover:bg-[#11355a] group-hover:text-white transition-all shadow-sm">
+                                                                            {student.nombres.charAt(0)}
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-lg font-black text-slate-700 tracking-tight flex items-center gap-2">
+                                                                                {student.nombres} {student.apellidos}
+                                                                            </div>
+                                                                            <div className="text-[10px] text-blue-500 font-black font-mono tracking-tighter opacity-60 uppercase">
+                                                                                ID: {student.rut}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-10 py-8">
+                                                                    {!isStudentOrGuardian ? (
+                                                                        <div className="flex justify-center gap-2 print:hidden">
+                                                                            <button
+                                                                                onClick={() => handleStatusChange(student._id, 'presente')}
+                                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
+                                                                                ${attendance[student._id] === 'presente'
+                                                                                        ? 'bg-emerald-50 border-emerald-500 text-emerald-600 shadow-lg shadow-emerald-500/10 scale-105'
+                                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-emerald-200 hover:text-emerald-500'}`}
+                                                                            >
+                                                                                <CheckCircle2 size={18} /> Presente
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleStatusChange(student._id, 'ausente')}
+                                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
+                                                                                ${attendance[student._id] === 'ausente'
+                                                                                        ? 'bg-rose-50 border-rose-500 text-rose-600 shadow-lg shadow-rose-500/10 scale-105'
+                                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-rose-200 hover:text-rose-500'}`}
+                                                                            >
+                                                                                <XCircle size={18} /> Ausente
+                                                                            </button>
+                                                                            <button
+                                                                                onClick={() => handleStatusChange(student._id, 'justificado')}
+                                                                                className={`px-5 py-3 rounded-2xl flex items-center gap-2 transition-all font-black text-[10px] uppercase tracking-widest border-2
+                                                                                ${attendance[student._id] === 'justificado'
+                                                                                        ? 'bg-amber-50 border-amber-500 text-amber-600 shadow-lg shadow-amber-500/10 scale-105'
+                                                                                        : 'bg-white border-slate-100 text-slate-300 hover:border-amber-200 hover:text-amber-500'}`}
+                                                                            >
+                                                                                <Clock size={18} /> Justificado
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <div className="text-center">
+                                                                            <span className={`px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] border-2
+                                                                            ${attendance[student._id] === 'presente' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' :
+                                                                                    attendance[student._id] === 'ausente' ? 'bg-rose-50 border-rose-500 text-rose-600' :
+                                                                                        attendance[student._id] === 'justificado' ? 'bg-amber-50 border-amber-500 text-amber-600' : 'bg-slate-50 border-slate-200 text-slate-400'
+                                                                                }`}>
+                                                                                {attendance[student._id] || 'Pendiente'}
+                                                                            </span>
+                                                                        </div>
+                                                                    )}
+                                                                    {/* Print View Status */}
+                                                                    <div className="hidden print:block text-center font-black uppercase text-sm">
+                                                                        {attendance[student._id] || 'PRESENTE'}
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
+                                            {/* Mobile Grid View */}
+                                            <div className="grid gap-4 md:hidden">
+                                                {gradeStudents.map(student => (
+                                                    <div
+                                                        key={student._id}
+                                                        className={`bg-white p-6 rounded-[2.5rem] shadow-xl shadow-blue-900/5 transition-all duration-300
+                                                        ${attendance[student._id] === 'ausente' ? 'border-l-[10px] border-rose-500' :
+                                                                attendance[student._id] === 'justificado' ? 'border-l-[10px] border-amber-500' :
+                                                                    'border-l-[10px] border-emerald-500'}
+                                                    `}
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-6">
+                                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 border border-slate-100 italic">
+                                                                {student.nombres.charAt(0)}
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <h3 className="font-black text-slate-800 text-md uppercase truncate leading-none mb-1">{student.nombres} {student.apellidos}</h3>
+                                                                <div className="text-[9px] font-mono text-slate-400 font-bold opacity-60 uppercase">{student.rut}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        {!isStudentOrGuardian && (
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                <button
+                                                                    onClick={() => handleStatusChange(student._id, 'presente')}
+                                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
+                                                                    ${attendance[student._id] === 'presente' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
+                                                                >
+                                                                    <CheckCircle2 size={20} />
+                                                                    <span className="text-[7px] font-black uppercase">Presente</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleStatusChange(student._id, 'ausente')}
+                                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
+                                                                    ${attendance[student._id] === 'ausente' ? 'bg-rose-50 border-rose-500 text-rose-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
+                                                                >
+                                                                    <XCircle size={20} />
+                                                                    <span className="text-[7px] font-black uppercase">Ausente</span>
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleStatusChange(student._id, 'justificado')}
+                                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
+                                                                    ${attendance[student._id] === 'justificado' ? 'bg-amber-50 border-amber-500 text-amber-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
+                                                                >
+                                                                    <Clock size={20} />
+                                                                    <span className="text-[7px] font-black uppercase">Justif.</span>
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-
-                                        {!isStudentOrGuardian && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <button
-                                                    onClick={() => handleStatusChange(student._id, 'presente')}
-                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
-                                                        ${attendance[student._id] === 'presente' ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
-                                                >
-                                                    <CheckCircle2 size={20} />
-                                                    <span className="text-[7px] font-black uppercase">Presente</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(student._id, 'ausente')}
-                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
-                                                        ${attendance[student._id] === 'ausente' ? 'bg-rose-50 border-rose-500 text-rose-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
-                                                >
-                                                    <XCircle size={20} />
-                                                    <span className="text-[7px] font-black uppercase">Ausente</span>
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(student._id, 'justificado')}
-                                                    className={`py-4 rounded-xl flex flex-col items-center justify-center gap-1 transition-all border-2
-                                                        ${attendance[student._id] === 'justificado' ? 'bg-amber-50 border-amber-500 text-amber-600' : 'bg-slate-50 border-transparent text-slate-300'}`}
-                                                >
-                                                    <Clock size={20} />
-                                                    <span className="text-[7px] font-black uppercase">Justif.</span>
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
 
                             {students.length === 0 && (

@@ -2,7 +2,10 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { UserPlus, Search, BookOpen, UserCheck, CreditCard, ChevronRight, Save, ShieldAlert } from 'lucide-react';
+import {
+    UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
+    DollarSign, UserCheck, CreditCard, ChevronRight, Save
+} from 'lucide-react';
 
 interface Course {
     _id: string;
@@ -32,18 +35,25 @@ const EnrollmentsPage = () => {
 
     const [searchTermStudent, setSearchTermStudent] = useState('');
     const [students, setStudents] = useState<any[]>([]);
+    const [searchTermGuardian, setSearchTermGuardian] = useState('');
+    const [guardians, setGuardians] = useState<any[]>([]);
+    const [tariffs, setTariffs] = useState<any[]>([]);
+    const [selectedTariffs, setSelectedTariffs] = useState<string[]>([]);
 
     // State for toggle
     const [isNewStudent, setIsNewStudent] = useState(false);
+    const [isNewGuardian, setIsNewGuardian] = useState(false);
 
     // Form State
     const [formData, setFormData] = useState({
         studentId: '',
+        apoderadoId: '',
         courseId: '',
         period: new Date().getFullYear().toString(),
         status: 'confirmada',
         fee: 0,
         notes: '',
+        metodoPago: 'transferencia',
         // Direct creation data
         newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
         newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
@@ -54,6 +64,8 @@ const EnrollmentsPage = () => {
             fetchCourses();
             fetchEnrollments();
             fetchStudents();
+            fetchGuardians();
+            fetchTariffs();
         }
     }, [permissions.canManageEnrollments]);
 
@@ -82,6 +94,24 @@ const EnrollmentsPage = () => {
             setCourses(res.data);
         } catch (err) {
             console.error('Error fetching courses:', err);
+        }
+    };
+
+    const fetchGuardians = async () => {
+        try {
+            const res = await api.get('/apoderados');
+            setGuardians(res.data);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const fetchTariffs = async () => {
+        try {
+            const res = await api.get('/tariffs');
+            setTariffs(res.data);
+        } catch (err) {
+            console.error(err);
         }
     };
 
@@ -132,16 +162,24 @@ const EnrollmentsPage = () => {
 
         setLoading(true);
         try {
-            const enrollmentData = { ...formData, status: 'confirmada' };
+            const enrollmentData = {
+                ...formData,
+                status: 'confirmada',
+                tariffIds: selectedTariffs,
+                // Include apoderadoId explicitly if not new
+                apoderadoId: isNewGuardian ? undefined : formData.apoderadoId
+            };
             await api.post('/enrollments', enrollmentData);
             alert('¡Matrícula exitosa!');
             setFormData({
                 studentId: '',
+                apoderadoId: '',
                 courseId: '',
                 period: new Date().getFullYear().toString(),
                 status: 'confirmada',
                 fee: 0,
                 notes: '',
+                metodoPago: 'transferencia',
                 newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
                 newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
@@ -163,6 +201,10 @@ const EnrollmentsPage = () => {
 
     const filteredStudents = students.filter(s =>
         (s.nombres + ' ' + s.apellidos + ' ' + (s.rut || '')).toLowerCase().includes(searchTermStudent.toLowerCase())
+    );
+
+    const filteredGuardians = guardians.filter(g =>
+        (g.nombre + ' ' + g.apellidos + ' ' + (g.rut || '')).toLowerCase().includes(searchTermGuardian.toLowerCase())
     );
 
     if (!permissions.canManageEnrollments) {
@@ -327,40 +369,88 @@ const EnrollmentsPage = () => {
 
                             {/* Guardian Info - CRITICAL for notifications */}
                             <div className="mt-8 pt-8 border-t border-dashed">
-                                <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
-                                    <ShieldAlert size={16} className="text-orange-500" />
-                                    Información del Apoderado (Para Notificaciones)
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        placeholder="Nombre Apoderado"
-                                        maxLength={50}
-                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
-                                        value={formData.newGuardian.nombre}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, nombre: e.target.value } })}
-                                    />
-                                    <input
-                                        placeholder="Apellidos Apoderado"
-                                        maxLength={50}
-                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
-                                        value={formData.newGuardian.apellidos}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, apellidos: e.target.value } })}
-                                    />
-                                    <input
-                                        type="email"
-                                        placeholder="Email (Recibirá calificaciones)"
-                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold text-blue-600"
-                                        value={formData.newGuardian.correo}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value.trim().toLowerCase() } })}
-                                    />
-                                    <input
-                                        placeholder="Teléfono"
-                                        maxLength={15}
-                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
-                                        value={formData.newGuardian.telefono}
-                                        onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
-                                    />
+                                <div className="flex justify-between items-center mb-6">
+                                    <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest flex items-center gap-2">
+                                        <ShieldAlert size={16} className="text-orange-500" />
+                                        Información del Apoderado
+                                    </h3>
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsNewGuardian(!isNewGuardian)}
+                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border-2 ${isNewGuardian ? 'bg-orange-500 border-orange-500 text-white' : 'bg-white border-orange-500 text-orange-500 hover:bg-orange-50'}`}
+                                    >
+                                        {isNewGuardian ? 'Usar Existente' : 'Registrar Nuevo'}
+                                    </button>
                                 </div>
+
+                                {!isNewGuardian ? (
+                                    <div className="relative mb-6">
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Buscar Apoderado Existente</label>
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-3.5 text-gray-400" size={18} />
+                                            <input
+                                                placeholder="Nombre o RUT..."
+                                                className="w-full pl-10 pr-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold"
+                                                value={searchTermGuardian}
+                                                onChange={e => {
+                                                    setSearchTermGuardian(e.target.value);
+                                                    if (formData.apoderadoId) setFormData({ ...formData, apoderadoId: '' });
+                                                }}
+                                            />
+                                        </div>
+                                        {searchTermGuardian && !formData.apoderadoId && (
+                                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                                                {filteredGuardians.length > 0 ? filteredGuardians.map(g => (
+                                                    <button
+                                                        key={g._id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData({ ...formData, apoderadoId: g._id });
+                                                            setSearchTermGuardian(`${g.nombre} ${g.apellidos}`);
+                                                        }}
+                                                        className="w-full text-left px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
+                                                    >
+                                                        <div className="font-bold text-sm">{g.nombre} {g.apellidos}</div>
+                                                        <div className="text-[10px] text-gray-400">{g.correo || 'S/ Correo'}</div>
+                                                    </button>
+                                                )) : (
+                                                    <div className="px-4 py-4 text-center text-gray-400 text-sm">No encontrado</div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in duration-300">
+                                        <input
+                                            placeholder="Nombre Apoderado"
+                                            maxLength={50}
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                            value={formData.newGuardian.nombre}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, nombre: e.target.value } })}
+                                        />
+                                        <input
+                                            placeholder="Apellidos Apoderado"
+                                            maxLength={50}
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                            value={formData.newGuardian.apellidos}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, apellidos: e.target.value } })}
+                                        />
+                                        <input
+                                            type="email"
+                                            placeholder="Email (Recibirá calificaciones)"
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold text-blue-600"
+                                            value={formData.newGuardian.correo}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value.trim().toLowerCase() } })}
+                                        />
+                                        <input
+                                            placeholder="Teléfono"
+                                            maxLength={15}
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                            value={formData.newGuardian.telefono}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
+                                        />
+                                    </div>
+                                )}
                             </div>
 
                             <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
@@ -393,18 +483,77 @@ const EnrollmentsPage = () => {
                                 {tenant?.paymentType === 'paid' ? 'Arancel y Pagos' : 'Información Adicional'}
                             </h2>
                             {tenant?.paymentType === 'paid' ? (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-6">
                                     <div>
-                                        <label className="block text-sm font-bold text-gray-700 mb-2">Monto de Matrícula ($)</label>
-                                        <input
-                                            type="number"
-                                            min="0"
-                                            max="10000000"
-                                            placeholder="Ej: 150000"
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 focus:bg-white transition-all outline-none font-bold"
-                                            value={formData.fee || ''}
-                                            onChange={e => setFormData({ ...formData, fee: Number(e.target.value) || 0 })}
-                                        />
+                                        <label className="block text-sm font-black text-gray-400 uppercase tracking-widest mb-3 ml-1">Seleccionar Tarifas a Asignar</label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            {tariffs.map(t => (
+                                                <div
+                                                    key={t._id}
+                                                    className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-center justify-between ${selectedTariffs.includes(t._id) ? 'bg-emerald-50 border-emerald-500' : 'bg-white border-gray-100 hover:border-emerald-200'}`}
+                                                    onClick={() => {
+                                                        if (selectedTariffs.includes(t._id)) {
+                                                            setSelectedTariffs(selectedTariffs.filter(id => id !== t._id));
+                                                        } else {
+                                                            setSelectedTariffs([...selectedTariffs, t._id]);
+                                                        }
+                                                    }}
+                                                >
+                                                    <div>
+                                                        <div className={`font-black uppercase text-xs ${selectedTariffs.includes(t._id) ? 'text-emerald-700' : 'text-gray-700'}`}>{t.name}</div>
+                                                        <div className="text-[10px] text-gray-400 font-bold">${t.amount.toLocaleString()}</div>
+                                                    </div>
+                                                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${selectedTariffs.includes(t._id) ? 'bg-emerald-500 border-emerald-500' : 'border-gray-200'}`}>
+                                                        {selectedTariffs.includes(t._id) && <UserCheck size={14} className="text-white" />}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {tariffs.length === 0 && (
+                                            <div className="mt-4 p-4 bg-orange-50 border border-orange-100 rounded-xl flex items-start gap-3">
+                                                <AlertCircle className="text-orange-500 shrink-0" size={20} />
+                                                <div>
+                                                    <p className="text-xs text-orange-700 font-bold mb-1 uppercase tracking-widest">No hay tarifas predefinidas</p>
+                                                    <p className="text-[10px] text-orange-600 font-medium leading-relaxed">
+                                                        No hemos encontrado aranceles configurados para este colegio. El sistema acaba de generar valores por defecto (Matrícula y Mensualidad). Por favor, presiona el botón de recargar si no ves nada o ingresa un monto manual abajo.
+                                                    </p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={fetchTariffs}
+                                                        className="mt-3 px-3 py-1.5 bg-orange-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-orange-600 transition-all"
+                                                    >
+                                                        Recargar Aranceles
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="pt-4 border-t border-dashed border-emerald-100">
+                                        <label className="block text-sm font-bold text-slate-700 mb-2">Monto Adicional / Otro Arancel ($)</label>
+                                        <div className="relative">
+                                            <DollarSign className="absolute left-3 top-3 text-emerald-500" size={18} />
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                placeholder="Ej: 50000 (Opcional)"
+                                                className="w-full pl-10 pr-4 py-3 bg-emerald-50/30 border-2 border-emerald-100 rounded-xl focus:border-emerald-500 transition-all outline-none font-bold text-emerald-700"
+                                                value={formData.fee || ''}
+                                                onChange={e => setFormData({ ...formData, fee: Number(e.target.value) || 0 })}
+                                            />
+                                        </div>
+                                        <p className="text-[9px] text-slate-400 mt-2 font-medium">Este valor se sumará al total inicial pero no generará un recibo automático por separado.</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-bold text-gray-700 mb-2">Método de Pago Preferido</label>
+                                        <select
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:border-emerald-500 transition-all outline-none font-bold"
+                                            value={formData.metodoPago}
+                                            onChange={e => setFormData({ ...formData, metodoPago: e.target.value })}
+                                        >
+                                            <option value="transferencia">Transferencia Bancaria</option>
+                                            <option value="efectivo">Efectivo / Caja</option>
+                                            <option value="mercadopago">Mercado Pago / Online</option>
+                                        </select>
                                     </div>
                                     <div>
                                         <label className="block text-sm font-bold text-gray-700 mb-2">Notas Adicionales</label>
@@ -457,8 +606,10 @@ const EnrollmentsPage = () => {
                                     </span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-blue-300 text-xs font-bold uppercase tracking-widest">Total:</span>
-                                    <span className="font-black text-2xl text-emerald-400 font-mono tracking-tighter">${formData.fee}</span>
+                                    <span className="text-blue-300 text-xs font-bold uppercase tracking-widest">Total Ini:</span>
+                                    <span className="font-black text-2xl text-emerald-400 font-mono tracking-tighter">
+                                        ${tariffs.filter(t => selectedTariffs.includes(t._id)).reduce((acc, t) => acc + t.amount, 0).toLocaleString()}
+                                    </span>
                                 </div>
                             </div>
 
@@ -526,44 +677,58 @@ const EnrollmentsPage = () => {
                                 ))}
                             </div>
 
-                            {/* Desktop Table View */}
+                            {/* Desktop Table View - Grouped by Course */}
                             <div className="hidden md:block overflow-x-auto">
-                                <table className="w-full text-left">
-                                    <thead>
-                                        <tr className="text-xs font-black text-gray-400 uppercase tracking-widest border-b">
-                                            <th className="pb-4 pt-2 px-4">Estudiante</th>
-                                            <th className="pb-4 pt-2 px-4">Curso</th>
-                                            <th className="pb-4 pt-2 px-4">Periodo</th>
-                                            <th className="pb-4 pt-2 px-4">Fecha</th>
-                                            <th className="pb-4 pt-2 px-4 text-right">Monto</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y">
-                                        {filteredEnrollments.map(enrollment => (
-                                            <tr key={enrollment._id} className="hover:bg-gray-50 transition-colors group">
-                                                <td className="py-4 px-4 font-bold text-gray-800">
-                                                    {enrollment.estudianteId
-                                                        ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
-                                                        : 'Desconocido'}
-                                                </td>
-                                                <td className="py-4 px-4">
-                                                    <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-bold">
-                                                        {enrollment.courseId?.name || 'N/A'}
-                                                    </span>
-                                                </td>
-                                                <td className="py-4 px-4 text-sm text-gray-500 font-medium">
-                                                    {enrollment.period}
-                                                </td>
-                                                <td className="py-4 px-4 text-xs text-gray-400">
-                                                    {new Date(enrollment.createdAt).toLocaleDateString()}
-                                                </td>
-                                                <td className="py-4 px-4 text-right font-mono font-bold text-emerald-600">
-                                                    ${enrollment.fee.toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                {Object.entries(
+                                    filteredEnrollments.reduce((acc, e) => {
+                                        const cname = e.courseId?.name || 'Sin Curso';
+                                        if (!acc[cname]) acc[cname] = [];
+                                        acc[cname].push(e);
+                                        return acc;
+                                    }, {} as Record<string, Enrollment[]>)
+                                ).map(([courseName, group]) => (
+                                    <div key={courseName} className="mb-10">
+                                        <div className="bg-slate-50 px-6 py-4 border-l-4 border-[#11355a] mb-4 flex items-center justify-between rounded-r-xl">
+                                            <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest flex items-center gap-3">
+                                                <BookOpen size={16} />
+                                                CURSO: {courseName}
+                                            </h3>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white px-3 py-1 rounded-full border border-slate-100 italic">
+                                                {group.length} {group.length === 1 ? 'Alumno' : 'Alumnos'}
+                                            </span>
+                                        </div>
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="text-[10px] font-black text-gray-400 uppercase tracking-widest border-b">
+                                                    <th className="pb-4 pt-2 px-6">Estudiante</th>
+                                                    <th className="pb-4 pt-2 px-6">Periodo</th>
+                                                    <th className="pb-4 pt-2 px-6">Fecha Matrícula</th>
+                                                    <th className="pb-4 pt-2 px-6 text-right">Monto Pagado</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-50">
+                                                {group.map(enrollment => (
+                                                    <tr key={enrollment._id} className="hover:bg-blue-50/30 transition-all group">
+                                                        <td className="py-5 px-6 font-black text-slate-700 text-sm">
+                                                            {enrollment.estudianteId
+                                                                ? `${enrollment.estudianteId.nombres} ${enrollment.estudianteId.apellidos}`
+                                                                : 'Desconocido'}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                                            {enrollment.period}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-[10px] text-slate-400 font-bold">
+                                                            {new Date(enrollment.createdAt).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-right font-black text-emerald-600 font-mono text-sm tracking-tighter">
+                                                            ${enrollment.fee.toLocaleString()}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                ))}
                             </div>
                         </>
                     )}

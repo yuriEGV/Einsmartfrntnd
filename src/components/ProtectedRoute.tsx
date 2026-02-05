@@ -8,6 +8,10 @@ const ProtectedRoute = () => {
         return <div>Loading...</div>;
     }
 
+    if (isAuthenticated && useAuth().user?.mustChangePassword && window.location.pathname !== '/reset-password-required') {
+        return <Navigate to="/reset-password-required" replace />;
+    }
+
     return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 

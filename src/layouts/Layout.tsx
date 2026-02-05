@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
@@ -8,7 +9,7 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, Search, BookOpen
+    Bell, BookOpen, Database, CreditCard, User, Clock
 } from 'lucide-react';
 
 const Layout = () => {
@@ -16,6 +17,9 @@ const Layout = () => {
     const { tenant } = useTenant();
     const permissions = usePermissions();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -37,6 +41,43 @@ const Layout = () => {
         window.addEventListener('keydown', handleEsc);
         return () => window.removeEventListener('keydown', handleEsc);
     }, []);
+
+    // Notifications logic
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get('/user-notifications');
+            setNotifications(res.data);
+            setUnreadCount(res.data.filter((n: any) => !n.isRead).length);
+        } catch (error) {
+            console.error('Error fetching notifications:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (user) {
+            fetchNotifications();
+            const interval = setInterval(fetchNotifications, 60000); // Poll every minute
+            return () => clearInterval(interval);
+        }
+    }, [user]);
+
+    const markAsRead = async (id: string) => {
+        try {
+            await api.put(`/user-notifications/${id}/read`);
+            fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const markAllRead = async () => {
+        try {
+            await api.put('/user-notifications/mark-all-read');
+            fetchNotifications();
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const closeMenu = () => setIsMenuOpen(false);
 
@@ -64,7 +105,7 @@ const Layout = () => {
     };
 
     return (
-        <div className="min-h-screen bg-[#f8fafc] flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-100 selection:text-blue-900">
+        <div className="h-screen bg-[#f8fafc] flex flex-col md:flex-row overflow-hidden font-sans selection:bg-blue-100 selection:text-blue-900">
             {/* Mobile Header - High Fidelity */}
             <header
                 className="md:hidden flex items-center justify-between px-6 py-4 text-white z-[70] sticky top-0 shadow-2xl backdrop-blur-xl border-b border-white/5"
@@ -143,11 +184,7 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
-                    {(permissions.canManageStudents || user?.role === 'apoderado' || user?.role === 'student') && (
-                        <NavLink to="/students" icon={Users}>
-                            {(user?.role === 'apoderado' || user?.role === 'student') ? 'Mi Ficha' : 'Alumnos'}
-                        </NavLink>
-                    )}
+
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
                         <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
@@ -157,8 +194,18 @@ const Layout = () => {
                         <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
                     )}
 
-                    <NavLink to="/grades" icon={ClipboardList}>Notas</NavLink>
-                    <NavLink to="/attendance" icon={CheckCircle2}>Asistencia</NavLink>
+                    {/* Redundant links hidden for teachers to favor unified dashboard */}
+                    {(user?.role !== 'teacher') && (
+                        <>
+                            <NavLink to="/grades" icon={ClipboardList}>Notas Globales</NavLink>
+                            <NavLink to="/attendance" icon={CheckCircle2}>Asistencia Global</NavLink>
+                        </>
+                    )}
+
+                    {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
+                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
+                    )}
+
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
                     <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
 
@@ -169,15 +216,34 @@ const Layout = () => {
                         </div>
 
                         {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/subjects" icon={BookOpen}>Ramos</NavLink>
+                            <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
+                        )}
+
+                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
+                        )}
+
+                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
+                            <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
                         )}
 
                         {(user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/curriculum-material" icon={ClipboardList}>Curriculum</NavLink>
+                            <NavLink to="/question-bank" icon={Database}>Banco de Preguntas</NavLink>
+                        )}
+
+                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                            <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
+                        )}
+
+                        {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (
+                            <NavLink to="/admin-days" icon={Clock}>Días Administrativos</NavLink>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
-                            <NavLink to="/settings" icon={Settings}>Institución</NavLink>
+                            <>
+                                <NavLink to="/users" icon={Users}>Gestión de Usuarios</NavLink>
+                                <NavLink to="/settings" icon={Settings}>Institución</NavLink>
+                            </>
                         )}
 
                         {permissions.canViewSensitiveData && (
@@ -200,20 +266,24 @@ const Layout = () => {
                         {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
                             <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
                         )}
+
+                        {(permissions.isSostenedor || permissions.isSuperAdmin) && (
+                            <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
+                        )}
                     </div>
                 </nav>
 
                 {/* Premium Profile Section */}
                 <div className="p-8 border-t border-white/5 bg-black/20 relative z-20">
                     <div className="flex items-center gap-4 mb-6">
-                        <div className="relative group">
+                        <Link to="/profile" className="relative group">
                             <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
-                                {user?.name?.substring(0, 1) || 'A'}
+                                {user?.name?.substring(0, 1) || <User size={20} />}
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#11355a] shadow-lg"></div>
-                        </div>
+                        </Link>
                         <div className="min-w-0">
-                            <div className="text-sm font-black text-white truncate leading-tight">{user?.name || 'Invitado'}</div>
+                            <Link to="/profile" className="text-sm font-black text-white truncate leading-tight hover:text-blue-200 block transition-colors">{user?.name || 'Invitado'}</Link>
                             <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block">{user?.role}</div>
                         </div>
                     </div>
@@ -229,21 +299,48 @@ const Layout = () => {
 
             {/* Main Application Area */}
             <main className="flex-1 bg-slate-50 md:h-screen overflow-y-auto relative custom-scrollbar">
-                {/* Desktop Top Bar - Subtile but useful */}
-                <header className="hidden md:flex items-center justify-between px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-40">
-                    <div className="relative flex-1 max-w-md group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
-                        <input
-                            type="text"
-                            placeholder="Buscar estudiantes, notas o reportes..."
-                            className="w-full bg-slate-50 border border-transparent focus:bg-white focus:border-blue-100 px-12 py-3 rounded-2xl outline-none text-sm font-bold text-slate-600 transition-all shadow-inner placeholder:font-bold placeholder:text-slate-300"
-                        />
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <button className="p-3 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-2xl transition-all border border-slate-100 shadow-sm relative">
+                {/* Desktop Top Bar - Notifications only */}
+                <header className="hidden md:flex items-center justify-end px-10 py-6 bg-white border-b border-slate-100 sticky top-0 z-40">
+                    <div className="flex items-center gap-4 relative">
+                        <button
+                            onClick={() => setIsNotifOpen(!isNotifOpen)}
+                            className="p-3 text-slate-400 hover:text-blue-600 bg-white hover:bg-blue-50 rounded-2xl transition-all border border-slate-100 shadow-sm relative"
+                        >
                             <Bell size={20} />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                            {unreadCount > 0 && (
+                                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
+                            )}
                         </button>
+
+                        {/* Notifications Dropdown */}
+                        {isNotifOpen && (
+                            <div className="absolute top-full right-0 mt-4 w-80 bg-white rounded-3xl shadow-2xl border border-slate-100 z-[100] overflow-hidden animate-in slide-in-from-top-2 duration-300">
+                                <div className="p-5 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
+                                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest">Notificaciones</h3>
+                                    {unreadCount > 0 && (
+                                        <button onClick={markAllRead} className="text-[10px] font-black text-blue-600 hover:text-blue-800 uppercase tracking-widest">Marcar todo</button>
+                                    )}
+                                </div>
+                                <div className="max-h-96 overflow-y-auto custom-scrollbar">
+                                    {notifications.length === 0 ? (
+                                        <div className="p-10 text-center text-slate-300 font-bold text-xs uppercase italic">Sin avisos nuevos</div>
+                                    ) : (
+                                        notifications.map((n) => (
+                                            <div
+                                                key={n._id}
+                                                onClick={() => markAsRead(n._id)}
+                                                className={`p-5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative ${!n.isRead ? 'bg-blue-50/30' : ''}`}
+                                            >
+                                                {!n.isRead && <div className="absolute top-6 left-2 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>}
+                                                <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">{n.title}</div>
+                                                <p className="text-xs font-bold text-slate-600 leading-relaxed mb-1">{n.message}</p>
+                                                <div className="text-[9px] font-bold text-slate-300 uppercase">{new Date(n.createdAt).toLocaleString()}</div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </header>
 

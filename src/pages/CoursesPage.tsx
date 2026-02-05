@@ -37,9 +37,11 @@ const CoursesPage = () => {
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
 
-    // Form specific state (since teacherId can be object or string in different contexts)
+    // Form specific state
     const [formData, setFormData] = useState({
         name: '',
+        level: '',
+        letter: '',
         description: '',
         teacherId: ''
     });
@@ -76,12 +78,14 @@ const CoursesPage = () => {
         }
     };
 
-    const handleOpenModal = (mode: 'create' | 'edit', course?: Course) => {
+    const handleOpenModal = (mode: 'create' | 'edit', course?: any) => {
         setModalMode(mode);
         if (mode === 'edit' && course) {
             setCurrentCourse(course);
             setFormData({
                 name: course.name,
+                level: course.level || '',
+                letter: course.letter || '',
                 description: course.description,
                 teacherId: typeof course.teacherId === 'object' ? course.teacherId._id : (course.teacherId || '')
             });
@@ -89,6 +93,8 @@ const CoursesPage = () => {
             setCurrentCourse(null);
             setFormData({
                 name: '',
+                level: '',
+                letter: '',
                 description: '',
                 teacherId: ''
             });
@@ -99,11 +105,15 @@ const CoursesPage = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            // Enforce format: Level + Letter in Name
+            const finalName = `${formData.level}${formData.letter}`;
+            const payload = { ...formData, name: finalName };
+
             if (modalMode === 'create') {
-                await api.post('/courses', formData);
+                await api.post('/courses', payload);
             } else {
                 if (currentCourse && currentCourse._id) {
-                    await api.put(`/courses/${currentCourse._id}`, formData);
+                    await api.put(`/courses/${currentCourse._id}`, payload);
                 }
             }
             setShowModal(false);
@@ -124,7 +134,17 @@ const CoursesPage = () => {
         }
     };
 
-    const filteredCourses = courses.filter(c =>
+    const sortedCourses = [...courses].sort((a: any, b: any) => {
+        // Sort by level then letter
+        const levelOrder = ["1°", "2°", "3°", "4°", "5°", "6°", "7°", "8°", "I°", "II°", "III°", "IV°"];
+        const levelA = levelOrder.indexOf(a.level);
+        const levelB = levelOrder.indexOf(b.level);
+
+        if (levelA !== levelB) return levelA - levelB;
+        return (a.letter || '').localeCompare(b.letter || '');
+    });
+
+    const filteredCourses = sortedCourses.filter(c =>
         c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         c.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -276,16 +296,46 @@ const CoursesPage = () => {
 
                         <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
                             <div className="space-y-6">
-                                <div className="group">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRE DEL CURSO / GRADO</label>
-                                    <input
-                                        required
-                                        maxLength={50}
-                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
-                                        placeholder="Ej: 1° Básico A"
-                                        value={formData.name}
-                                        onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nivel (Grado)</label>
+                                        <select
+                                            required
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            value={formData.level}
+                                            onChange={e => setFormData({ ...formData, level: e.target.value })}
+                                        >
+                                            <option value="">Nivel...</option>
+                                            <option value="1°">1°</option>
+                                            <option value="2°">2°</option>
+                                            <option value="3°">3°</option>
+                                            <option value="4°">4°</option>
+                                            <option value="5°">5°</option>
+                                            <option value="6°">6°</option>
+                                            <option value="7°">7°</option>
+                                            <option value="8°">8°</option>
+                                            <option value="I°">I° Medio</option>
+                                            <option value="II°">II° Medio</option>
+                                            <option value="III°">III° Medio</option>
+                                            <option value="IV°">IV° Medio</option>
+                                        </select>
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Letra (Paralelo)</label>
+                                        <select
+                                            required
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            value={formData.letter}
+                                            onChange={e => setFormData({ ...formData, letter: e.target.value })}
+                                        >
+                                            <option value="">Letra...</option>
+                                            <option value="A">A</option>
+                                            <option value="B">B</option>
+                                            <option value="C">C</option>
+                                            <option value="D">D</option>
+                                            <option value="E">E</option>
+                                        </select>
+                                    </div>
                                 </div>
                                 <div className="group">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DESCRIPCIÓN ACADÉMICA</label>

@@ -16,6 +16,7 @@ interface Evaluation {
     maxScore: number;
     date: string;
     courseId: { _id: string; name: string };
+    category: 'planificada' | 'sorpresa';
 }
 
 interface Course {
@@ -48,7 +49,8 @@ const EvaluationsPage = () => {
         subject: '',
         maxScore: 7.0,
         date: new Date().toISOString().split('T')[0],
-        courseId: ''
+        courseId: '',
+        category: 'planificada' as 'planificada' | 'sorpresa'
     });
 
     useEffect(() => {
@@ -83,25 +85,32 @@ const EvaluationsPage = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Prepare payload without _id for creation
-            const { _id, ...cleanFormData } = formData;
+            // Prepare payload
+            const selectedSubjectObj = subjects.find(s => s.name === formData.subject);
             const payload = {
-                ...cleanFormData,
-                subject: formData.subject // Model expects string name currently
+                title: formData.title,
+                date: formData.date,
+                category: formData.category,
+                courseId: formData.courseId,
+                subjectId: selectedSubjectObj?._id,
+                maxScore: formData.maxScore
             };
+
+            if (!payload.subjectId) {
+                alert('Por favor seleccione una asignatura válida');
+                return;
+            }
 
             if (modalMode === 'create') {
                 await api.post('/evaluations', payload);
             } else {
-                // For update, we can include _id in URL or exclude it from body if needed, 
-                // but usually PUT bodies are fine. API probably expects updates via ID in URL.
                 await api.put(`/evaluations/${formData._id}`, payload);
             }
             setShowModal(false);
             fetchData();
         } catch (error: any) {
             console.error(error);
-            alert(error.response?.data?.message || 'Error al guardar');
+            alert(error.response?.data?.message || 'Error al guardar la evaluación');
         }
     };
 
@@ -128,7 +137,7 @@ const EvaluationsPage = () => {
         e.subject.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const canManage = canEditGrades || isSuperAdmin;
+    const canManage = canEditGrades || isSuperAdmin || usePermissions().isTeacher;
 
     return (
         <div className="p-6">
@@ -141,7 +150,7 @@ const EvaluationsPage = () => {
                     <button
                         onClick={() => {
                             setModalMode('create');
-                            setFormData({ _id: '', title: '', subject: '', maxScore: 7.0, date: new Date().toISOString().split('T')[0], courseId: '' });
+                            setFormData({ _id: '', title: '', subject: '', maxScore: 7.0, date: new Date().toISOString().split('T')[0], courseId: '', category: 'planificada' });
                             setShowModal(true);
                         }}
                         className="bg-[#11355a] text-white px-4 py-2 rounded flex items-center gap-2 hover:opacity-90 transition"
@@ -180,7 +189,8 @@ const EvaluationsPage = () => {
                                                 subject: ev.subject,
                                                 maxScore: ev.maxScore,
                                                 date: new Date(ev.date).toISOString().split('T')[0],
-                                                courseId: (ev.courseId as any)._id
+                                                courseId: (ev.courseId as any)._id,
+                                                category: (ev as any).category || 'planificada'
                                             });
                                             setShowModal(true);
                                         }} className="text-gray-400 hover:text-blue-600"><Edit size={18} /></button>
@@ -191,7 +201,12 @@ const EvaluationsPage = () => {
                             <div className="space-y-1 text-sm text-gray-600 mt-3">
                                 <div className="flex justify-between">
                                     <span className="font-bold text-blue-600">{ev.subject}</span>
-                                    <span className="bg-gray-100 px-2 rounded text-xs py-0.5">{new Date(ev.date).toLocaleDateString()}</span>
+                                    <div className="flex gap-2">
+                                        {(ev as any).category === 'sorpresa' && (
+                                            <span className="bg-amber-100 text-amber-700 font-black px-2 rounded text-xs py-0.5 uppercase tracking-wider">Sorpresa</span>
+                                        )}
+                                        <span className="bg-gray-100 px-2 rounded text-xs py-0.5">{new Date(ev.date).toLocaleDateString()}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -275,6 +290,23 @@ const EvaluationsPage = () => {
                                 <button type="submit" className="px-4 py-2 bg-[#11355a] text-white rounded hover:opacity-90">Guardar</button>
                             </div>
                         </form>
+
+                        <div className="mt-4 border-t pt-4">
+                            <label className="block text-sm font-medium mb-1">Tipo de Notificación</label>
+                            <select
+                                className="w-full border p-2 rounded bg-white"
+                                value={(formData as any).category}
+                                onChange={e => setFormData({ ...formData, category: e.target.value as any })}
+                            >
+                                <option value="planificada">Evaluación Planificada (Visible en Calendario)</option>
+                                <option value="sorpresa">Evaluación Sorpresa (Alerta Inmediata)</option>
+                            </select>
+                            <p className="text-xs text-gray-400 mt-1">
+                                {(formData as any).category === 'sorpresa'
+                                    ? 'Los alumnos recibirán una notificación de "Evaluación Sorpresa" pero NO aparecerá en el calendario hasta después de realizada.'
+                                    : 'La evaluación será visible en el calendario de los alumnos inmediatamente.'}
+                            </p>
+                        </div>
                     </div>
                 </div>
             )}
