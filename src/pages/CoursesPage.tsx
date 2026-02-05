@@ -23,12 +23,18 @@ interface Teacher {
     name: string;
 }
 
+interface Career {
+    _id: string;
+    name: string;
+}
+
 const CoursesPage = () => {
     const { canManageCourses, isSuperAdmin } = usePermissions();
     const navigate = useNavigate();
     // const { tenant } = useTenant(); // Not used currently
     const [courses, setCourses] = useState<Course[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
+    const [careers, setCareers] = useState<Career[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -43,12 +49,14 @@ const CoursesPage = () => {
         level: '',
         letter: '',
         description: '',
-        teacherId: ''
+        teacherId: '',
+        careerId: ''
     });
 
     useEffect(() => {
         fetchCourses();
         fetchTeachers();
+        fetchCareers();
     }, []);
 
     const fetchCourses = async () => {
@@ -78,6 +86,15 @@ const CoursesPage = () => {
         }
     };
 
+    const fetchCareers = async () => {
+        try {
+            const response = await api.get('/careers');
+            setCareers(response.data);
+        } catch (error) {
+            console.error('Error fetching careers:', error);
+        }
+    };
+
     const handleOpenModal = (mode: 'create' | 'edit', course?: any) => {
         setModalMode(mode);
         if (mode === 'edit' && course) {
@@ -87,7 +104,8 @@ const CoursesPage = () => {
                 level: course.level || '',
                 letter: course.letter || '',
                 description: course.description,
-                teacherId: typeof course.teacherId === 'object' ? course.teacherId._id : (course.teacherId || '')
+                teacherId: typeof course.teacherId === 'object' ? course.teacherId._id : (course.teacherId || ''),
+                careerId: typeof course.careerId === 'object' ? course.careerId._id : (course.careerId || '')
             });
         } else {
             setCurrentCourse(null);
@@ -96,7 +114,8 @@ const CoursesPage = () => {
                 level: '',
                 letter: '',
                 description: '',
-                teacherId: ''
+                teacherId: '',
+                careerId: ''
             });
         }
         setShowModal(true);
@@ -255,6 +274,20 @@ const CoursesPage = () => {
                                     </div>
                                 </div>
 
+                                {(course as any).careerId && (
+                                    <div className="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100">
+                                            <GraduationCap size={18} />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Carrera / Especialidad</div>
+                                            <div className="text-xs font-black text-indigo-900 truncate">
+                                                {(course as any).careerId?.name || (course as any).careerId}
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <button
                                     onClick={() => navigate(`/courses/${course._id}/students`)}
                                     className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
@@ -363,6 +396,20 @@ const CoursesPage = () => {
                                         ))}
                                     </select>
                                     <p className="text-[10px] font-bold text-slate-300 mt-2 ml-1">Solo se muestran usuarios con rol de Profesor.</p>
+                                </div>
+                                <div className="group">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CARRERA ASOCIADA (OPCIONAL)</label>
+                                    <select
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none"
+                                        value={formData.careerId}
+                                        onChange={e => setFormData({ ...formData, careerId: e.target.value })}
+                                    >
+                                        <option value="">Configuración General (Sin Carrera específica)</option>
+                                        {careers.map(c => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                    <p className="text-[10px] font-bold text-slate-300 mt-2 ml-1">Asigne este curso a una especialidad técnica si corresponde.</p>
                                 </div>
                             </div>
 

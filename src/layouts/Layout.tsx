@@ -207,7 +207,9 @@ const Layout = () => {
                     )}
 
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
-                    <NavLink to="/event-requests" icon={ClipboardList}>Solicitudes de Eventos</NavLink>
+                    {user?.role !== 'teacher' && (
+                        <NavLink to="/event-requests" icon={ClipboardList}>Solicitudes de Eventos</NavLink>
+                    )}
                     <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
 
                     <div className="pt-10 mb-4 px-2">
@@ -240,7 +242,7 @@ const Layout = () => {
                             <NavLink to="/admin-days" icon={Clock}>Días Administrativos</NavLink>
                         )}
 
-                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
+                        {permissions.isAdmin && (
                             <>
                                 <NavLink to="/users" icon={Users}>Gestión de Usuarios</NavLink>
                                 <NavLink to="/settings" icon={Settings}>Institución</NavLink>
