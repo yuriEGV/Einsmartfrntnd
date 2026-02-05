@@ -104,8 +104,8 @@ const CoursesPage = () => {
                 level: course.level || '',
                 letter: course.letter || '',
                 description: course.description,
-                teacherId: typeof course.teacherId === 'object' ? course.teacherId._id : (course.teacherId || ''),
-                careerId: typeof course.careerId === 'object' ? course.careerId._id : (course.careerId || '')
+                teacherId: (course.teacherId && typeof course.teacherId === 'object') ? course.teacherId._id : (course.teacherId || ''),
+                careerId: (course.careerId && typeof course.careerId === 'object') ? course.careerId._id : (course.careerId || '')
             });
         } else {
             setCurrentCourse(null);
