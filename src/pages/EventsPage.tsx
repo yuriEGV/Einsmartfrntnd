@@ -16,7 +16,6 @@ interface SchoolEvent {
 const EventsPage = () => {
     const navigate = useNavigate();
     const permissions = usePermissions();
-    const { isAdmin } = permissions;
     const [events, setEvents] = useState<SchoolEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
