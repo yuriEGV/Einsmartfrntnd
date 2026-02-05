@@ -67,7 +67,6 @@ const UnifiedClassBook = () => {
     const [bankQuestions, setBankQuestions] = useState<any[]>([]);
     const [searchQuestion, setSearchQuestion] = useState('');
     const [classStartTime, setClassStartTime] = useState<number | null>(null);
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [showQuestionForm, setShowQuestionForm] = useState(false);
     const [newQuestionData, setNewQuestionData] = useState({
         questionText: '',
@@ -75,6 +74,8 @@ const UnifiedClassBook = () => {
         difficulty: 'medium',
         options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }]
     });
+
+    const [attendanceConfirmed, setAttendanceConfirmed] = useState(false);
 
     // -------------------------------------------------------------------------
     // Data Fetching
@@ -142,18 +143,6 @@ const UnifiedClassBook = () => {
         finally { setLoading(false); }
     };
 
-    useEffect(() => {
-        let interval: any;
-        if (classStartTime) {
-            interval = setInterval(() => {
-                setElapsedSeconds(Math.floor((Date.now() - classStartTime) / 1000));
-            }, 1000);
-        } else {
-            setElapsedSeconds(0);
-        }
-        return () => clearInterval(interval);
-    }, [classStartTime]);
-
     useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate]);
 
     // -------------------------------------------------------------------------
@@ -174,6 +163,11 @@ const UnifiedClassBook = () => {
 
     const handleSaveLog = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!attendanceConfirmed) {
+            alert('Por favor, confirme que ha pasado la asistencia antes de firmar el libro.');
+            return;
+        }
+
         try {
             const res = await api.post('/class-logs', {
                 ...logFormData,
@@ -187,6 +181,7 @@ const UnifiedClassBook = () => {
             setClassStartTime(null); // Stop timer
             alert('Clase registrada y firmada digitalmente. Cronómetro detenido.');
             setShowLogForm(false);
+            setAttendanceConfirmed(false);
             refreshTabContent();
         } catch (err) { alert('Error al procesar el registro'); }
     };
@@ -375,6 +370,8 @@ const UnifiedClassBook = () => {
                     </button>
                 ))}
 
+                {/* Stealth Timer: Hiding UI as per request */}
+                {/* 
                 {classStartTime && (
                     <div className="flex items-center gap-4 bg-orange-50 px-8 py-5 rounded-[2rem] shadow-xl border border-orange-200 animate-pulse ml-4">
                         <div className="w-3 h-3 bg-red-500 rounded-full"></div>
@@ -384,6 +381,7 @@ const UnifiedClassBook = () => {
                         <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">En curso</span>
                     </div>
                 )}
+                */}
             </div>
 
             {/* Content Logic */}
@@ -435,6 +433,21 @@ const UnifiedClassBook = () => {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Desarrollo de Actividades</label>
                                             <textarea rows={4} required placeholder="Describa lo realizado en clase..." value={logFormData.activities} onChange={e => setLogFormData({ ...logFormData, activities: e.target.value })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold resize-none" />
                                         </div>
+
+                                        {/* Attendance Confirmation Checkbox */}
+                                        <div className="flex items-center gap-4 p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                                            <input
+                                                type="checkbox"
+                                                id="attendanceConfirm"
+                                                className="w-6 h-6 rounded-lg cursor-pointer accent-blue-600"
+                                                checked={attendanceConfirmed}
+                                                onChange={e => setAttendanceConfirmed(e.target.checked)}
+                                            />
+                                            <label htmlFor="attendanceConfirm" className="text-sm font-black text-blue-900 cursor-pointer">
+                                                Confirmo que se ha pasado la asistencia de los alumnos para esta clase.
+                                            </label>
+                                        </div>
+
                                         <button type="submit" className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/20 hover:bg-emerald-700 transition-all uppercase">FIRMAs Y GUARDAR EN LIBRO</button>
                                     </form>
                                 </div>
