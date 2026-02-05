@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     ChevronLeft, ChevronRight, Wand2, Check,
-    LayoutGrid, BookOpen, AlertCircle
+    AlertCircle
 } from 'lucide-react';
-import Swal from 'sweetalert2';
 
 interface TestWizardProps {
     isOpen: boolean;
@@ -83,12 +82,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
 
             await api.post('/evaluations', payload);
 
-            Swal.fire({
-                icon: 'success',
-                title: '¡Prueba Generada!',
-                text: 'La evaluación ha sido creada exitosamente.',
-                confirmButtonColor: '#10b981'
-            });
+            alert("¡Prueba Generada! La evaluación ha sido creada exitosamente.");
 
             if (onSuccess) onSuccess();
             onClose();
@@ -221,7 +215,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                                         <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay objetivos registrados en la planificación actual</p>
                                     </div>
                                 ) : (
-                                    availableMaterials.flatMap((m, idx) => m.objectives.map((obj: string, i: number) => ({ obj, id: `${m._id}-${i}` }))).map((item: any) => (
+                                    availableMaterials.flatMap((m) => m.objectives.map((obj: string, i: number) => ({ obj, id: `${m._id}-${i}` }))).map((item: any) => (
                                         <label key={item.id} className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex items-start gap-4 ${selectedOAs.includes(item.obj) ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}>
                                             <input
                                                 type="checkbox"

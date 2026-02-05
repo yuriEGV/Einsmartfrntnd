@@ -144,7 +144,7 @@ const UnifiedClassBook = () => {
 
             // Always fetch bank and materials if selected
             if (selectedCourse && selectedSubject) {
-                const [bankRes, matRes] = await Promise.all([
+                const [bankRes] = await Promise.all([
                     api.get(`/questions?subjectId=${selectedSubject}`),
                     api.get(`/curriculum-materials/subject/${selectedSubject}`)
                 ]);

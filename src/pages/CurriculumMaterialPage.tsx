@@ -2,13 +2,12 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import curriculumService, { type CurriculumMaterial } from '../services/curriculumService';
 import {
-    BookOpen, Filter, Plus, Search,
-    FileText, Trash2, Download, Eye,
-    ExternalLink, X, Save, File, Wand2,
+    BookOpen, Plus, Search,
+    Trash2, X, Save, File,
     Edit, Target
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
-import { useTenant } from '../context/TenantContext'; // Restored
+import { useTenant } from '../context/TenantContext';
 import TestWizard from '../components/TestWizard';
 
 interface Course {
@@ -24,7 +23,6 @@ interface Subject {
 
 const CurriculumMaterialPage = () => {
     const permissions = usePermissions();
-    const { isStaff, user } = permissions;
     const { tenant } = useTenant();
     const [showWizard, setShowWizard] = useState(false);
 
