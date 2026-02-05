@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Calendar, Plus, Trash2, MapPin, Clock } from 'lucide-react';
+import { Calendar, Plus, Trash2, MapPin, Clock, FileText } from 'lucide-react';
 
 interface SchoolEvent {
     _id: string;
@@ -13,7 +14,9 @@ interface SchoolEvent {
 }
 
 const EventsPage = () => {
-    const { isSuperAdmin } = usePermissions();
+    const navigate = useNavigate();
+    const permissions = usePermissions();
+    const { isSuperAdmin } = permissions;
     const [events, setEvents] = useState<SchoolEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -65,14 +68,22 @@ const EventsPage = () => {
                     <Calendar className="text-[#11355a]" />
                     Eventos y Reuniones
                 </h1>
-                {isSuperAdmin && (
+                <div className="flex gap-3">
                     <button
-                        onClick={() => setShowModal(true)}
-                        className="bg-[#11355a] text-white px-4 py-2 rounded flex items-center gap-2"
+                        onClick={() => navigate('/event-requests')}
+                        className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-100 transition-all"
                     >
-                        <Plus size={18} /> Nuevo Evento
+                        <FileText size={18} /> Ver Solicitudes
                     </button>
-                )}
+                    {(isSuperAdmin || permissions.user?.role === 'teacher') && (
+                        <button
+                            onClick={() => permissions.user?.role === 'teacher' ? navigate('/event-requests') : setShowModal(true)}
+                            className="bg-[#11355a] text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/10"
+                        >
+                            <Plus size={18} /> {permissions.user?.role === 'teacher' ? 'Proponer Evento' : 'Nuevo Evento'}
+                        </button>
+                    )}
+                </div>
             </div>
 
             {loading ? (

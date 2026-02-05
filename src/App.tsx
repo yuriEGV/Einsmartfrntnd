@@ -33,6 +33,7 @@ import GuardiansPage from './pages/GuardiansPage';
 import QuestionBankPage from './pages/QuestionBankPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminDaysPage from './pages/AdminDaysPage';
+import EventRequestsPage from './pages/EventRequestsPage';
 import UnifiedClassBook from './pages/UnifiedClassBook';
 import ForcePasswordReset from './pages/ForcePasswordReset';
 
@@ -77,6 +78,7 @@ function App() {
             <Route path="/question-bank" element={<QuestionBankPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin-days" element={<AdminDaysPage />} />
+            <Route path="/event-requests" element={<EventRequestsPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 
