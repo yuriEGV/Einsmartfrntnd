@@ -64,7 +64,6 @@ const UnifiedClassBook = () => {
     const [showPruebaWizard, setShowPruebaWizard] = useState(false);
     const [wizardStep, setWizardStep] = useState(1);
     const [availableMaterials, setAvailableMaterials] = useState<any[]>([]);
-    const [availableQuestions, setAvailableQuestions] = useState<any[]>([]);
     const [selectedOAs, setSelectedOAs] = useState<string[]>([]);
     const [selectedBankQuestions, setSelectedBankQuestions] = useState<string[]>([]);
     const [wizardFormData, setWizardFormData] = useState({
@@ -125,7 +124,7 @@ const UnifiedClassBook = () => {
                 setStudents(studRes.data);
                 const amap: Record<string, string> = {};
                 studRes.data.forEach((s: any) => {
-                    const rec = attRes.data.find((r: any) => r.estudianteId?._id === s._id || r.estudianteId === s._id);
+                    const rec = attRes.data.find((r: any) => (r.estudianteId?._id || r.estudianteId) === s._id);
                     amap[s._id] = rec ? rec.estado : 'presente';
                 });
                 setAttendanceMap(amap);
@@ -138,13 +137,13 @@ const UnifiedClassBook = () => {
                 console.log('DEBUG VISIBILITY - Students found:', studRes.data.length);
                 setStudents(studRes.data);
                 setEvaluations(evalsRes.data.filter((e: any) =>
-                    (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
+                    (e.courseId?._id || e.courseId) === selectedCourse
                 ));
                 setGrades(gradesRes.data);
             } else if (activeTab === 'evaluaciones') {
                 const res = await api.get(`/evaluations?courseId=${selectedCourse}`);
                 let filtered = res.data.filter((e: any) =>
-                    (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
+                    (e.courseId?._id || e.courseId) === selectedCourse
                 );
                 if (isStudent) {
                     filtered = filtered.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa');
@@ -158,7 +157,7 @@ const UnifiedClassBook = () => {
                     api.get(`/questions?subjectId=${selectedSubject}`),
                     api.get(`/curriculum-materials/subject/${selectedSubject}`)
                 ]);
-                setAvailableQuestions(bankRes.data);
+                setBankQuestions(bankRes.data);
                 setAvailableMaterials(matRes.data);
             }
         } catch (err) {
@@ -328,7 +327,7 @@ const UnifiedClassBook = () => {
             const res = await api.post('/questions', {
                 ...newQuestionData,
                 subjectId: selectedSubject,
-                grade: courses.find(c => (typeof c._id === 'object' ? (c._id as any)._id : c._id) === selectedCourse)?.level || 'Sin Nivel'
+                grade: courses.find(c => (c._id?._id || c._id) === selectedCourse)?.level || 'Sin Nivel'
             });
             setBankQuestions([res.data, ...bankQuestions]);
             setEvalFormData({ ...evalFormData, questions: [...evalFormData.questions, res.data._id] });
@@ -350,7 +349,7 @@ const UnifiedClassBook = () => {
     // -------------------------------------------------------------------------
 
     const filteredSubjects = selectedCourse
-        ? subjects.filter(s => (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse)
+        ? subjects.filter(s => (s.courseId?._id || s.courseId) === selectedCourse)
         : [];
 
     return (
@@ -940,9 +939,14 @@ const UnifiedClassBook = () => {
                                                         }} >
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <span className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 font-bold">{q.subjectId?.name || 'S/A'}</span>
-                                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-lg border font-bold ${q.difficulty === 'hard' ? 'text-rose-500 bg-rose-50 border-rose-100' : q.difficulty === 'medium' ? 'text-amber-500 bg-amber-50 border-amber-100' : 'text-emerald-500 bg-emerald-50 border-emerald-100'}`}>
-                                                                    {q.difficulty}
-                                                                </span>
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <div className="flex gap-0.5 h-1 w-16 bg-slate-100 rounded-full overflow-hidden">
+                                                                        <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
+                                                                    </div>
+                                                                    <span className={`text-[7px] font-black uppercase tracking-tighter italic ${q.difficulty === 'hard' ? 'text-rose-500' : q.difficulty === 'medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                        Nivel {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Medio' : 'Difícil'}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                             <div className="text-sm font-black text-slate-700 leading-relaxed mb-3 pr-4">{q.questionText}</div>
                                                             <div className="text-[8px] font-black text-indigo-300 uppercase italic opacity-0 group-hover:opacity-100 transition-opacity">Ver Opciones ↑</div>
@@ -1085,7 +1089,7 @@ const UnifiedClassBook = () => {
                                 <div className="space-y-6 animate-in slide-in-from-right-4">
                                     <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-4">Seleccionar Preguntas del Banco</h3>
                                     <div className="grid gap-4">
-                                        {availableQuestions.map((q: any) => (
+                                        {bankQuestions.map((q: any) => (
                                             <label key={q._id} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-4 ${selectedBankQuestions.includes(q._id) ? 'border-amber-500 bg-amber-50' : 'border-slate-100 hover:border-amber-200'}`}>
                                                 <input
                                                     type="checkbox"
@@ -1104,14 +1108,21 @@ const UnifiedClassBook = () => {
                                                 </div>
                                                 <div>
                                                     <p className="font-black text-slate-700 uppercase tracking-tight text-sm leading-snug mb-2">{q.questionText}</p>
-                                                    <div className="flex gap-2">
-                                                        <span className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-slate-400 border border-slate-100 uppercase">{q.difficulty}</span>
-                                                        <span className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-slate-400 border border-slate-100 uppercase">{q.type}</span>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex flex-col gap-0.5">
+                                                            <div className="flex gap-0.5 h-1 w-12 bg-slate-100 rounded-full overflow-hidden">
+                                                                <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
+                                                            </div>
+                                                            <span className={`text-[7px] font-black uppercase tracking-tighter ${q.difficulty === 'hard' ? 'text-rose-500' : q.difficulty === 'medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Media' : 'Difícil'}
+                                                            </span>
+                                                        </div>
+                                                        <span className="bg-white px-3 py-1 rounded-lg text-[9px] font-black text-slate-400 border border-slate-100 uppercase">{q.type.replace('_', ' ')}</span>
                                                     </div>
                                                 </div>
                                             </label>
                                         ))}
-                                        {availableQuestions.length === 0 && (
+                                        {bankQuestions.length === 0 && (
                                             <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
                                                 <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay preguntas registradas para esta asignatura</p>
                                             </div>

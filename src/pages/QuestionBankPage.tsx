@@ -200,12 +200,17 @@ const QuestionBankPage = () => {
                             <div className="flex justify-between items-start gap-6">
                                 <div className="flex-1 space-y-4">
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <span className={`px-4 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-widest border ${q.difficulty === 'easy' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            q.difficulty === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                'bg-rose-50 text-rose-600 border-rose-100'
-                                            }`}>
-                                            {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Intermedia' : 'Dificil'}
-                                        </span>
+                                        <div className="flex flex-col gap-1 min-w-[80px]">
+                                            <div className="flex gap-1 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-lg font-black text-[8px] uppercase tracking-widest text-center ${q.difficulty === 'easy' ? 'text-emerald-600' :
+                                                q.difficulty === 'medium' ? 'text-amber-600' :
+                                                    'text-rose-600'
+                                                }`}>
+                                                {q.difficulty === 'easy' ? 'Nivel Fácil' : q.difficulty === 'medium' ? 'Nivel Medio' : 'Nivel Difícil'}
+                                            </span>
+                                        </div>
                                         <span className="px-4 py-1.5 bg-slate-50 text-slate-500 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-100">
                                             {q.subjectId?.name}
                                         </span>

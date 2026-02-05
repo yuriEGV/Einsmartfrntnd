@@ -43,7 +43,7 @@ export const usePermissions = (): Permissions => {
         canManageEnrollments: isStaff,
         canEditAnnotations: isStaff,
         canEditGrades: isStaff,
-        canViewSensitiveData: isAdmin,
+        canViewSensitiveData: isAdmin || isDirector,
         isSuperAdmin,
         isStaff,
         canManageCourses: isAdmin,

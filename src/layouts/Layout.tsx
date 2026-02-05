@@ -207,9 +207,6 @@ const Layout = () => {
                     )}
 
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
-                    {user?.role !== 'teacher' && (
-                        <NavLink to="/event-requests" icon={ClipboardList}>Solicitudes de Eventos</NavLink>
-                    )}
                     <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
 
                     <div className="pt-10 mb-4 px-2">
