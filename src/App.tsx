@@ -34,6 +34,7 @@ import QuestionBankPage from './pages/QuestionBankPage';
 import ProfilePage from './pages/ProfilePage';
 import AdminDaysPage from './pages/AdminDaysPage';
 import UnifiedClassBook from './pages/UnifiedClassBook';
+import ForcePasswordReset from './pages/ForcePasswordReset';
 
 function App() {
   return (
@@ -41,6 +42,7 @@ function App() {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password-required" element={<ForcePasswordReset />} />
 
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>

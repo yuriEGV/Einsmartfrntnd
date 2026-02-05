@@ -184,9 +184,7 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
-                    {(permissions.canManageStudents || user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher') && (
-                        <NavLink to="/students" icon={Users}>Alumnos</NavLink>
-                    )}
+
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
                         <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
@@ -225,8 +223,8 @@ const Layout = () => {
                             <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
                         )}
 
-                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
-                            <NavLink to="/guardians" icon={UserCog}>Apoderados</NavLink>
+                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
+                            <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
                         )}
 
                         {(user?.role === 'teacher' || user?.role === 'admin') && (

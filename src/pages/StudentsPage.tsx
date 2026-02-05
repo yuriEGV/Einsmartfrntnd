@@ -172,10 +172,10 @@ const StudentsPage = () => {
                         <div className="p-2 md:p-3 bg-blue-50 rounded-2xl border border-blue-100/50">
                             <School size={24} className="text-[#11355a] md:w-10 md:h-10" />
                         </div>
-                        Estudiantes
+                        Comunidad Escolar
                     </h1>
                     <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 ml-1">
-                        Gestión académica y expedientes
+                        Gestión Unificada de Alumnos y Apoderados
                     </p>
                 </div>
 
@@ -411,6 +411,74 @@ const StudentsPage = () => {
                                             value={currentStudent.grado || ''}
                                             onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
                                         />
+                                    </div>
+
+                                    {/* GUARDIAN SECTION (FUSION) */}
+                                    <div className="pt-6 border-t border-slate-100">
+                                        <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest mb-4">Información del Apoderado</h3>
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="group">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Nombre</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        value={currentStudent.guardian?.nombre || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), nombre: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                                <div className="group">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Apellidos</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        value={currentStudent.guardian?.apellidos || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), apellidos: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="group">
+                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Correo Electrónico</label>
+                                                <input
+                                                    type="email"
+                                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                    value={currentStudent.guardian?.correo || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), correo: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="group">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Teléfono</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        value={currentStudent.guardian?.telefono || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), telefono: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                                <div className="group">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Parentesco</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        placeholder="Padre, Madre, etc."
+                                                        value={(currentStudent.guardian as any)?.parentesco || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), parentesco: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
