@@ -179,6 +179,18 @@ const StudentsPage = () => {
                     </p>
                 </div>
 
+                {canManageStudents && (
+                    <button
+                        onClick={() => {
+                            setModalMode('create');
+                            setCurrentStudent({});
+                            setShowModal(true);
+                        }}
+                        className="w-full md:w-auto bg-[#11355a] text-white px-8 py-4 rounded-[1.5rem] flex items-center justify-center gap-3 hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 font-black uppercase text-xs tracking-widest"
+                    >
+                        <Plus size={20} /> NUEVA FICHA
+                    </button>
+                )}
             </div>
 
             {/* Enhanced Search Bar */}
