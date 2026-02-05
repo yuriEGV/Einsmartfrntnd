@@ -240,7 +240,10 @@ const Layout = () => {
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
-                            <NavLink to="/settings" icon={Settings}>Institución</NavLink>
+                            <>
+                                <NavLink to="/users" icon={Users}>Gestión de Usuarios</NavLink>
+                                <NavLink to="/settings" icon={Settings}>Institución</NavLink>
+                            </>
                         )}
 
                         {permissions.canViewSensitiveData && (

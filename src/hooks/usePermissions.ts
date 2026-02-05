@@ -25,7 +25,7 @@ export const usePermissions = (): Permissions => {
     const { user } = useAuth();
     const role = user?.role || 'guest';
 
-    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher';
+    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher' || role === 'psicologo' || role === 'orientador' || role === 'asistente_aula' || role === 'secretario';
     const isAdmin = role === 'admin' || role === 'sostenedor' || role === 'director';
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
