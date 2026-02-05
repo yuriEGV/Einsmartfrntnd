@@ -19,6 +19,7 @@ export interface Permissions {
     isSostenedor: boolean;
     isDirector: boolean;
     canManagePayments: boolean;
+    isAdmin: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -49,6 +50,7 @@ export const usePermissions = (): Permissions => {
         isTeacher,
         isSostenedor,
         isDirector,
-        canManagePayments: isSostenedor || isDirector, // Sostenedor y Director pueden gestionar pagos
+        canManagePayments: isSostenedor || isDirector,
+        isAdmin,
     };
 };

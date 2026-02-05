@@ -75,12 +75,12 @@ const EventsPage = () => {
                     >
                         <FileText size={18} /> Ver Solicitudes
                     </button>
-                    {(isSuperAdmin || permissions.user?.role === 'teacher') && (
+                    {(permissions.isAdmin || permissions.isTeacher) && (
                         <button
-                            onClick={() => permissions.user?.role === 'teacher' ? navigate('/event-requests') : setShowModal(true)}
+                            onClick={() => permissions.isTeacher ? navigate('/event-requests') : setShowModal(true)}
                             className="bg-[#11355a] text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-900 transition-all shadow-lg shadow-blue-900/10"
                         >
-                            <Plus size={18} /> {permissions.user?.role === 'teacher' ? 'Proponer Evento' : 'Nuevo Evento'}
+                            <Plus size={18} /> {permissions.isTeacher ? 'Proponer Evento' : 'Nuevo Evento'}
                         </button>
                     )}
                 </div>
