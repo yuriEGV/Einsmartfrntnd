@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import curriculumService from '../services/curriculumService';
-import type { CurriculumMaterial } from '../services/curriculumService';
+import curriculumService, { type CurriculumMaterial } from '../services/curriculumService';
+import {
+    BookOpen, Filter, Plus, Search,
+    FileText, Trash2, Download, Eye,
+    ExternalLink, X, Save, File, Wand2,
+    Edit, Target
+} from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
-import { useTenant } from '../context/TenantContext';
-import { BookOpen, Plus, Edit, Trash2, Search, File, X, Save, Target } from 'lucide-react';
+import { useTenant } from '../context/TenantContext'; // Restored
+import TestWizard from '../components/TestWizard';
 
 interface Course {
     _id: string;
@@ -19,7 +24,9 @@ interface Subject {
 
 const CurriculumMaterialPage = () => {
     const permissions = usePermissions();
+    const { isStaff, user } = permissions;
     const { tenant } = useTenant();
+    const [showWizard, setShowWizard] = useState(false);
 
     // Mock data for courses and subjects if API fails
     const mockCourses: Course[] = [
@@ -543,6 +550,14 @@ const CurriculumMaterialPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Test Wizard Integration */}
+            <TestWizard
+                isOpen={showWizard}
+                onClose={() => setShowWizard(false)}
+                initialCourseId={selectedCourse}
+                initialSubjectId={selectedSubject}
+            />
         </div>
     );
 };
