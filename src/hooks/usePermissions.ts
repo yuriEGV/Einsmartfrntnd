@@ -20,6 +20,7 @@ export interface Permissions {
     isDirector: boolean;
     canManagePayments: boolean;
     isAdmin: boolean;
+    isStudent: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -32,6 +33,7 @@ export const usePermissions = (): Permissions => {
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
     const isSuperAdmin = role === 'admin';
+    const isStudent = role === 'student';
 
     return {
         user,
@@ -52,5 +54,6 @@ export const usePermissions = (): Permissions => {
         isDirector,
         canManagePayments: isSostenedor || isDirector,
         isAdmin,
+        isStudent,
     };
 };

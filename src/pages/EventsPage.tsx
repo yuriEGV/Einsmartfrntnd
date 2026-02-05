@@ -69,12 +69,14 @@ const EventsPage = () => {
                     Eventos y Reuniones
                 </h1>
                 <div className="flex gap-3">
-                    <button
-                        onClick={() => navigate('/event-requests')}
-                        className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-100 transition-all"
-                    >
-                        <FileText size={18} /> Ver Solicitudes
-                    </button>
+                    {!permissions.isStudent && (
+                        <button
+                            onClick={() => navigate('/event-requests')}
+                            className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl flex items-center gap-2 font-bold hover:bg-blue-100 transition-all"
+                        >
+                            <FileText size={18} /> Ver Solicitudes
+                        </button>
+                    )}
                     {(permissions.isAdmin || permissions.isTeacher) && (
                         <button
                             onClick={() => permissions.isTeacher ? navigate('/event-requests') : setShowModal(true)}

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import {
@@ -21,6 +22,7 @@ interface EventRequest {
 }
 
 const EventRequestsPage = () => {
+    const navigate = useNavigate();
     const permissions = usePermissions();
 
     const [requests, setRequests] = useState<EventRequest[]>([]);
@@ -36,8 +38,12 @@ const EventRequestsPage = () => {
     });
 
     useEffect(() => {
+        if (permissions.isStudent) {
+            navigate('/events');
+            return;
+        }
         fetchData();
-    }, []);
+    }, [permissions.isStudent]);
 
     const fetchData = async () => {
         setLoading(true);
@@ -120,7 +126,7 @@ const EventRequestsPage = () => {
                         Propuestas de actividades y reuniones para aprobación directiva.
                     </p>
                 </div>
-                {!permissions.isSuperAdmin && permissions.user?.role !== 'sostenedor' && (
+                {!permissions.isSuperAdmin && permissions.user?.role !== 'sostenedor' && permissions.user?.role !== 'admin' && !permissions.isStudent && (
                     <button
                         onClick={() => setShowModal(true)}
                         className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"

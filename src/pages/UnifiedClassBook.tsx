@@ -4,9 +4,9 @@ import api from '../services/api';
 import {
     BookOpen, ClipboardList,
     Calendar,
-    UserCheck, BarChart3, AlertCircle,
+    UserCheck, AlertCircle,
     LayoutGrid, List, Search, Save,
-    Trash2, X, ShieldCheck
+    Trash2, X, ShieldCheck, Wand2, ChevronLeft, ChevronRight, Check, GraduationCap
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 
@@ -58,6 +58,20 @@ const UnifiedClassBook = () => {
         date: new Date().toISOString().split('T')[0],
         category: 'planificada' as 'planificada' | 'sorpresa',
         questions: [] as string[]
+    });
+
+    // Test Generation Wizard State
+    const [showPruebaWizard, setShowPruebaWizard] = useState(false);
+    const [wizardStep, setWizardStep] = useState(1);
+    const [availableMaterials, setAvailableMaterials] = useState<any[]>([]);
+    const [availableQuestions, setAvailableQuestions] = useState<any[]>([]);
+    const [selectedOAs, setSelectedOAs] = useState<string[]>([]);
+    const [selectedBankQuestions, setSelectedBankQuestions] = useState<string[]>([]);
+    const [wizardFormData, setWizardFormData] = useState({
+        title: '',
+        date: new Date().toISOString().split('T')[0],
+        type: 'sumativa' as 'formativa' | 'sumativa' | 'diagnostica',
+        maxScore: 7.0
     });
 
     // Question Bank Filters
@@ -137,6 +151,16 @@ const UnifiedClassBook = () => {
                 }
                 setEvaluations(filtered);
             }
+
+            // Always fetch bank and materials if selected
+            if (selectedCourse && selectedSubject) {
+                const [bankRes, matRes] = await Promise.all([
+                    api.get(`/questions?subjectId=${selectedSubject}`),
+                    api.get(`/curriculum-materials/subject/${selectedSubject}`)
+                ]);
+                setAvailableQuestions(bankRes.data);
+                setAvailableMaterials(matRes.data);
+            }
         } catch (err) {
             console.error('REFRESH TAB ERROR:', err);
         }
@@ -179,7 +203,7 @@ const UnifiedClassBook = () => {
             await api.post(`/class-logs/${res.data._id}/sign`);
 
             setClassStartTime(null); // Stop timer
-            alert('Clase registrada y firmada digitalmente. Cronómetro detenido.');
+            alert('Clase registrada y firmada digitalmente.');
             setShowLogForm(false);
             setAttendanceConfirmed(false);
             refreshTabContent();
@@ -272,6 +296,30 @@ const UnifiedClassBook = () => {
             refreshTabContent();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al guardar la evaluación');
+        }
+    };
+
+    const handleGeneratePrueba = async () => {
+        if (!wizardFormData.title) return alert("Por favor, ingrese un título.");
+        try {
+            const payload = {
+                ...wizardFormData,
+                courseId: selectedCourse,
+                subjectId: selectedSubject,
+                objectives: selectedOAs,
+                questions: selectedBankQuestions,
+                category: 'planificada'
+            };
+
+            await api.post('/evaluations', payload);
+            setShowPruebaWizard(false);
+            setWizardStep(1);
+            setSelectedOAs([]);
+            setSelectedBankQuestions([]);
+            refreshTabContent();
+            alert('¡Prueba generada con éxito!');
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al generar prueba');
         }
     };
 
@@ -614,9 +662,20 @@ const UnifiedClassBook = () => {
                             <div className="flex justify-between items-center px-4">
                                 <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Cronograma de Evaluaciones</h2>
                                 {isStaff && (
-                                    <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
-                                        PROGRAMAR PRUEBA
-                                    </button>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => {
+                                            setWizardStep(1);
+                                            setWizardFormData({ title: '', date: new Date().toISOString().split('T')[0], type: 'sumativa', maxScore: 7.0 });
+                                            setSelectedOAs([]);
+                                            setSelectedBankQuestions([]);
+                                            setShowPruebaWizard(true);
+                                        }} className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-900/20 flex items-center gap-2">
+                                            <Wand2 size={16} /> GENERAR PRUEBA
+                                        </button>
+                                        <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                            PROGRAMAR PRUEBA
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
@@ -932,10 +991,170 @@ const UnifiedClassBook = () => {
                     </div>
                 </div>
             )}
+
+            {showPruebaWizard && (
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[3rem] w-full max-w-4xl shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
+                        <div className="bg-amber-500 p-8 text-white flex justify-between items-center shrink-0">
+                            <div>
+                                <h2 className="text-2xl font-black flex items-center gap-3 uppercase tracking-tighter"><Wand2 size={24} /> Asistente de Generación de Pruebas</h2>
+                                <p className="text-amber-100 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Paso {wizardStep} de 3: {wizardStep === 1 ? 'Configuración Básica' : wizardStep === 2 ? 'Objetivos de Aprendizaje' : 'Banco de Preguntas'}</p>
+                            </div>
+                            <button onClick={() => setShowPruebaWizard(false)} className="text-white/40 hover:text-white"><X size={32} /></button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-10">
+                            {wizardStep === 1 && (
+                                <div className="space-y-8 animate-in slide-in-from-right-4">
+                                    <div className="grid grid-cols-2 gap-8">
+                                        <div className="col-span-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Título de la Evaluación</label>
+                                            <input
+                                                className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] outline-none font-black text-slate-700 text-xl focus:border-amber-500 transition-all"
+                                                placeholder="Ej: Prueba Final de Unidad 1"
+                                                value={wizardFormData.title}
+                                                onChange={e => setWizardFormData({ ...wizardFormData, title: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Fecha de Aplicación</label>
+                                            <input
+                                                type="date"
+                                                className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] outline-none font-black text-slate-700 focus:border-amber-500"
+                                                value={wizardFormData.date}
+                                                onChange={e => setWizardFormData({ ...wizardFormData, date: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Tipo de Evaluación</label>
+                                            <select
+                                                className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-[2rem] outline-none font-black text-slate-700 focus:border-amber-500 appearance-none"
+                                                value={wizardFormData.type}
+                                                onChange={e => setWizardFormData({ ...wizardFormData, type: e.target.value as any })}
+                                            >
+                                                <option value="sumativa">Sumativa</option>
+                                                <option value="formativa">Formativa</option>
+                                                <option value="diagnostica">Diagnóstica</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div className="bg-amber-50 p-8 rounded-[2.5rem] border border-amber-100 flex gap-4">
+                                        <div className="p-3 bg-white rounded-2xl text-amber-500 shadow-sm"><AlertCircle /></div>
+                                        <div>
+                                            <h4 className="font-black text-amber-900 uppercase text-xs mb-1">Integración Inteligente</h4>
+                                            <p className="text-amber-800/70 text-[11px] font-bold leading-relaxed">Este asistente conectará los objetivos de aprendizaje planificados con tu banco de preguntas para generar una evaluación coherente.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {wizardStep === 2 && (
+                                <div className="space-y-6 animate-in slide-in-from-right-4">
+                                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-4">Seleccionar Objetivos (OAs)</h3>
+                                    <div className="grid gap-4">
+                                        {availableMaterials.flatMap(m => m.objectives || []).map((oa: string, idx: number) => (
+                                            <label key={idx} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex items-center gap-4 ${selectedOAs.includes(oa) ? 'border-amber-500 bg-amber-50' : 'border-slate-100 hover:border-amber-200'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedOAs.includes(oa)}
+                                                    onChange={() => {
+                                                        if (selectedOAs.includes(oa)) {
+                                                            setSelectedOAs(selectedOAs.filter(o => o !== oa));
+                                                        } else {
+                                                            setSelectedOAs([...selectedOAs, oa]);
+                                                        }
+                                                    }}
+                                                    className="hidden"
+                                                />
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all ${selectedOAs.includes(oa) ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <Check size={18} />
+                                                </div>
+                                                <span className="font-black text-slate-700 uppercase tracking-tight text-sm">{oa}</span>
+                                            </label>
+                                        ))}
+                                        {availableMaterials.length === 0 && (
+                                            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay objetivos registrados en la planificación actual</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {wizardStep === 3 && (
+                                <div className="space-y-6 animate-in slide-in-from-right-4">
+                                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-4">Seleccionar Preguntas del Banco</h3>
+                                    <div className="grid gap-4">
+                                        {availableQuestions.map((q: any) => (
+                                            <label key={q._id} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-4 ${selectedBankQuestions.includes(q._id) ? 'border-amber-500 bg-amber-50' : 'border-slate-100 hover:border-amber-200'}`}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedBankQuestions.includes(q._id)}
+                                                    onChange={() => {
+                                                        if (selectedBankQuestions.includes(q._id)) {
+                                                            setSelectedBankQuestions(selectedBankQuestions.filter(id => id !== q._id));
+                                                        } else {
+                                                            setSelectedBankQuestions([...selectedBankQuestions, q._id]);
+                                                        }
+                                                    }}
+                                                    className="hidden"
+                                                />
+                                                <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 transition-all ${selectedBankQuestions.includes(q._id) ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <Check size={18} />
+                                                </div>
+                                                <div>
+                                                    <p className="font-black text-slate-700 uppercase tracking-tight text-sm leading-snug mb-2">{q.questionText}</p>
+                                                    <div className="flex gap-2">
+                                                        <span className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-slate-400 border border-slate-100 uppercase">{q.difficulty}</span>
+                                                        <span className="bg-white px-3 py-1 rounded-lg text-[10px] font-black text-slate-400 border border-slate-100 uppercase">{q.type}</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        ))}
+                                        {availableQuestions.length === 0 && (
+                                            <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
+                                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay preguntas registradas para esta asignatura</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-8 bg-slate-50 border-t shrink-0 flex justify-between gap-4">
+                            {wizardStep > 1 && (
+                                <button
+                                    onClick={() => setWizardStep(wizardStep - 1)}
+                                    className="flex-1 py-5 bg-white text-slate-400 border border-slate-200 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <ChevronLeft size={20} /> Anterior
+                                </button>
+                            )}
+                            {wizardStep < 3 ? (
+                                <button
+                                    onClick={() => {
+                                        if (wizardStep === 1 && !wizardFormData.title) return alert("Ponga un título");
+                                        setWizardStep(wizardStep + 1);
+                                    }}
+                                    className="flex-[2] py-5 bg-amber-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                                >
+                                    Siguiente <ChevronRight size={20} />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleGeneratePrueba}
+                                    className="flex-[2] py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Wand2 size={20} /> FINALIZAR Y GENERAR PRUEBA
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
 
-const GraduationCap = ({ size }: { size: number }) => <BarChart3 size={size} />; // Placeholder as icon name was used but BarChart is better
 
 export default UnifiedClassBook;
