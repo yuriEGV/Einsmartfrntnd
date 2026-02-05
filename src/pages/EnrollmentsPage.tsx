@@ -56,7 +56,7 @@ const EnrollmentsPage = () => {
         notes: '',
         metodoPago: 'transferencia',
         // Direct creation data
-        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
+        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
         newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
     });
 
@@ -192,7 +192,7 @@ const EnrollmentsPage = () => {
                 fee: 0,
                 notes: '',
                 metodoPago: 'transferencia',
-                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
+                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
                 newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
             setSearchTermStudent('');
@@ -375,6 +375,12 @@ const EnrollmentsPage = () => {
                                             value={formData.newStudent.email}
                                             onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
                                         />
+                                        <input
+                                            placeholder="Dirección del Alumno"
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newStudent.direccion || ''}
+                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -467,6 +473,12 @@ const EnrollmentsPage = () => {
                                             className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                             value={formData.newGuardian.telefono}
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
+                                        />
+                                        <input
+                                            placeholder="Dirección del Apoderado"
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newGuardian.direccion || ''}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, direccion: e.target.value } })}
                                         />
                                     </div>
                                 )}
