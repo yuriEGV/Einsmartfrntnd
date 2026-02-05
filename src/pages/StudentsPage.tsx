@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Trash2, Search, Mail, School, Printer } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2 } from 'lucide-react';
+import { validateRut } from '../services/utils';
 
 interface Student {
     _id: string;
@@ -134,6 +135,12 @@ const StudentsPage = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (currentStudent.rut && !validateRut(currentStudent.rut)) {
+            alert('El RUT ingresado no es válido. Por favor verifíquelo.');
+            return;
+        }
+
         try {
             if (modalMode === 'create') {
                 await api.post('/estudiantes', currentStudent);
@@ -142,8 +149,9 @@ const StudentsPage = () => {
             }
             setShowModal(false);
             fetchStudents();
-        } catch (error) {
-            alert('Error al guardar estudiante');
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Error al guardar estudiante';
+            alert(msg);
             console.error(error);
         }
     };
