@@ -33,9 +33,17 @@ interface Tariff {
 const PaymentsPage = () => {
     // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
     const permissions = usePermissions();
-    const { tenant } = useTenant();
+    const { tenant, isLoading: tenantLoading } = useTenant();
 
-    if (tenant && tenant.paymentType !== 'paid') {
+    if (tenantLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
+            </div>
+        );
+    }
+
+    if (!tenant || tenant.paymentType !== 'paid') {
         return <Navigate to="/" replace />;
     }
 
