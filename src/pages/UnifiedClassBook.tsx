@@ -830,45 +830,59 @@ const UnifiedClassBook = () => {
                                     </div>
                                 )}
 
-                                {/* Improved Search and Filters */}
+                                {/* Mobile-Responsive Search and Filters */}
                                 <div className="space-y-4">
-                                    <div className="flex flex-col md:flex-row gap-4">
-                                        <div className="relative flex-1">
-                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
-                                            <input
-                                                placeholder="Buscador inteligente de preguntas..."
-                                                className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs font-black text-slate-600 placeholder:text-slate-300 outline-none focus:border-indigo-400 transition-all font-bold"
-                                                value={searchQuestion}
-                                                onChange={e => setSearchQuestion(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="flex flex-wrap gap-4 items-center p-2 bg-slate-50 rounded-[2rem] border-2 border-slate-100">
-                                            <div className="flex gap-1 items-center px-2 mr-2 border-r border-slate-200">
+                                    {/* Search Bar */}
+                                    <div className="relative">
+                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
+                                        <input
+                                            placeholder="Buscador inteligente de preguntas..."
+                                            className="w-full pl-12 pr-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs font-black text-slate-600 placeholder:text-slate-300 outline-none focus:border-indigo-400 transition-all font-bold"
+                                            value={searchQuestion}
+                                            onChange={e => setSearchQuestion(e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Mobile-Friendly Filters */}
+                                    <div className="flex flex-col md:flex-row gap-4 p-4 md:p-6 bg-slate-50 rounded-2xl md:rounded-[2rem] border-2 border-slate-100">
+                                        {/* Difficulty Filter */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-3">
                                                 <List size={14} className="text-slate-400" />
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Filtros</span>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Dificultad</span>
                                             </div>
-                                            <div className="flex gap-2">
+                                            <div className="flex flex-wrap gap-2">
                                                 {(['all', 'easy', 'medium', 'hard'] as const).map(d => (
                                                     <button
                                                         key={d}
                                                         type="button"
                                                         onClick={() => setDifficultyFilter(d)}
-                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${difficultyFilter === d ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                                                        className={`px-4 py-2.5 rounded-xl text-[10px] md:text-[9px] font-black uppercase tracking-tighter transition-all flex-1 md:flex-none ${difficultyFilter === d ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-400 hover:text-slate-600 border-2 border-slate-100'}`}
                                                     >
-                                                        {d === 'all' ? 'Toda Dificultad' : d === 'easy' ? 'Fácil' : d === 'medium' ? 'Medio' : 'Difícil'}
+                                                        {d === 'all' ? 'Todas' : d === 'easy' ? 'Fácil' : d === 'medium' ? 'Medio' : 'Difícil'}
                                                     </button>
                                                 ))}
                                             </div>
-                                            <div className="w-[1px] h-6 bg-slate-200 mx-2"></div>
-                                            <div className="flex gap-2">
+                                        </div>
+
+                                        {/* Divider - hidden on mobile */}
+                                        <div className="hidden md:block w-[1px] h-auto bg-slate-200"></div>
+
+                                        {/* Type Filter */}
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <List size={14} className="text-slate-400" />
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tipo</span>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
                                                 {(['all', 'multiple_choice', 'open', 'true_false'] as const).map(t => (
                                                     <button
                                                         key={t}
                                                         type="button"
                                                         onClick={() => setTypeFilter(t)}
-                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all ${typeFilter === t ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-slate-600'}`}
+                                                        className={`px-4 py-2.5 rounded-xl text-[10px] md:text-[9px] font-black uppercase tracking-tighter transition-all flex-1 md:flex-none ${typeFilter === t ? 'bg-indigo-600 text-white shadow-lg' : 'bg-white text-slate-400 hover:text-slate-600 border-2 border-slate-100'}`}
                                                     >
-                                                        {t === 'all' ? 'Todos los Tipos' : t === 'multiple_choice' ? 'Alternativas' : t === 'open' ? 'Abierta' : 'V/F'}
+                                                        {t === 'all' ? 'Todos' : t === 'multiple_choice' ? 'Alternativas' : t === 'open' ? 'Abierta' : 'V/F'}
                                                     </button>
                                                 ))}
                                             </div>
