@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     ChevronLeft, ChevronRight, Wand2, Check,
-    AlertCircle
+    AlertCircle, HelpCircle
 } from 'lucide-react';
 
 interface TestWizardProps {
@@ -100,7 +100,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
 
     return (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-500">
+            <div className="bg-white w-full max-w-5xl h-[75vh] max-h-[900px] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-500">
 
                 {/* Header */}
                 <div className="bg-[#11355a] p-10 text-white flex justify-between items-start shrink-0 relative overflow-hidden">
@@ -208,11 +208,16 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
 
                     {step === 2 && (
                         <div className="space-y-6 animate-in slide-in-from-right-4">
-                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Seleccionar Objetivos de Aprendizaje</h3>
+                            <div className="flex justify-between items-center">
+                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Objetivos de Aprendizaje (Opcional)</h3>
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Puede omitir este paso</span>
+                            </div>
                             <div className="grid gap-4">
                                 {availableMaterials.flatMap(m => m.objectives).length === 0 ? (
-                                    <div className="text-center py-20 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay objetivos registrados en la planificación actual</p>
+                                    <div className="text-center py-12 bg-blue-50 rounded-3xl border border-blue-100">
+                                        <AlertCircle className="mx-auto mb-3 text-blue-400" size={32} />
+                                        <p className="text-blue-600 font-bold text-sm mb-1">No hay objetivos en la planificación</p>
+                                        <p className="text-blue-400 text-xs">Puede agregar objetivos en la página de Planificación o saltar este paso</p>
                                     </div>
                                 ) : (
                                     availableMaterials.flatMap((m) => m.objectives.map((obj: string, i: number) => ({ obj, id: `${m._id}-${i}` }))).map((item: any) => (
@@ -238,7 +243,10 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
 
                     {step === 3 && (
                         <div className="space-y-6 animate-in slide-in-from-right-4">
-                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter mb-4">Seleccionar Preguntas del Banco</h3>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Preguntas Disponibles</h3>
+                                <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">{bankQuestions.length} en banco</span>
+                            </div>
 
                             {/* Real-time Difficulty Meter */}
                             <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-6 sticky top-0 z-10">
@@ -321,8 +329,11 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                                     </label>
                                 ))}
                                 {bankQuestions.length === 0 && (
-                                    <div className="text-center py-12 bg-slate-50 rounded-3xl border border-dashed border-slate-200">
-                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No hay preguntas registradas para esta asignatura</p>
+                                    <div className="text-center py-12 bg-amber-50 rounded-3xl border border-amber-100">
+                                        <HelpCircle className="mx-auto mb-3 text-amber-400" size={36} />
+                                        <p className="text-amber-600 font-bold text-sm mb-2">No hay preguntas en el banco</p>
+                                        <p className="text-amber-500 text-xs mb-4">Vaya a "Banco de Preguntas" para crear preguntas reutilizables</p>
+                                        <p className="text-amber-400 text-xs">O puede crear la evaluación manualmente desde "Gestión de Evaluaciones"</p>
                                     </div>
                                 )}
                             </div>
@@ -341,15 +352,27 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                         </button>
                     )}
                     {step < 3 ? (
-                        <button
-                            onClick={() => {
-                                if (step === 1 && !formData.title) return alert("Ponga un título");
-                                setStep(step + 1);
-                            }}
-                            className="flex-[2] py-5 bg-amber-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
-                        >
-                            Siguiente <ChevronRight size={20} />
-                        </button>
+                        <>
+                            {step === 2 && (
+                                <button
+                                    onClick={() => setStep(3)}
+                                    className="flex-1 py-5 bg-slate-100 text-slate-500 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                                >
+                                    Saltar Objetivos →
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (step === 1 && !formData.title) return alert("Por favor ingrese un título para la evaluación");
+                                    if (step === 1 && !selectedCourse) return alert("Seleccione un curso");
+                                    if (step === 1 && !selectedSubject) return alert("Seleccione una asignatura");
+                                    setStep(step + 1);
+                                }}
+                                className="flex-[2] py-5 bg-amber-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                            >
+                                Siguiente <ChevronRight size={20} />
+                            </button>
+                        </>
                     ) : (
                         <button
                             onClick={handleGenerate}

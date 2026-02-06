@@ -73,23 +73,42 @@ const GradesPage = () => {
 
     const fetchInitialData = async () => {
         try {
-            const [gradesRes, studentsRes, evalsRes, coursesRes, subjectsRes] = await Promise.all([
-                api.get('/grades'),
-                api.get('/estudiantes'),
-                api.get('/evaluations'),
-                api.get('/courses'),
-                api.get('/subjects')
-            ]);
-            setGrades(gradesRes.data);
-            setStudents(studentsRes.data);
-
-            // Filter surprise evaluations for students
             const isStudent = permissions.user?.role === 'student';
-            const allEvals = evalsRes.data;
-            setEvaluations(isStudent ? allEvals.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa') : allEvals);
+            const isGuardian = permissions.user?.role === 'apoderado';
 
-            setCourses(coursesRes.data);
-            setSubjects(subjectsRes.data);
+            // Students and Guardians: Backend already filters their grades
+            // Staff: Get all data
+            if (isStudent || isGuardian) {
+                const [gradesRes, evalsRes, coursesRes, subjectsRes] = await Promise.all([
+                    api.get('/grades'), // Backend filters by profileId for students/guardians
+                    api.get('/evaluations'),
+                    api.get('/courses'),
+                    api.get('/subjects')
+                ]);
+                setGrades(gradesRes.data);
+                setStudents([]); // Students/Guardians don't need the student list
+
+                // Filter surprise evaluations for students
+                const allEvals = evalsRes.data;
+                setEvaluations(isStudent ? allEvals.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa') : allEvals);
+
+                setCourses(coursesRes.data);
+                setSubjects(subjectsRes.data);
+            } else {
+                // Staff gets all data
+                const [gradesRes, studentsRes, evalsRes, coursesRes, subjectsRes] = await Promise.all([
+                    api.get('/grades'),
+                    api.get('/estudiantes'),
+                    api.get('/evaluations'),
+                    api.get('/courses'),
+                    api.get('/subjects')
+                ]);
+                setGrades(gradesRes.data);
+                setStudents(studentsRes.data);
+                setEvaluations(evalsRes.data);
+                setCourses(coursesRes.data);
+                setSubjects(subjectsRes.data);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {

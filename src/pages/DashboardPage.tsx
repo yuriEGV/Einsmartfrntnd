@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
+import EvaluationCalendar from '../components/EvaluationCalendar';
 import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -276,7 +277,15 @@ const DashboardPage = () => {
                     </div>
                 )}
             </div>
-            );
+
+            {/* Evaluation Calendar for Students and Guardians */}
+            {(user?.role === 'student' || user?.role === 'apoderado') && (
+                <EvaluationCalendar
+                    studentId={user?.role === 'student' ? user._id : undefined}
+                    guardianId={user?.role === 'apoderado' ? user._id : undefined}
+                />
+            )}
+
             {canEditProfile && (
                 <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                     <div

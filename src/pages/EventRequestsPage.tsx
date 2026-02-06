@@ -126,7 +126,7 @@ const EventRequestsPage = () => {
                         Propuestas de actividades y reuniones para aprobación directiva.
                     </p>
                 </div>
-                {!permissions.isSuperAdmin && permissions.user?.role !== 'sostenedor' && permissions.user?.role !== 'admin' && permissions.user?.role !== 'director' && !permissions.isStudent && (
+                {permissions.isTeacher && (
                     <button
                         onClick={() => setShowModal(true)}
                         className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
