@@ -184,7 +184,7 @@ const CurriculumMaterialPage = () => {
         setNewObjective('');
     };
 
-    const filteredMaterials = materials.filter(m => {
+    const filteredMaterials = (materials || []).filter(m => {
         const matchesSearch = m.title?.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesCourse = !selectedCourse || m.courseId === selectedCourse;
         const matchesSubject = !selectedSubject || m.subjectId === selectedSubject;
@@ -198,14 +198,14 @@ const CurriculumMaterialPage = () => {
     };
 
     const availableSubjects = tempCourse
-        ? subjects.filter(s => {
+        ? (subjects || []).filter(s => {
             const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
             return sCourseId === tempCourse;
         })
         : [];
 
     const modalSubjects = formData.courseId
-        ? subjects.filter(s => {
+        ? (subjects || []).filter(s => {
             const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
             return sCourseId === formData.courseId;
         })
@@ -280,10 +280,10 @@ const CurriculumMaterialPage = () => {
                             }}
                         >
                             <option value="">Todos los cursos</option>
-                            {Array.from(new Set(courses.map(c => c.name)))
+                            {Array.from(new Set((courses || []).map(c => c?.name).filter(Boolean)))
                                 .sort()
                                 .map(name => {
-                                    const course = courses.find(c => c.name === name);
+                                    const course = (courses || []).find(c => c.name === name);
                                     return (
                                         <option key={course?._id} value={course?._id}>{name}</option>
                                     );
