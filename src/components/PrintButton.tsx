@@ -20,9 +20,11 @@ const PrintButton = ({ evaluationId, title, questions }: PrintButtonProps) => {
     const [showPreview, setShowPreview] = useState(false);
     const [difficulty, setDifficulty] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
 
-    const filteredQuestions = difficulty === 'all'
-        ? questions
-        : questions.filter(q => q.difficulty === difficulty);
+    const filteredQuestions = (questions || []).filter(q => {
+        if (!q) return false;
+        if (difficulty === 'all') return true;
+        return q.difficulty === difficulty;
+    });
 
     const handlePrint = () => {
         window.print();
@@ -86,8 +88,8 @@ const PrintButton = ({ evaluationId, title, questions }: PrintButtonProps) => {
                                         key={opt.value}
                                         onClick={() => setDifficulty(opt.value as any)}
                                         className={`px-4 py-2 rounded-xl font-bold text-xs transition-all ${difficulty === opt.value
-                                                ? 'bg-blue-600 text-white shadow-lg'
-                                                : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-blue-300'
+                                            ? 'bg-blue-600 text-white shadow-lg'
+                                            : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-blue-300'
                                             }`}
                                     >
                                         {opt.label}
@@ -125,8 +127,8 @@ const PrintButton = ({ evaluationId, title, questions }: PrintButtonProps) => {
                                                     {index + 1}. {q.questionText}
                                                 </h3>
                                                 <span className={`px-3 py-1 rounded-lg text-xs font-black ${q.difficulty === 'easy' ? 'bg-emerald-100 text-emerald-700' :
-                                                        q.difficulty === 'medium' ? 'bg-amber-100 text-amber-700' :
-                                                            'bg-rose-100 text-rose-700'
+                                                    q.difficulty === 'medium' ? 'bg-amber-100 text-amber-700' :
+                                                        'bg-rose-100 text-rose-700'
                                                     }`}>
                                                     {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Medio' : 'Difícil'}
                                                 </span>

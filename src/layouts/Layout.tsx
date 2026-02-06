@@ -206,8 +206,12 @@ const Layout = () => {
                         <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
                     )}
 
+                    {/* Redefine messages visibility: Only staff */}
+                    {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'sostenedor' || user?.role === 'director') && (
+                        <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
+                    )}
+
                     <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
-                    <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
 
                     <div className="pt-10 mb-4 px-2">
                         <div className="flex items-center justify-between mb-4">
