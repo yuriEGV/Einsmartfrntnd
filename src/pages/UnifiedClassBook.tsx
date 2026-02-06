@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import TestWizard from '../components/TestWizard';
 import PrintButton from '../components/PrintButton';
 import {
-    BookOpen, Plus, GraduationCap, X, Save, CalendarDays,
-    Trash2, MessageCircle, AlertCircle, Calendar, Award, Target, List, Search, Wand2, ShieldCheck, Bell
+    BookOpen, GraduationCap, X, Save,
+    Trash2, AlertCircle, Calendar, List, Search, Wand2, ShieldCheck,
+    UserCheck, ClipboardList, Printer, LayoutGrid
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useReactToPrint } from 'react-to-print';

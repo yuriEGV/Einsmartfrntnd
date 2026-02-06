@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, BookOpen, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, BookOpen } from 'lucide-react';
 
 interface Evaluation {
     _id: string;
@@ -94,8 +94,8 @@ const EvaluationCalendar = ({ studentId, guardianId, courseId }: EvaluationCalen
                         <div
                             key={ev._id}
                             className={`text-[9px] font-bold px-2 py-1 rounded-lg truncate ${ev.category === 'planificada'
-                                    ? 'bg-emerald-100 text-emerald-700'
-                                    : 'bg-amber-100 text-amber-700'
+                                ? 'bg-emerald-100 text-emerald-700'
+                                : 'bg-amber-100 text-amber-700'
                                 }`}
                             title={`${ev.title} - ${ev.subjectId.name}`}
                         >
