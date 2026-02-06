@@ -2,9 +2,10 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import TestWizard from '../components/TestWizard';
 import {
     Database, Plus, Search, Trash2, Edit, Save,
-    X, CheckCircle, HelpCircle
+    X, CheckCircle, HelpCircle, Sparkles
 } from 'lucide-react';
 
 interface Question {
@@ -24,6 +25,7 @@ const QuestionBankPage = () => {
     const [subjects, setSubjects] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
+    const [showWizard, setShowWizard] = useState(false);
 
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
@@ -129,29 +131,37 @@ const QuestionBankPage = () => {
                     <p className="text-gray-500 mt-2 text-lg font-medium">Repositorio institucional de evaluaciones formativas y sumativas.</p>
                 </div>
                 {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                    <button
-                        onClick={() => {
-                            setFormData({
-                                _id: '',
-                                questionText: '',
-                                subjectId: '',
-                                grade: '',
-                                type: 'multiple_choice' as any,
-                                difficulty: 'medium' as any,
-                                options: [
-                                    { text: '', isCorrect: false },
-                                    { text: '', isCorrect: false },
-                                    { text: '', isCorrect: false },
-                                    { text: '', isCorrect: false }
-                                ],
-                                tags: []
-                            });
-                            setShowModal(true);
-                        }}
-                        className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
-                    >
-                        <Plus size={24} /> NUEVA PREGUNTA
-                    </button>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowWizard(true)}
+                            className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20"
+                        >
+                            <Sparkles size={24} /> CREAR EVALUACIÓN
+                        </button>
+                        <button
+                            onClick={() => {
+                                setFormData({
+                                    _id: '',
+                                    questionText: '',
+                                    subjectId: '',
+                                    grade: '',
+                                    type: 'multiple_choice' as any,
+                                    difficulty: 'medium' as any,
+                                    options: [
+                                        { text: '', isCorrect: false },
+                                        { text: '', isCorrect: false },
+                                        { text: '', isCorrect: false },
+                                        { text: '', isCorrect: false }
+                                    ],
+                                    tags: []
+                                });
+                                setShowModal(true);
+                            }}
+                            className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+                        >
+                            <Plus size={24} /> NUEVA PREGUNTA
+                        </button>
+                    </div>
                 )}
             </div>
 
@@ -402,6 +412,16 @@ const QuestionBankPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Test Wizard */}
+            <TestWizard
+                isOpen={showWizard}
+                onClose={() => setShowWizard(false)}
+                onSuccess={() => {
+                    setShowWizard(false);
+                    alert('¡Evaluación creada exitosamente!');
+                }}
+            />
         </div>
     );
 };
