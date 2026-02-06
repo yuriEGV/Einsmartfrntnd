@@ -16,6 +16,11 @@ import TestWizard from '../components/TestWizard';
 const UnifiedClassBook = () => {
     const { isStaff, user } = usePermissions();
     const isStudent = user?.role === 'student';
+    const printRef = useRef<HTMLDivElement>(null);
+
+    // Context & State
+    const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'notas' | 'evaluaciones'>('leccionario');
+    const [loading, setLoading] = useState(true);
     // Shared Context
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
