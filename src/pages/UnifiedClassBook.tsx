@@ -6,24 +6,27 @@ import {
     Calendar,
     UserCheck, AlertCircle,
     LayoutGrid, List, Search, Save,
-    Trash2, X, ShieldCheck, Wand2, GraduationCap
+    Trash2, X, ShieldCheck, Wand2, GraduationCap, Printer
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
 import TestWizard from '../components/TestWizard';
 
 const UnifiedClassBook = () => {
     const { isStaff, user } = usePermissions();
     const isStudent = user?.role === 'student';
-    // UI State
-    const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'notas' | 'evaluaciones'>('leccionario');
-    const [loading, setLoading] = useState(true);
-
     // Shared Context
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [students, setStudents] = useState<any[]>([]);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Libro de Clases - ${selectedCourse || 'Curso'}`,
+    });
 
     // Leccionario State
     const [logs, setLogs] = useState<any[]>([]);
@@ -375,7 +378,7 @@ const UnifiedClassBook = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`group flex items-center gap-4 px-10 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all
+                        className={`group flex items-center gap-4 px-8 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all print:hidden
                         ${activeTab === tab.id
                                 ? 'bg-[#11355a] text-white shadow-2xl shadow-blue-900/40 -translate-y-1'
                                 : 'bg-white text-slate-400 hover:text-slate-600 border border-slate-100 shadow-xl shadow-blue-900/5'}`}
@@ -385,18 +388,13 @@ const UnifiedClassBook = () => {
                     </button>
                 ))}
 
-                {/* Stealth Timer: Hiding UI as per request */}
-                {/* 
-                {classStartTime && (
-                    <div className="flex items-center gap-4 bg-orange-50 px-8 py-5 rounded-[2rem] shadow-xl border border-orange-200 animate-pulse ml-4">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div className="text-xl font-mono font-black text-orange-900">
-                            {Math.floor(elapsedSeconds / 60)}:{(elapsedSeconds % 60).toString().padStart(2, '0')}
-                        </div>
-                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">En curso</span>
-                    </div>
-                )}
-                */}
+                <button
+                    onClick={() => handlePrint()}
+                    className="group flex items-center gap-4 px-8 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-100 shadow-xl shadow-blue-900/5 print:hidden"
+                >
+                    <Printer size={20} className="text-slate-400 group-hover:text-slate-600" />
+                    Imprimir Libro
+                </button>
             </div>
 
             {/* Content Logic */}
@@ -414,7 +412,12 @@ const UnifiedClassBook = () => {
                     </p>
                 </div>
             ) : (
-                <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div ref={printRef} className="animate-in fade-in slide-in-from-bottom-6 duration-700 print:p-8">
+                    {/* Print Header */}
+                    <div className="hidden print:block mb-8 text-center border-b-2 border-slate-900 pb-4">
+                        <h1 className="text-2xl font-black uppercase tracking-tighter">Libro de Clases Digital</h1>
+                        <p className="text-sm font-bold uppercase">Curso: {courses.find(c => c._id === selectedCourse)?.name} | Asignatura: {subjects.find(s => s._id === selectedSubject)?.name}</p>
+                    </div>
                     {/* LECCIONARIO TAB */}
                     {activeTab === 'leccionario' && (
                         <div className="space-y-8">
