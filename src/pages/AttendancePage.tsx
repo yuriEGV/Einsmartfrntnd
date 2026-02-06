@@ -193,7 +193,7 @@ const AttendancePage = () => {
                             className="bg-white text-slate-600 px-6 py-4 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:bg-slate-50 transition-all border border-slate-100 uppercase text-[11px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Printer size={20} />
-                            Generar PDF
+                            Imprimir
                         </button>
                         <button
                             onClick={handleSave}

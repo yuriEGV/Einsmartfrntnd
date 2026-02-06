@@ -1,20 +1,27 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-    // Detectar si estamos en producción (Vercel) basado en el hostname
-    if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        // Estamos en Vercel u otro entorno de producción
-        return 'https://einsmart-bcknd.vercel.app/api';
+    // 1. Prioridad: Variable de entorno explícita (VITE_API_URL)
+    let url = import.meta.env.VITE_API_URL;
+
+    // 2. Si no hay variable y estamos en producción (no localhost), usar backup default
+    if (!url && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        url = 'https://einsmart-bcknd.vercel.app/api';
     }
 
-    // En desarrollo local, usar la variable de entorno o localhost por defecto
-    let url = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    // Remove newlines, carriage returns and spaces
+    // 3. Si aún no hay nada (probablemente local), usar localhost
+    if (!url) {
+        url = 'http://localhost:5000/api';
+    }
+
+    // Limpiar espacios y saltos de línea que a veces se cuelan en .env
     url = url.trim().replace(/[\r\n]/g, '');
-    // Fix double protocol error if it exists (e.g., https://https://...)
+
+    // Corregir errores de duplicación de protocolo
     if (url.startsWith('https://https://')) {
         url = url.replace('https://https://', 'https://');
     }
+
     return url;
 };
 

@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -32,7 +33,20 @@ interface Tariff {
 const PaymentsPage = () => {
     // const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
     const permissions = usePermissions();
-    const { tenant } = useTenant();
+    const { tenant, isLoading: tenantLoading } = useTenant();
+
+    if (tenantLoading) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#11355a]"></div>
+            </div>
+        );
+    }
+
+    if (!tenant || tenant.paymentType !== 'paid') {
+        return <Navigate to="/" replace />;
+    }
+
     // Assuming PaymentsPage is visible to Admin/Sostenedor/Parents(future).
     // For now manage payments (assigning debts or paying).
 

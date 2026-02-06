@@ -19,6 +19,8 @@ export interface Permissions {
     isSostenedor: boolean;
     isDirector: boolean;
     canManagePayments: boolean;
+    isAdmin: boolean;
+    isStudent: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -31,6 +33,7 @@ export const usePermissions = (): Permissions => {
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
     const isSuperAdmin = role === 'admin';
+    const isStudent = role === 'student';
 
     return {
         user,
@@ -40,7 +43,7 @@ export const usePermissions = (): Permissions => {
         canManageEnrollments: isStaff,
         canEditAnnotations: isStaff,
         canEditGrades: isStaff,
-        canViewSensitiveData: isAdmin,
+        canViewSensitiveData: isAdmin || isDirector,
         isSuperAdmin,
         isStaff,
         canManageCourses: isAdmin,
@@ -49,6 +52,8 @@ export const usePermissions = (): Permissions => {
         isTeacher,
         isSostenedor,
         isDirector,
-        canManagePayments: isSostenedor || isDirector, // Sostenedor y Director pueden gestionar pagos
+        canManagePayments: isSostenedor || isDirector,
+        isAdmin,
+        isStudent,
     };
 };

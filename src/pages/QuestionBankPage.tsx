@@ -28,7 +28,7 @@ const QuestionBankPage = () => {
     // Filters
     const [searchTerm, setSearchTerm] = useState('');
     const [filterSubject, setFilterSubject] = useState('');
-    const [filterDifficulty] = useState('');
+    const [filterDifficulty, setFilterDifficulty] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -128,7 +128,7 @@ const QuestionBankPage = () => {
                     </h1>
                     <p className="text-gray-500 mt-2 text-lg font-medium">Repositorio institucional de evaluaciones formativas y sumativas.</p>
                 </div>
-                {permissions.isTeacher || permissions.isSuperAdmin ? (
+                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
                     <button
                         onClick={() => {
                             setFormData({
@@ -152,7 +152,7 @@ const QuestionBankPage = () => {
                     >
                         <Plus size={24} /> NUEVA PREGUNTA
                     </button>
-                ) : null}
+                )}
             </div>
 
             {/* Filters */}
@@ -180,6 +180,19 @@ const QuestionBankPage = () => {
                         {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
                 </div>
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Dificultad</label>
+                    <select
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-indigo-500 outline-none font-bold"
+                        value={filterDifficulty}
+                        onChange={e => setFilterDifficulty(e.target.value)}
+                    >
+                        <option value="">Todas</option>
+                        <option value="easy">Fácil</option>
+                        <option value="medium">Media</option>
+                        <option value="hard">Difícil</option>
+                    </select>
+                </div>
                 <button
                     onClick={fetchQuestions}
                     className="bg-indigo-50 text-indigo-600 py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-100 transition-all"
@@ -200,12 +213,17 @@ const QuestionBankPage = () => {
                             <div className="flex justify-between items-start gap-6">
                                 <div className="flex-1 space-y-4">
                                     <div className="flex flex-wrap items-center gap-3">
-                                        <span className={`px-4 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-widest border ${q.difficulty === 'easy' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                            q.difficulty === 'medium' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                                'bg-rose-50 text-rose-600 border-rose-100'
-                                            }`}>
-                                            {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Intermedia' : 'Dificil'}
-                                        </span>
+                                        <div className="flex flex-col gap-1 min-w-[80px]">
+                                            <div className="flex gap-1 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
+                                            </div>
+                                            <span className={`px-2 py-0.5 rounded-lg font-black text-[8px] uppercase tracking-widest text-center ${q.difficulty === 'easy' ? 'text-emerald-600' :
+                                                q.difficulty === 'medium' ? 'text-amber-600' :
+                                                    'text-rose-600'
+                                                }`}>
+                                                {q.difficulty === 'easy' ? 'Nivel Fácil' : q.difficulty === 'medium' ? 'Nivel Medio' : 'Nivel Difícil'}
+                                            </span>
+                                        </div>
                                         <span className="px-4 py-1.5 bg-slate-50 text-slate-500 rounded-xl font-black text-[10px] uppercase tracking-widest border border-slate-100">
                                             {q.subjectId?.name}
                                         </span>

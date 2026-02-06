@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import curriculumService from '../services/curriculumService';
-import type { CurriculumMaterial } from '../services/curriculumService';
+import curriculumService, { type CurriculumMaterial } from '../services/curriculumService';
+import {
+    BookOpen, Plus, Search,
+    Trash2, X, Save, File,
+    Edit, Target
+} from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { BookOpen, Plus, Edit, Trash2, Search, File, X, Save, Target } from 'lucide-react';
+import TestWizard from '../components/TestWizard';
 
 interface Course {
     _id: string;
@@ -20,6 +24,7 @@ interface Subject {
 const CurriculumMaterialPage = () => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
+    const [showWizard, setShowWizard] = useState(false);
 
     // Mock data for courses and subjects if API fails
     const mockCourses: Course[] = [
@@ -206,7 +211,7 @@ const CurriculumMaterialPage = () => {
         })
         : [];
 
-    if (!permissions.isSuperAdmin && !permissions.user?.role?.includes('sostenedor') && !permissions.user?.role?.includes('admin') && !permissions.user?.role?.includes('teacher')) {
+    if (!permissions.canManageSubjects) {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-center">
                 <Target size={64} className="text-rose-500 mb-6" />
@@ -226,16 +231,26 @@ const CurriculumMaterialPage = () => {
                     </h1>
                     <p className="text-gray-500 mt-2 text-lg">Gestiona objetivos y contenido curricular para cada curso y asignatura.</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setModalMode('create');
-                        resetForm();
-                        setShowModal(true);
-                    }}
-                    className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
-                >
-                    <Plus size={24} /> NUEVO MATERIAL
-                </button>
+                <div className="flex gap-4">
+                    <button
+                        onClick={() => setShowWizard(true)}
+                        className="bg-white text-[#11355a] border-2 border-[#11355a]/10 px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-50 transition-all shadow-xl shadow-blue-900/5 active:scale-95"
+                    >
+                        <Target size={24} className="text-[#11355a]" />
+                        <span className="text-xs uppercase tracking-widest">Crear Evaluación</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            setModalMode('create');
+                            resetForm();
+                            setShowModal(true);
+                        }}
+                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
+                    >
+                        <Plus size={24} />
+                        <span className="text-xs uppercase tracking-widest">Nuevo Material</span>
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
@@ -543,6 +558,14 @@ const CurriculumMaterialPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Test Wizard Integration */}
+            <TestWizard
+                isOpen={showWizard}
+                onClose={() => setShowWizard(false)}
+                initialCourseId={selectedCourse}
+                initialSubjectId={selectedSubject}
+            />
         </div>
     );
 };

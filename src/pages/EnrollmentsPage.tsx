@@ -6,6 +6,7 @@ import {
     UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
     DollarSign, UserCheck, CreditCard, ChevronRight, Save
 } from 'lucide-react';
+import { validateRut, formatRut } from '../services/utils';
 
 interface Course {
     _id: string;
@@ -55,8 +56,8 @@ const EnrollmentsPage = () => {
         notes: '',
         metodoPago: 'transferencia',
         // Direct creation data
-        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
-        newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
+        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
+        newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
     });
 
     useEffect(() => {
@@ -150,9 +151,20 @@ const EnrollmentsPage = () => {
                 alert('Por favor complete el nombre y RUT del alumno.');
                 return;
             }
+            if (!validateRut(formData.newStudent.rut)) {
+                alert('El RUT del alumno no es válido.');
+                return;
+            }
         } else if (!formData.studentId) {
             alert('Por favor seleccione un estudiante o elija la opción "Matricular Nuevo".');
             return;
+        }
+
+        if (isNewGuardian && formData.newGuardian.rut) {
+            if (!validateRut(formData.newGuardian.rut)) {
+                alert('El RUT del apoderado no es válido.');
+                return;
+            }
         }
 
         if (!formData.courseId) {
@@ -180,8 +192,8 @@ const EnrollmentsPage = () => {
                 fee: 0,
                 notes: '',
                 metodoPago: 'transferencia',
-                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0 },
-                newGuardian: { nombre: '', apellidos: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
+                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
+                newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
             setSearchTermStudent('');
             setActiveTab('list');
@@ -353,7 +365,7 @@ const EnrollmentsPage = () => {
                                             required
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.rut}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: e.target.value.trim() } })}
+                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: formatRut(e.target.value) } })}
                                         />
                                         <input
                                             type="email"
@@ -362,6 +374,12 @@ const EnrollmentsPage = () => {
                                             className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newStudent.email}
                                             onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
+                                        />
+                                        <input
+                                            placeholder="Dirección del Alumno"
+                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newStudent.direccion || ''}
+                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
                                         />
                                     </div>
                                 </div>
@@ -443,11 +461,24 @@ const EnrollmentsPage = () => {
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value.trim().toLowerCase() } })}
                                         />
                                         <input
+                                            placeholder="RUT del Apoderado"
+                                            maxLength={12}
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newGuardian.rut || ''}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, rut: formatRut(e.target.value) } })}
+                                        />
+                                        <input
                                             placeholder="Teléfono"
                                             maxLength={15}
                                             className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
                                             value={formData.newGuardian.telefono}
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, telefono: e.target.value.trim() } })}
+                                        />
+                                        <input
+                                            placeholder="Dirección del Apoderado"
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newGuardian.direccion || ''}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, direccion: e.target.value } })}
                                         />
                                     </div>
                                 )}

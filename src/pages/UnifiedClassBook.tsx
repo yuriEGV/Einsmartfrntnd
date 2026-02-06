@@ -4,25 +4,34 @@ import api from '../services/api';
 import {
     BookOpen, ClipboardList,
     Calendar,
-    UserCheck, BarChart3, AlertCircle,
+    UserCheck, AlertCircle,
     LayoutGrid, List, Search, Save,
-    Trash2, X, ShieldCheck
+    Trash2, X, ShieldCheck, Wand2, GraduationCap, Printer
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import { useReactToPrint } from 'react-to-print';
+import { useRef } from 'react';
+import TestWizard from '../components/TestWizard';
 
 const UnifiedClassBook = () => {
     const { isStaff, user } = usePermissions();
     const isStudent = user?.role === 'student';
-    // UI State
+    const printRef = useRef<HTMLDivElement>(null);
+
+    // Context & State
     const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'notas' | 'evaluaciones'>('leccionario');
     const [loading, setLoading] = useState(true);
-
     // Shared Context
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [students, setStudents] = useState<any[]>([]);
+
+    const handlePrint = useReactToPrint({
+        contentRef: printRef,
+        documentTitle: `Libro de Clases - ${selectedCourse || 'Curso'}`,
+    });
 
     // Leccionario State
     const [logs, setLogs] = useState<any[]>([]);
@@ -60,6 +69,9 @@ const UnifiedClassBook = () => {
         questions: [] as string[]
     });
 
+    // Test Generation Wizard State
+    const [showPruebaWizard, setShowPruebaWizard] = useState(false);
+
     // Question Bank Filters
     const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
     const [typeFilter, setTypeFilter] = useState<'all' | 'multiple_choice' | 'open' | 'true_false'>('all');
@@ -67,7 +79,6 @@ const UnifiedClassBook = () => {
     const [bankQuestions, setBankQuestions] = useState<any[]>([]);
     const [searchQuestion, setSearchQuestion] = useState('');
     const [classStartTime, setClassStartTime] = useState<number | null>(null);
-    const [elapsedSeconds, setElapsedSeconds] = useState(0);
     const [showQuestionForm, setShowQuestionForm] = useState(false);
     const [newQuestionData, setNewQuestionData] = useState({
         questionText: '',
@@ -75,6 +86,8 @@ const UnifiedClassBook = () => {
         difficulty: 'medium',
         options: [{ text: '', isCorrect: true }, { text: '', isCorrect: false }, { text: '', isCorrect: false }, { text: '', isCorrect: false }]
     });
+
+    const [attendanceConfirmed, setAttendanceConfirmed] = useState(false);
 
     // -------------------------------------------------------------------------
     // Data Fetching
@@ -110,7 +123,7 @@ const UnifiedClassBook = () => {
                 setStudents(studRes.data);
                 const amap: Record<string, string> = {};
                 studRes.data.forEach((s: any) => {
-                    const rec = attRes.data.find((r: any) => r.estudianteId?._id === s._id || r.estudianteId === s._id);
+                    const rec = attRes.data.find((r: any) => (r.estudianteId?._id || r.estudianteId) === s._id);
                     amap[s._id] = rec ? rec.estado : 'presente';
                 });
                 setAttendanceMap(amap);
@@ -123,36 +136,33 @@ const UnifiedClassBook = () => {
                 console.log('DEBUG VISIBILITY - Students found:', studRes.data.length);
                 setStudents(studRes.data);
                 setEvaluations(evalsRes.data.filter((e: any) =>
-                    (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
+                    (e.courseId?._id || e.courseId) === selectedCourse
                 ));
                 setGrades(gradesRes.data);
             } else if (activeTab === 'evaluaciones') {
                 const res = await api.get(`/evaluations?courseId=${selectedCourse}`);
                 let filtered = res.data.filter((e: any) =>
-                    (typeof e.courseId === 'object' ? e.courseId._id : e.courseId) === selectedCourse
+                    (e.courseId?._id || e.courseId) === selectedCourse
                 );
                 if (isStudent) {
                     filtered = filtered.filter((e: any) => e.category !== 'surprise' && e.category !== 'sorpresa');
                 }
                 setEvaluations(filtered);
             }
+
+            // Always fetch bank and materials if selected
+            if (selectedCourse && selectedSubject) {
+                const [bankRes] = await Promise.all([
+                    api.get(`/questions?subjectId=${selectedSubject}`),
+                    api.get(`/curriculum-materials/subject/${selectedSubject}`)
+                ]);
+                setBankQuestions(bankRes.data);
+            }
         } catch (err) {
             console.error('REFRESH TAB ERROR:', err);
         }
         finally { setLoading(false); }
     };
-
-    useEffect(() => {
-        let interval: any;
-        if (classStartTime) {
-            interval = setInterval(() => {
-                setElapsedSeconds(Math.floor((Date.now() - classStartTime) / 1000));
-            }, 1000);
-        } else {
-            setElapsedSeconds(0);
-        }
-        return () => clearInterval(interval);
-    }, [classStartTime]);
 
     useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate]);
 
@@ -174,6 +184,11 @@ const UnifiedClassBook = () => {
 
     const handleSaveLog = async (e: React.FormEvent) => {
         e.preventDefault();
+        if (!attendanceConfirmed) {
+            alert('Por favor, confirme que ha pasado la asistencia antes de firmar el libro.');
+            return;
+        }
+
         try {
             const res = await api.post('/class-logs', {
                 ...logFormData,
@@ -185,8 +200,9 @@ const UnifiedClassBook = () => {
             await api.post(`/class-logs/${res.data._id}/sign`);
 
             setClassStartTime(null); // Stop timer
-            alert('Clase registrada y firmada digitalmente. Cronómetro detenido.');
+            alert('Clase registrada y firmada digitalmente.');
             setShowLogForm(false);
+            setAttendanceConfirmed(false);
             refreshTabContent();
         } catch (err) { alert('Error al procesar el registro'); }
     };
@@ -280,12 +296,14 @@ const UnifiedClassBook = () => {
         }
     };
 
+
+
     const handleAddQuestionToBank = async () => {
         try {
             const res = await api.post('/questions', {
                 ...newQuestionData,
                 subjectId: selectedSubject,
-                grade: courses.find(c => (typeof c._id === 'object' ? (c._id as any)._id : c._id) === selectedCourse)?.level || 'Sin Nivel'
+                grade: courses.find(c => (c._id?._id || c._id) === selectedCourse)?.level || 'Sin Nivel'
             });
             setBankQuestions([res.data, ...bankQuestions]);
             setEvalFormData({ ...evalFormData, questions: [...evalFormData.questions, res.data._id] });
@@ -307,13 +325,13 @@ const UnifiedClassBook = () => {
     // -------------------------------------------------------------------------
 
     const filteredSubjects = selectedCourse
-        ? subjects.filter(s => (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse)
+        ? subjects.filter(s => (s.courseId?._id || s.courseId) === selectedCourse)
         : [];
 
     return (
-        <div className="p-8 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500 min-h-screen pb-20">
+        <div className="p-8 max-w-[1600px] mx-auto space-y-8 animate-in fade-in duration-500 min-h-screen pb-20 print:p-0 print:max-w-none">
             {/* Master Control Panel */}
-            <div className="bg-white p-8 rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden group">
+            <div className="bg-white p-8 rounded-[3rem] shadow-xl shadow-blue-900/5 border border-slate-100 flex flex-col lg:flex-row justify-between items-center gap-8 relative overflow-hidden group print:hidden">
                 <div className="flex items-center gap-6 relative z-10">
                     <div className="p-5 bg-gradient-to-br from-[#11355a] to-blue-600 text-white rounded-[2.5rem] shadow-2xl shadow-blue-900/30 group-hover:rotate-3 transition-transform">
                         <BookOpen size={40} />
@@ -365,7 +383,7 @@ const UnifiedClassBook = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id as any)}
-                        className={`group flex items-center gap-4 px-10 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all
+                        className={`group flex items-center gap-4 px-8 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all print:hidden
                         ${activeTab === tab.id
                                 ? 'bg-[#11355a] text-white shadow-2xl shadow-blue-900/40 -translate-y-1'
                                 : 'bg-white text-slate-400 hover:text-slate-600 border border-slate-100 shadow-xl shadow-blue-900/5'}`}
@@ -375,15 +393,13 @@ const UnifiedClassBook = () => {
                     </button>
                 ))}
 
-                {classStartTime && (
-                    <div className="flex items-center gap-4 bg-orange-50 px-8 py-5 rounded-[2rem] shadow-xl border border-orange-200 animate-pulse ml-4">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <div className="text-xl font-mono font-black text-orange-900">
-                            {Math.floor(elapsedSeconds / 60)}:{(elapsedSeconds % 60).toString().padStart(2, '0')}
-                        </div>
-                        <span className="text-[10px] font-black text-orange-600 uppercase tracking-widest">En curso</span>
-                    </div>
-                )}
+                <button
+                    onClick={() => handlePrint()}
+                    className="group flex items-center gap-4 px-8 py-6 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all bg-white text-slate-600 hover:bg-slate-50 border border-slate-100 shadow-xl shadow-blue-900/5 print:hidden"
+                >
+                    <Printer size={20} className="text-slate-400 group-hover:text-slate-600" />
+                    Imprimir Libro
+                </button>
             </div>
 
             {/* Content Logic */}
@@ -401,7 +417,12 @@ const UnifiedClassBook = () => {
                     </p>
                 </div>
             ) : (
-                <div className="animate-in fade-in slide-in-from-bottom-6 duration-700">
+                <div ref={printRef} className="animate-in fade-in slide-in-from-bottom-6 duration-700 print:p-8">
+                    {/* Print Header */}
+                    <div className="hidden print:block mb-8 text-center border-b-2 border-slate-900 pb-4">
+                        <h1 className="text-2xl font-black uppercase tracking-tighter">Libro de Clases Digital</h1>
+                        <p className="text-sm font-bold uppercase">Curso: {courses.find(c => c._id === selectedCourse)?.name} | Asignatura: {subjects.find(s => s._id === selectedSubject)?.name}</p>
+                    </div>
                     {/* LECCIONARIO TAB */}
                     {activeTab === 'leccionario' && (
                         <div className="space-y-8">
@@ -435,6 +456,21 @@ const UnifiedClassBook = () => {
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Desarrollo de Actividades</label>
                                             <textarea rows={4} required placeholder="Describa lo realizado en clase..." value={logFormData.activities} onChange={e => setLogFormData({ ...logFormData, activities: e.target.value })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold resize-none" />
                                         </div>
+
+                                        {/* Attendance Confirmation Checkbox */}
+                                        <div className="flex items-center gap-4 p-6 bg-blue-50 rounded-2xl border border-blue-100">
+                                            <input
+                                                type="checkbox"
+                                                id="attendanceConfirm"
+                                                className="w-6 h-6 rounded-lg cursor-pointer accent-blue-600"
+                                                checked={attendanceConfirmed}
+                                                onChange={e => setAttendanceConfirmed(e.target.checked)}
+                                            />
+                                            <label htmlFor="attendanceConfirm" className="text-sm font-black text-blue-900 cursor-pointer">
+                                                Confirmo que se ha pasado la asistencia de los alumnos para esta clase.
+                                            </label>
+                                        </div>
+
                                         <button type="submit" className="w-full py-6 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/20 hover:bg-emerald-700 transition-all uppercase">FIRMAs Y GUARDAR EN LIBRO</button>
                                     </form>
                                 </div>
@@ -601,9 +637,16 @@ const UnifiedClassBook = () => {
                             <div className="flex justify-between items-center px-4">
                                 <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Cronograma de Evaluaciones</h2>
                                 {isStaff && (
-                                    <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
-                                        PROGRAMAR PRUEBA
-                                    </button>
+                                    <div className="flex gap-4">
+                                        <button onClick={() => {
+                                            setShowPruebaWizard(true);
+                                        }} className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-900/20 flex items-center gap-2">
+                                            <Wand2 size={16} /> GENERAR PRUEBA
+                                        </button>
+                                        <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                            PROGRAMAR PRUEBA
+                                        </button>
+                                    </div>
                                 )}
                             </div>
 
@@ -868,9 +911,14 @@ const UnifiedClassBook = () => {
                                                         }} >
                                                             <div className="flex items-center gap-2 mb-2">
                                                                 <span className="text-[9px] font-black text-indigo-500 uppercase tracking-tighter bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100 font-bold">{q.subjectId?.name || 'S/A'}</span>
-                                                                <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-lg border font-bold ${q.difficulty === 'hard' ? 'text-rose-500 bg-rose-50 border-rose-100' : q.difficulty === 'medium' ? 'text-amber-500 bg-amber-50 border-amber-100' : 'text-emerald-500 bg-emerald-50 border-emerald-100'}`}>
-                                                                    {q.difficulty}
-                                                                </span>
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <div className="flex gap-0.5 h-1 w-16 bg-slate-100 rounded-full overflow-hidden">
+                                                                        <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
+                                                                    </div>
+                                                                    <span className={`text-[7px] font-black uppercase tracking-tighter italic ${q.difficulty === 'hard' ? 'text-rose-500' : q.difficulty === 'medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                                                        Nivel {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Medio' : 'Difícil'}
+                                                                    </span>
+                                                                </div>
                                                             </div>
                                                             <div className="text-sm font-black text-slate-700 leading-relaxed mb-3 pr-4">{q.questionText}</div>
                                                             <div className="text-[8px] font-black text-indigo-300 uppercase italic opacity-0 group-hover:opacity-100 transition-opacity">Ver Opciones ↑</div>
@@ -919,10 +967,20 @@ const UnifiedClassBook = () => {
                     </div>
                 </div>
             )}
+            {/* Test Wizard Component */}
+            <TestWizard
+                isOpen={showPruebaWizard}
+                onClose={() => setShowPruebaWizard(false)}
+                initialCourseId={selectedCourse}
+                initialSubjectId={selectedSubject}
+                onSuccess={() => {
+                    refreshTabContent();
+                    setActiveTab('evaluaciones');
+                }}
+            />
         </div>
     );
 };
 
-const GraduationCap = ({ size }: { size: number }) => <BarChart3 size={size} />; // Placeholder as icon name was used but BarChart is better
 
 export default UnifiedClassBook;

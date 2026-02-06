@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, ClipboardList } from 'lucide-react';
+import TestWizard from '../components/TestWizard';
 
 interface Evaluation {
     _id: string;
@@ -124,6 +125,8 @@ const EvaluationsPage = () => {
         }
     };
 
+    const [showWizard, setShowWizard] = useState(false);
+
     // Filter subjects based on selected course in modal
     const availableSubjects = subjects.filter(s => {
         if (!formData.courseId) return false;
@@ -148,11 +151,7 @@ const EvaluationsPage = () => {
                 </h1>
                 {canManage && (
                     <button
-                        onClick={() => {
-                            setModalMode('create');
-                            setFormData({ _id: '', title: '', subject: '', maxScore: 7.0, date: new Date().toISOString().split('T')[0], courseId: '', category: 'planificada' });
-                            setShowModal(true);
-                        }}
+                        onClick={() => setShowWizard(true)}
                         className="bg-[#11355a] text-white px-4 py-2 rounded flex items-center gap-2 hover:opacity-90 transition"
                     >
                         <Plus size={18} /> Nueva Evaluación
@@ -213,6 +212,16 @@ const EvaluationsPage = () => {
                     ))}
                 </div>
             )}
+
+            {/* Test Wizard */}
+            <TestWizard
+                isOpen={showWizard}
+                onClose={() => setShowWizard(false)}
+                onSuccess={() => {
+                    fetchData();
+                    setShowWizard(false);
+                }}
+            />
 
             {/* Modal */}
             {showModal && (

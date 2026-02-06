@@ -141,7 +141,7 @@ const SubjectsPage = () => {
 
     const folderKeys = Object.keys(groupedSubjects).sort();
 
-    const canManage = canManageSubjects || isSuperAdmin;
+    const canManage = (canManageSubjects || isSuperAdmin) && !usePermissions().isTeacher;
 
     const fetchObjectives = async (subjectId: string) => {
         try {

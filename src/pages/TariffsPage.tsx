@@ -1,7 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTenant } from '../context/TenantContext';
 import { DollarSign, Plus, Trash2, Edit, CreditCard } from 'lucide-react';
 
 interface Tariff {
@@ -15,7 +17,12 @@ interface Tariff {
 
 const TariffsPage = () => {
     const { isSostenedor, isSuperAdmin, canManagePayments } = usePermissions();
+    const { tenant } = useTenant();
     const canManage = isSostenedor || isSuperAdmin || canManagePayments; // Or restricted to Sostenedor usually
+
+    if (tenant && tenant.paymentType !== 'paid') {
+        return <Navigate to="/" replace />;
+    }
 
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
     const [loading, setLoading] = useState(true);

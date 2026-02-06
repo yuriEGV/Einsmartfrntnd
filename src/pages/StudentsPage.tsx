@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Trash2, Search, Mail, School, Printer } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2 } from 'lucide-react';
+import { validateRut } from '../services/utils';
 
 interface Student {
     _id: string;
@@ -13,7 +14,15 @@ interface Student {
     email: string;
     grado: string;
     edad?: number;
-    guardian?: { nombre: string; apellidos: string; correo: string; telefono: string };
+    direccion?: string;
+    guardian?: {
+        nombre: string;
+        apellidos: string;
+        correo: string;
+        telefono: string;
+        direccion?: string;
+        rut?: string;
+    };
 }
 
 const StudentsPage = () => {
@@ -134,6 +143,12 @@ const StudentsPage = () => {
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (currentStudent.rut && !validateRut(currentStudent.rut)) {
+            alert('El RUT ingresado no es válido. Por favor verifíquelo.');
+            return;
+        }
+
         try {
             if (modalMode === 'create') {
                 await api.post('/estudiantes', currentStudent);
@@ -142,8 +157,9 @@ const StudentsPage = () => {
             }
             setShowModal(false);
             fetchStudents();
-        } catch (error) {
-            alert('Error al guardar estudiante');
+        } catch (error: any) {
+            const msg = error.response?.data?.message || 'Error al guardar estudiante';
+            alert(msg);
             console.error(error);
         }
     };
@@ -424,6 +440,15 @@ const StudentsPage = () => {
                                             onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
                                         />
                                     </div>
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DIRECCIÓN DEL ESTUDIANTE</label>
+                                        <input
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            placeholder="Ej: Av. Libertad 123"
+                                            value={currentStudent.direccion || ''}
+                                            onChange={e => setCurrentStudent({ ...currentStudent, direccion: e.target.value })}
+                                        />
+                                    </div>
 
                                     {/* GUARDIAN SECTION (FUSION) */}
                                     <div className="pt-6 border-t border-slate-100">
@@ -466,6 +491,30 @@ const StudentsPage = () => {
                                                 />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
+                                                <div className="group col-span-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Dirección</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        placeholder="Ej: Av. Libertad 123"
+                                                        value={currentStudent.guardian?.direccion || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), direccion: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
+                                                <div className="group col-span-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">RUT</label>
+                                                    <input
+                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                        placeholder="12.345.678-9"
+                                                        value={currentStudent.guardian?.rut || ''}
+                                                        onChange={e => setCurrentStudent({
+                                                            ...currentStudent,
+                                                            guardian: { ...(currentStudent.guardian as any), rut: e.target.value }
+                                                        })}
+                                                    />
+                                                </div>
                                                 <div className="group">
                                                     <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Teléfono</label>
                                                     <input
