@@ -211,7 +211,7 @@ const CurriculumMaterialPage = () => {
         })
         : [];
 
-    if (!permissions.isSuperAdmin && !permissions.user?.role?.includes('sostenedor') && !permissions.user?.role?.includes('admin') && !permissions.user?.role?.includes('teacher')) {
+    if (!permissions.canManageSubjects) {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-center">
                 <Target size={64} className="text-rose-500 mb-6" />

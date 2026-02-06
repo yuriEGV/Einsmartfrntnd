@@ -227,11 +227,11 @@ const Layout = () => {
                             <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
                         )}
 
-                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
                             <NavLink to="/question-bank" icon={Database}>Banco de Preguntas</NavLink>
                         )}
 
-                        {(user?.role === 'teacher' || user?.role === 'admin') && (
+                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
                             <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
                         )}
 
