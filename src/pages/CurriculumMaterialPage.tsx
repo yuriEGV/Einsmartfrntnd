@@ -199,6 +199,7 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
 
     const availableSubjects = tempCourse
         ? (subjects || []).filter(s => {
+            if (!s.courseId) return false;
             const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
             return sCourseId === tempCourse;
         })
@@ -206,6 +207,7 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
 
     const modalSubjects = formData.courseId
         ? (subjects || []).filter(s => {
+            if (!s.courseId) return false;
             const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
             return sCourseId === formData.courseId;
         })
