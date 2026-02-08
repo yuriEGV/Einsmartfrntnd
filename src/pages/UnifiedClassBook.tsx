@@ -376,7 +376,7 @@ const UnifiedClassBook = () => {
                     { id: 'leccionario', label: 'Leccionario', icon: List, color: 'blue' },
                     { id: 'asistencia', label: 'Asistencia', icon: UserCheck, color: 'emerald' },
                     { id: 'notas', label: 'Libro de Notas', icon: ClipboardList, color: 'indigo' },
-                    { id: 'evaluaciones', label: 'Planificación', icon: Calendar, color: 'amber' }
+                    { id: 'evaluaciones', label: 'Evaluaciones (Pruebas)', icon: Calendar, color: 'amber' }
                 ].map((tab: any) => (
                     <button
                         key={tab.id}

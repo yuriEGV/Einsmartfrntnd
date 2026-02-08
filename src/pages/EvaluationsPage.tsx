@@ -4,6 +4,7 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, ClipboardList, X, HelpCircle } from 'lucide-react';
 import TestWizard from '../components/TestWizard';
+import PrintButton from '../components/PrintButton';
 
 interface Evaluation {
     _id: string;
@@ -321,12 +322,19 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             )}
                         </div>
                         <div className="p-6 bg-slate-50 border-t flex justify-end">
-                            <button
-                                onClick={() => setViewingEval(null)}
-                                className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 active:scale-95 transition-all"
-                            >
-                                Entendido
-                            </button>
+                            <div className="flex gap-4">
+                                <PrintButton
+                                    evaluationId={viewingEval._id}
+                                    title={viewingEval.title}
+                                    questions={viewingEval.questions || []}
+                                />
+                                <button
+                                    onClick={() => setViewingEval(null)}
+                                    className="bg-slate-200 text-slate-700 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-300 active:scale-95 transition-all"
+                                >
+                                    Cerrar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

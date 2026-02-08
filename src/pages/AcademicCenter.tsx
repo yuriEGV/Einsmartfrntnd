@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-    ClipboardList, Target, LayoutDashboard, Database, BarChart3
+    ClipboardList, Target, LayoutDashboard, Database, BarChart3, Plus, Wand2
 } from 'lucide-react';
 import EvaluationsPage from './EvaluationsPage';
 import QuestionBankPage from './QuestionBankPage';
@@ -11,9 +11,9 @@ const AcademicCenter = () => {
     const [activeTab, setActiveTab] = useState('evaluations');
 
     const tabs = [
-        { id: 'evaluations', label: 'Evaluaciones', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { id: 'evaluations', label: 'Evaluaciones (Pruebas)', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
         { id: 'questions', label: 'Banco de Preguntas', icon: Database, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { id: 'planning', label: 'Planificación', icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { id: 'planning', label: 'Planificación (Contenidos)', icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-emerald-600', bg: 'bg-emerald-50' }
     ];
 
@@ -48,7 +48,22 @@ const AcademicCenter = () => {
                             </p>
                         </div>
 
-                        {/* Quick Stats or Actions could go here */}
+
+                        {/* Quick Actions */}
+                        <div className="flex flex-wrap items-center gap-4">
+                            <button
+                                onClick={() => setActiveTab('evaluations')}
+                                className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 flex items-center gap-2"
+                            >
+                                <Wand2 size={18} /> Generar Prueba
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('evaluations')}
+                                className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-2"
+                            >
+                                <Plus size={18} /> Programar Prueba
+                            </button>
+                        </div>
                     </div>
 
                     {/* Navigation Tabs - Mobile Scrollable */}
