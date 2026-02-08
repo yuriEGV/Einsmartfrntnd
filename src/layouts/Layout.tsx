@@ -1,3 +1,4 @@
+// Build trigger: 2026-02-08
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
