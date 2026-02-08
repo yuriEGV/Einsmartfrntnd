@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
-    ChevronLeft, ChevronRight, Wand2, Check,
-    AlertCircle, HelpCircle
+    ChevronLeft, ChevronRight,
+    AlertCircle, Calendar, Search, ShieldCheck, FileText, Plus
 } from 'lucide-react';
 
 interface TestWizardProps {
@@ -29,8 +29,12 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
         title: '',
         date: new Date().toISOString().split('T')[0],
         type: 'sumativa' as 'formativa' | 'sumativa' | 'diagnostica',
-        maxScore: 7.0
+        maxScore: 7.0,
+        category: 'planificada' as 'planificada' | 'sorpresa'
     });
+
+    const [questionSearch, setQuestionSearch] = useState('');
+    const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
 
     useEffect(() => {
         const fetchInitial = async () => {
@@ -51,8 +55,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
             const fetchData = async () => {
                 try {
                     const [bankRes, matRes] = await Promise.all([
-                        api.get(`/questions?subjectId=${selectedSubject}`),
-                        api.get(`/curriculum-materials/subject/${selectedSubject}`)
+                        api.get(`/ questions ? subjectId = ${selectedSubject} `),
+                        api.get(`/ curriculum - materials / subject / ${selectedSubject} `)
                     ]);
                     setBankQuestions(bankRes.data);
                     setAvailableMaterials(matRes.data);
@@ -102,29 +106,25 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
             <div className="bg-white w-full max-w-5xl h-[85vh] max-h-[900px] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-500">
 
-                {/* Header */}
-                <div className="bg-[#11355a] px-5 py-3 text-white flex justify-between items-center shrink-0 relative overflow-hidden">
-                    <div className="relative z-10 flex items-center gap-3">
-                        <div className="p-1.5 bg-white/10 rounded-lg"><Wand2 size={16} /></div>
-                        <div>
-                            <span className="font-bold text-blue-200 tracking-widest text-[8px] uppercase block leading-none mb-0.5">Asistente Inteligente</span>
-                            <h2 className="text-lg font-black tracking-tighter uppercase leading-none">Generador de Pruebas</h2>
+                {/* Header - Matching Image 1 */}
+                <div className="bg-[#00a86b] px-8 py-6 text-white flex justify-between items-center shrink-0">
+                    <div className="flex items-center gap-4">
+                        <div className="p-2 bg-white/20 rounded-xl">
+                            <Calendar size={28} />
                         </div>
+                        <h2 className="text-2xl font-black tracking-tight">Programar Nueva Prueba</h2>
                     </div>
-                    <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all relative z-10">
-                        <span className="sr-only">Cerrar</span>
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                    <button onClick={onClose} className="p-2 hover:bg-white/20 rounded-full transition-all text-white/60 hover:text-white">
+                        <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
-                    {/* Background Pattern */}
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
                 </div>
 
                 {/* Steps Indicator */}
                 <div className="px-5 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto shrink-0">
                     {[1, 2, 3].map(s => (
-                        <div key={s} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${step === s ? 'bg-white shadow-sm border border-slate-200' : 'opacity-40'}`}>
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] ${step === s ? 'bg-[#11355a] text-white' : 'bg-slate-200 text-slate-500'}`}>{s}</div>
-                            <span className={`font-black text-[9px] uppercase tracking-widest whitespace-nowrap ${step === s ? 'text-[#11355a]' : 'text-slate-400'}`}>
+                        <div key={s} className={`flex items - center gap - 2 px - 3 py - 1.5 rounded - lg transition - all ${step === s ? 'bg-white shadow-sm border border-slate-200' : 'opacity-40'} `}>
+                            <div className={`w - 5 h - 5 rounded - full flex items - center justify - center font - black text - [10px] ${step === s ? 'bg-[#11355a] text-white' : 'bg-slate-200 text-slate-500'} `}>{s}</div>
+                            <span className={`font - black text - [9px] uppercase tracking - widest whitespace - nowrap ${step === s ? 'text-[#11355a]' : 'text-slate-400'} `}>
                                 {s === 1 ? 'Configuración' : s === 2 ? 'Objetivos' : 'Preguntas'}
                             </span>
                         </div>
@@ -134,73 +134,70 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar relative">
                     {step === 1 && (
-                        <div className="space-y-6 max-w-2xl mx-auto animate-in slide-in-from-right-4">
-                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex gap-3 items-start">
-                                <AlertCircle className="text-blue-600 shrink-0 mt-0.5" size={16} />
-                                <div>
-                                    <h4 className="font-black text-blue-800 uppercase text-[9px] tracking-widest leading-none mb-1">Paso 1: Configuración Básica</h4>
-                                    <p className="text-blue-600/80 text-[10px] font-medium leading-tight">Defina los parámetros generales de la evaluación. Estos campos pueden estar pre-llenados.</p>
-                                </div>
+                        <div className="space-y-10 max-w-3xl mx-auto animate-in slide-in-from-right-4 py-6">
+                            {/* Title Section - Matching Image 1 rhythm */}
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-[#00a86b] uppercase tracking-[0.2em] ml-2">Título de la Evaluación</label>
+                                <input
+                                    autoFocus
+                                    value={formData.title}
+                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    className="w-full px-8 py-7 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:border-[#00a86b]/30 focus:bg-white outline-none font-black text-2xl text-slate-700 shadow-inner transition-all"
+                                    placeholder="Ej: Control de Lectura #2"
+                                />
                             </div>
-                            <div className="space-y-6">
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Curso</label>
-                                        <select
-                                            value={selectedCourse}
-                                            onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-slate-700"
-                                            disabled={!!initialCourseId}
-                                        >
-                                            <option value="">Seleccione...</option>
-                                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Asignatura</label>
-                                        <select
-                                            value={selectedSubject}
-                                            onChange={e => setSelectedSubject(e.target.value)}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-slate-700"
-                                            disabled={!!initialSubjectId || !selectedCourse}
-                                        >
-                                            <option value="">Seleccione...</option>
-                                            {filteredSubjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                                        </select>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Título de la Prueba</label>
-                                    <input
-                                        autoFocus
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold text-xl"
-                                        placeholder="Ej: Evaluación Unidad 1 - Números"
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Fecha Programada</label>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Fecha Programada</label>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00a86b] transition-colors" size={20} />
                                         <input
                                             type="date"
                                             value={formData.date}
                                             onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold"
+                                            className="w-full pl-16 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-bold text-slate-600 shadow-inner transition-all"
                                         />
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">Tipo de Evaluación</label>
-                                        <select
-                                            value={formData.type}
-                                            onChange={e => setFormData({ ...formData, type: e.target.value as any })}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-bold"
-                                        >
-                                            <option value="sumativa">Sumativa (Con nota)</option>
-                                            <option value="formativa">Formativa (Sin nota)</option>
-                                            <option value="diagnostica">Diagnóstica</option>
-                                        </select>
-                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Tipo / Categoría</label>
+                                    <select
+                                        value={formData.type}
+                                        onChange={e => setFormData({ ...formData, type: e.target.value as any })}
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-bold text-slate-600 shadow-inner transition-all appearance-none cursor-pointer"
+                                    >
+                                        <option value="sumativa">Evaluación Planificada (Sumativa)</option>
+                                        <option value="formativa">Evaluación Formativa</option>
+                                        <option value="diagnostica">Evaluación Diagnóstica</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Curso / Nivel</label>
+                                    <select
+                                        value={selectedCourse}
+                                        onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500/30 outline-none font-bold text-slate-600 shadow-inner transition-all"
+                                        disabled={!!initialCourseId}
+                                    >
+                                        <option value="">Seleccione Curso...</option>
+                                        {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                    </select>
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Asignatura</label>
+                                    <select
+                                        value={selectedSubject}
+                                        onChange={e => setSelectedSubject(e.target.value)}
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500/30 outline-none font-bold text-slate-600 shadow-inner transition-all"
+                                        disabled={!!initialSubjectId || !selectedCourse}
+                                    >
+                                        <option value="">Seleccione Asignatura...</option>
+                                        {filteredSubjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                    </select>
                                 </div>
                             </div>
                         </div>
@@ -220,8 +217,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                                         <p className="text-blue-400 text-xs">Puede agregar objetivos en la página de Planificación o saltar este paso</p>
                                     </div>
                                 ) : (
-                                    availableMaterials.flatMap((m) => m.objectives.map((obj: string, i: number) => ({ obj, id: `${m._id}-${i}` }))).map((item: any) => (
-                                        <label key={item.id} className={`p-6 rounded-3xl border-2 cursor-pointer transition-all flex items-start gap-4 ${selectedOAs.includes(item.obj) ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}>
+                                    availableMaterials.flatMap((m) => m.objectives.map((obj: string, i: number) => ({ obj, id: `${m._id} -${i} ` }))).map((item: any) => (
+                                        <label key={item.id} className={`p - 6 rounded - 3xl border - 2 cursor - pointer transition - all flex items - start gap - 4 ${selectedOAs.includes(item.obj) ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'} `}>
                                             <input
                                                 type="checkbox"
                                                 checked={selectedOAs.includes(item.obj)}
@@ -232,7 +229,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                                                 className="mt-1 w-5 h-5 accent-blue-600"
                                             />
                                             <div className="flex-1">
-                                                <p className={`font-bold text-sm ${selectedOAs.includes(item.obj) ? 'text-blue-900' : 'text-slate-600'}`}>{item.obj}</p>
+                                                <p className={`font - bold text - sm ${selectedOAs.includes(item.obj) ? 'text-blue-900' : 'text-slate-600'} `}>{item.obj}</p>
                                             </div>
                                         </label>
                                     ))
@@ -241,144 +238,149 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                         </div>
                     )}
 
+                    {/* Questions Selection - Restyled to match Image 1 & 2 */}
                     {step === 3 && (
-                        <div className="space-y-6 animate-in slide-in-from-right-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Preguntas Disponibles</h3>
-                                <span className="text-xs font-bold text-emerald-500 uppercase tracking-wider">{bankQuestions.length} en banco</span>
-                            </div>
-
-                            {/* Real-time Difficulty Meter */}
-                            <div className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4 mb-6 sticky top-0 z-10">
-                                <div className="flex justify-between items-end">
-                                    <div className="flex flex-col">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Dificultad Global</label>
-                                        <span className="text-[9px] font-bold text-slate-300">Basado en {selectedBankQuestions.length} preguntas</span>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className={`text-lg font-black uppercase tracking-tighter ${(() => {
-                                            const total = selectedBankQuestions.length || 1;
-                                            const easy = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length;
-                                            const medium = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length;
-                                            const hard = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length;
-                                            const score = (easy * 1 + medium * 2 + hard * 3) / total;
-                                            if (score < 1.6) return 'text-emerald-500';
-                                            if (score < 2.4) return 'text-amber-500';
-                                            return 'text-rose-500';
-                                        })()}`}>
-                                            {(() => {
-                                                const total = selectedBankQuestions.length || 1;
-                                                const easy = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length;
-                                                const medium = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length;
-                                                const hard = bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length;
-                                                const score = (easy * 1 + medium * 2 + hard * 3) / total;
-                                                if (score < 1.6) return 'Básica';
-                                                if (score < 2.4) return 'Intermedia';
-                                                return 'Avanzada';
-                                            })()}
-                                        </span>
+                        <div className="space-y-8 max-w-3xl mx-auto animate-in slide-in-from-bottom-4">
+                            <div className="flex justify-between items-end border-b-2 border-slate-50 pb-4">
+                                <div>
+                                    <h3 className="text-[10px] font-black text-[#00a86b] uppercase tracking-[0.2em] mb-1">Banco de Preguntas</h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl font-black text-slate-800">{selectedBankQuestions.length}</span>
+                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Seleccionadas</span>
                                     </div>
                                 </div>
-
-                                {/* Progress Bars */}
-                                <div className="h-2 flex rounded-full overflow-hidden bg-slate-100">
-                                    <div className="bg-emerald-400 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'easy').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
-                                    <div className="bg-amber-400 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'medium').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
-                                    <div className="bg-rose-500 h-full transition-all duration-700 ease-out" style={{ width: `${(bankQuestions.filter(q => q && selectedBankQuestions.includes(q._id) && q.difficulty === 'hard').length / (selectedBankQuestions.length || 1)) * 100}%` }}></div>
-                                </div>
-
-                                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 pt-1">
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-emerald-400"></div>Fácil</div>
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-amber-400"></div>Media</div>
-                                    <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-rose-500"></div>Difícil</div>
-                                </div>
+                                <button className="px-5 py-2.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[9px] uppercase tracking-widest border border-indigo-100 flex items-center gap-2 hover:bg-indigo-100 transition-all">
+                                    <Plus size={14} /> Crear Pregunta
+                                </button>
                             </div>
 
-                            <div className="grid gap-4 pb-20">
-                                {bankQuestions.map((q: any) => (
-                                    <label key={q._id} className={`p-6 rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-4 ${selectedBankQuestions.includes(q._id) ? 'border-amber-500 bg-amber-50' : 'border-slate-100 hover:border-amber-200'}`}>
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedBankQuestions.includes(q._id)}
-                                            onChange={() => {
-                                                if (selectedBankQuestions.includes(q._id)) {
-                                                    setSelectedBankQuestions(selectedBankQuestions.filter(id => id !== q._id));
-                                                } else {
-                                                    setSelectedBankQuestions([...selectedBankQuestions, q._id]);
-                                                }
-                                            }}
-                                            className="hidden"
-                                        />
-                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 mt-1 transition-all ${selectedBankQuestions.includes(q._id) ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                                            <Check size={18} />
+                            <div className="space-y-4">
+                                {/* Search & Filters */}
+                                <div className="relative">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                    <input
+                                        placeholder="Buscador inteligente de preguntas..."
+                                        className="w-full pl-12 pr-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-500 focus:border-indigo-500/20 focus:bg-white transition-all shadow-inner"
+                                        value={questionSearch}
+                                        onChange={e => setQuestionSearch(e.target.value)}
+                                    />
+                                </div>
+
+                                <div className="flex items-center gap-8 px-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5 grayscale opacity-50">
+                                            <div className="w-1.5 h-4 bg-indigo-500 rounded-full"></div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Dificultad</span>
                                         </div>
-                                        <div>
-                                            <p className="font-black text-slate-700 uppercase tracking-tight text-sm leading-snug mb-2">{q.questionText}</p>
-                                            <div className="flex items-center gap-3">
-                                                <div className="flex flex-col gap-0.5">
-                                                    <div className="flex gap-0.5 h-1 w-12 bg-slate-100 rounded-full overflow-hidden">
-                                                        <div className={`h-full transition-all ${q.difficulty === 'easy' ? 'w-1/3 bg-emerald-500' : q.difficulty === 'medium' ? 'w-2/3 bg-amber-500' : 'w-full bg-rose-500'}`} />
-                                                    </div>
-                                                    <span className={`text-[7px] font-black uppercase tracking-tighter ${q.difficulty === 'hard' ? 'text-rose-500' : q.difficulty === 'medium' ? 'text-amber-500' : 'text-emerald-500'}`}>
-                                                        {q.difficulty === 'easy' ? 'Fácil' : q.difficulty === 'medium' ? 'Media' : 'Difícil'}
-                                                    </span>
+                                        <div className="flex gap-2">
+                                            {[
+                                                { id: 'all', label: 'TODAS' },
+                                                { id: 'easy', label: 'FÁCIL' },
+                                                { id: 'medium', label: 'MEDIO' },
+                                                { id: 'hard', label: 'DIFÍCIL' }
+                                            ].map(opt => (
+                                                <button
+                                                    key={opt.id}
+                                                    onClick={() => setDifficultyFilter(opt.id as any)}
+                                                    className={`px - 4 py - 1.5 rounded - lg text - [9px] font - black uppercase tracking - widest transition - all ${difficultyFilter === opt.id ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-105' : 'bg-white text-slate-400 border border-slate-100 hover:border-slate-200'} `}
+                                                >
+                                                    {opt.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-1.5 grayscale opacity-50">
+                                            <div className="w-1.5 h-4 bg-emerald-500 rounded-full"></div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tipo</span>
+                                        </div>
+                                        <button className="px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-indigo-200">
+                                            TODOS
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Questions List */}
+                                <div className="space-y-4 pt-4 max-h-[400px] overflow-y-auto px-1 custom-scrollbar">
+                                    {bankQuestions
+                                        .filter(q => q.questionText.toLowerCase().includes(questionSearch.toLowerCase()))
+                                        .filter(q => difficultyFilter === 'all' || q.difficulty === difficultyFilter)
+                                        .map((q: any) => (
+                                            <label key={q._id} className={`group relative p - 6 bg - white rounded - 3xl border - 2 transition - all cursor - pointer flex items - start gap - 6 hover: shadow - xl hover: -translate - y - 1 ${selectedBankQuestions.includes(q._id) ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-slate-100 hover:border-indigo-200'} `}>
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedBankQuestions.includes(q._id)}
+                                                    onChange={() => {
+                                                        if (selectedBankQuestions.includes(q._id)) setSelectedBankQuestions(selectedBankQuestions.filter(id => id !== q._id));
+                                                        else setSelectedBankQuestions([...selectedBankQuestions, q._id]);
+                                                    }}
+                                                    className="hidden"
+                                                />
+
+                                                {/* Shield indicator like in Image 2 */}
+                                                <div className={`w - 12 h - 12 rounded - 2xl flex items - center justify - center shrink - 0 transition - all ${selectedBankQuestions.includes(q._id) ? 'bg-emerald-50 text-emerald-500 shadow-inner' : 'bg-slate-50 text-slate-200 group-hover:text-slate-300'} `}>
+                                                    <ShieldCheck size={28} strokeWidth={selectedBankQuestions.includes(q._id) ? 2.5 : 1.5} />
                                                 </div>
-                                                <span className="bg-white px-3 py-1 rounded-lg text-[9px] font-black text-slate-400 border border-slate-100 uppercase">{q.type.replace('_', ' ')}</span>
-                                            </div>
-                                        </div>
-                                    </label>
-                                ))}
-                                {bankQuestions.length === 0 && (
-                                    <div className="text-center py-12 bg-amber-50 rounded-3xl border border-amber-100">
-                                        <HelpCircle className="mx-auto mb-3 text-amber-400" size={36} />
-                                        <p className="text-amber-600 font-bold text-sm mb-2">No hay preguntas en el banco</p>
-                                        <p className="text-amber-500 text-xs mb-4">Vaya a "Banco de Preguntas" para crear preguntas reutilizables</p>
-                                        <p className="text-amber-400 text-xs">O puede crear la evaluación manualmente desde "Gestión de Evaluaciones"</p>
-                                    </div>
-                                )}
+
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-2 mb-3">
+                                                        <span className="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-[7px] font-black uppercase tracking-widest border border-indigo-100">
+                                                            {q.subjectId?.name || 'MATERIALES'}
+                                                        </span>
+                                                        <div className="flex flex-col">
+                                                            <div className={`h - 1 w - 16 bg - slate - 100 rounded - full overflow - hidden mb - 0.5`}>
+                                                                <div className={`h - full ${q.difficulty === 'hard' ? 'bg-rose-500 w-full' : q.difficulty === 'medium' ? 'bg-amber-500 w-2/3' : 'bg-emerald-500 w-1/3'} `} />
+                                                            </div>
+                                                            <span className={`text - [7px] font - black uppercase tracking - tighter ${q.difficulty === 'hard' ? 'text-rose-500' : q.difficulty === 'medium' ? 'text-amber-500' : 'text-emerald-500'} `}>
+                                                                Nivel {q.difficulty === 'hard' ? 'Difícil' : q.difficulty === 'medium' ? 'Medio' : 'Fácil'}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    <p className="font-black text-slate-700 text-lg leading-tight tracking-tight">
+                                                        {q.questionText}
+                                                    </p>
+                                                </div>
+                                            </label>
+                                        ))}
+                                </div>
+
+                                {/* Banner like in Image 2 */}
+                                <div className="bg-emerald-50/50 p-8 rounded-3xl border border-emerald-100 mb-4">
+                                    <p className="text-emerald-800 text-xs font-black leading-relaxed tracking-tight text-center">
+                                        Las evaluaciones planificadas aparecen en el calendario de alumnos y se notifican con antelación.
+                                    </p>
+                                </div>
+
+                                {/* Main Button like in Image 2 */}
+                                <button
+                                    onClick={handleGenerate}
+                                    className="w-full py-6 bg-[#00a86b] text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-emerald-900/40 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group"
+                                >
+                                    <FileText size={24} className="group-hover:rotate-12 transition-transform" />
+                                    PUBLICAR EVALUACIÓN
+                                </button>
                             </div>
                         </div>
                     )}
                 </div>
 
-                {/* Footer Actions */}
-                <div className="p-4 bg-slate-50 border-t shrink-0 flex justify-between gap-3">
+                {/* Footer Controls - Compact */}
+                <div className="px-8 py-6 bg-slate-50 border-t flex justify-between gap-4">
                     {step > 1 && (
                         <button
                             onClick={() => setStep(step - 1)}
-                            className="flex-1 py-3 bg-white text-slate-400 border border-slate-200 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
+                            className="bg-white border-2 border-slate-200 text-slate-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
                         >
-                            <ChevronLeft size={16} /> Anterior
+                            <ChevronLeft size={16} /> Volver
                         </button>
                     )}
-                    {step < 3 ? (
-                        <>
-                            {step === 2 && (
-                                <button
-                                    onClick={() => setStep(3)}
-                                    className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
-                                >
-                                    Saltar →
-                                </button>
-                            )}
-                            <button
-                                onClick={() => {
-                                    if (step === 1 && !formData.title) return alert("Por favor ingrese un título para la evaluación");
-                                    if (step === 1 && !selectedCourse) return alert("Seleccione un curso");
-                                    if (step === 1 && !selectedSubject) return alert("Seleccione una asignatura");
-                                    setStep(step + 1);
-                                }}
-                                className="flex-[2] py-3 bg-amber-500 text-white rounded-xl font-black uppercase text-[9px] tracking-widest shadow-lg shadow-amber-900/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
-                            >
-                                Siguiente <ChevronRight size={16} />
-                            </button>
-                        </>
-                    ) : (
+                    <div className="flex-1" />
+                    {step < 3 && (
                         <button
-                            onClick={handleGenerate}
-                            className="flex-[2] py-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-[9px] tracking-widest shadow-lg shadow-emerald-900/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
+                            onClick={() => setStep(step + 1)}
+                            className="bg-indigo-600 text-white px-10 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/20 hover:scale-[1.05] transition-all flex items-center gap-2"
                         >
-                            <Wand2 size={16} /> GENERAR PRUEBA
+                            Continuar <ChevronRight size={16} />
                         </button>
                     )}
                 </div>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import {
-    ClipboardList, Target, LayoutDashboard, Database, BarChart3, Plus, Wand2
+    ClipboardList, Target, LayoutDashboard, Database, BarChart3, Calendar, Wand2
 } from 'lucide-react';
 import EvaluationsPage from './EvaluationsPage';
 import QuestionBankPage from './QuestionBankPage';
@@ -49,19 +49,25 @@ const AcademicCenter = () => {
                         </div>
 
 
-                        {/* Quick Actions */}
-                        <div className="flex flex-wrap items-center gap-4">
+                        {/* Quick Actions - Compact and Elegant */}
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
                             <button
                                 onClick={() => setActiveTab('evaluations')}
-                                className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 flex items-center gap-2"
+                                className="w-full sm:w-auto bg-amber-500 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] hover:scale-[1.02] hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2.5 group"
                             >
-                                <Wand2 size={18} /> Generar Prueba
+                                <div className="p-1.5 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                                    <Wand2 size={16} />
+                                </div>
+                                Generar Prueba
                             </button>
                             <button
                                 onClick={() => setActiveTab('evaluations')}
-                                className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 flex items-center gap-2"
+                                className="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] hover:scale-[1.02] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2.5 group"
                             >
-                                <Plus size={18} /> Programar Prueba
+                                <div className="p-1.5 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
+                                    <Calendar size={16} />
+                                </div>
+                                Programar Prueba
                             </button>
                         </div>
                     </div>
@@ -80,8 +86,7 @@ const AcademicCenter = () => {
                                         ${isActive
                                             ? `${tab.bg} border-blue-600/10 shadow-xl shadow-blue-900/5 -translate-y-1`
                                             : 'bg-white border-transparent hover:border-slate-100 text-slate-400 opacity-60 hover:opacity-100'
-                                        }
-                                    `}
+                                        }`}
                                 >
                                     <div className={`p-2 rounded-xl ${isActive ? tab.bg : 'bg-slate-50'} ${tab.color}`}>
                                         <Icon size={18} />

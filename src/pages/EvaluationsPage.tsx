@@ -179,14 +179,6 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                 />
-                {canManage && hideHeader && (
-                    <button
-                        onClick={() => setShowWizard(true)}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition"
-                    >
-                        Generar Prueba
-                    </button>
-                )}
             </div>
 
             {loading ? <p className="text-center py-20 font-black text-slate-300 uppercase animate-pulse">Cargando Evaluaciones...</p> : (
