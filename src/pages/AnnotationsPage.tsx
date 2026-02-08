@@ -48,14 +48,17 @@ const AnnotationsPage = () => {
 
     const fetchInitialData = async () => {
         try {
+            const isStudentOrGuardian = permissions.isStudent || permissions.isApoderado;
             const [annotRes, studRes, courseRes] = await Promise.all([
                 getAnotaciones(),
-                api.get('/estudiantes'),
-                api.get('/courses')
+                isStudentOrGuardian ? Promise.resolve({ data: [] }) : api.get('/estudiantes'),
+                isStudentOrGuardian ? Promise.resolve({ data: [] }) : api.get('/courses')
             ]);
             setAnotaciones(annotRes);
-            setStudents(studRes.data);
-            setCourses(courseRes.data);
+            if (!isStudentOrGuardian) {
+                setStudents(studRes.data);
+                setCourses(courseRes.data);
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -266,19 +269,21 @@ const AnnotationsPage = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4 items-center">
-                        <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-inner">
-                            <Filter size={16} className="text-gray-400" />
-                            <select
-                                className="text-sm font-bold bg-transparent outline-none"
-                                value={courseFilter}
-                                onChange={e => setCourseFilter(e.target.value)}
-                            >
-                                <option value="">Todos los Cursos</option>
-                                {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                            </select>
+                    {!permissions.isStudent && !permissions.isApoderado && (
+                        <div className="p-6 bg-gray-50 border-b border-gray-200 flex flex-wrap gap-4 items-center">
+                            <div className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl border shadow-inner">
+                                <Filter size={16} className="text-gray-400" />
+                                <select
+                                    className="text-sm font-bold bg-transparent outline-none"
+                                    value={courseFilter}
+                                    onChange={e => setCourseFilter(e.target.value)}
+                                >
+                                    <option value="">Todos los Cursos</option>
+                                    {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                                </select>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div className="overflow-x-auto">
                         <table className="min-w-full divide-y divide-gray-200">

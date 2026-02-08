@@ -217,6 +217,7 @@ const AttendancePage = () => {
                                 className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400"
                                 value={selectedCourse}
                                 onChange={e => setSelectedCourse(e.target.value)}
+                                disabled={isStudentOrGuardian}
                             >
                                 <option value="">Seleccionar Curso</option>
                                 {courses.map(c => (

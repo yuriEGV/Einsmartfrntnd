@@ -13,6 +13,12 @@ interface Tenant {
     contactEmail?: string;
     status: 'activo' | 'inactivo';
     createdAt: string;
+    stats?: {
+        studentCount: number;
+        courseCount: number;
+        globalAttendanceRate: number;
+        globalGradeAverage: number;
+    };
 }
 
 const TenantsPage = () => {
@@ -44,7 +50,19 @@ const TenantsPage = () => {
     const fetchTenants = async () => {
         try {
             const res = await api.get('/tenants');
-            setTenants(res.data);
+            const tenantsList = res.data;
+
+            // Fetch stats for each tenant
+            const tenantsWithStats = await Promise.all(tenantsList.map(async (t: Tenant) => {
+                try {
+                    const statsRes = await api.get(`/analytics/authority-stats?tenantId=${t._id}`);
+                    return { ...t, stats: statsRes.data };
+                } catch (e) {
+                    return t;
+                }
+            }));
+
+            setTenants(tenantsWithStats);
         } catch (err) {
             console.error('Error fetching tenants:', err);
         } finally {
@@ -216,6 +234,18 @@ const TenantsPage = () => {
                                             Plan: <span className={t.paymentType === 'paid' ? 'text-amber-600' : 'text-blue-600'}>{t.paymentType === 'paid' ? 'Institución de Pago' : 'Gratuite'}</span>
                                         </span>
                                     </div>
+                                    {t.stats && (
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <div className="bg-white p-2 rounded-xl border border-slate-100">
+                                                <div className="text-[8px] text-gray-400 uppercase font-black">Alumnos</div>
+                                                <div className="text-xs font-black text-slate-800">{t.stats.studentCount}</div>
+                                            </div>
+                                            <div className="bg-white p-2 rounded-xl border border-slate-100">
+                                                <div className="text-[8px] text-gray-400 uppercase font-black">Asistencia</div>
+                                                <div className="text-xs font-black text-emerald-600">{t.stats.globalAttendanceRate}%</div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="flex gap-3 pt-2">
@@ -273,12 +303,20 @@ const TenantsPage = () => {
                                         </div>
                                     </td>
                                     <td className="px-10 py-8">
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-2 text-slate-500 font-extrabold text-xs">
-                                                <MapPin size={14} className="text-slate-300" /> {t.address || 'N/A'}
+                                        <div className="flex items-center gap-8">
+                                            <div className="text-center">
+                                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Alumnos</div>
+                                                <div className="text-lg font-black text-slate-700">{t.stats?.studentCount || 0}</div>
                                             </div>
-                                            <div className="flex items-center gap-2 text-blue-600 font-black text-[10px] uppercase tracking-wider bg-blue-50 w-fit px-2 py-1 rounded-lg border border-blue-100">
-                                                <Mail size={12} /> {t.contactEmail || 'N/A'}
+                                            <div className="text-center">
+                                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Cursos</div>
+                                                <div className="text-lg font-black text-slate-700">{t.stats?.courseCount || 0}</div>
+                                            </div>
+                                            <div className="text-center">
+                                                <div className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Asistencia</div>
+                                                <div className={`text-lg font-black ${(t.stats?.globalAttendanceRate || 0) < 85 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                                    {t.stats?.globalAttendanceRate || 0}%
+                                                </div>
                                             </div>
                                         </div>
                                     </td>

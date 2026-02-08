@@ -7,7 +7,10 @@ import {
     Plus,
     FileText,
     PieChart,
-    AlertCircle
+    AlertCircle,
+    Users,
+    Calendar,
+    Award
 } from 'lucide-react';
 import api from '../services/api';
 
@@ -28,10 +31,12 @@ const SostenedorDashboard = () => {
         date: new Date().toISOString().split('T')[0],
         type: 'Normal'
     });
+    const [authorityStats, setAuthorityStats] = useState<any>(null);
 
     useEffect(() => {
         fetchData();
         fetchCourses();
+        fetchAuthorityStats();
     }, []);
 
     useEffect(() => {
@@ -64,6 +69,15 @@ const SostenedorDashboard = () => {
             setDebtStats(res.data);
         } catch (error) {
             console.error(error);
+        }
+    };
+
+    const fetchAuthorityStats = async () => {
+        try {
+            const res = await api.get('/analytics/authority-stats');
+            setAuthorityStats(res.data);
+        } catch (error) {
+            console.error('Error fetching authority stats:', error);
         }
     };
 
@@ -156,6 +170,40 @@ const SostenedorDashboard = () => {
                     <p className="text-emerald-600 font-black text-xl">Saludable</p>
                 </div>
             </div>
+
+            {/* Academic Stats Section for Authority */}
+            {authorityStats && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl"><Users size={24} /></div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Matrícula</p>
+                            <p className="text-2xl font-black text-slate-800">{authorityStats.studentCount}</p>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl"><Calendar size={24} /></div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Asistencia Global</p>
+                            <p className="text-2xl font-black text-emerald-600">{authorityStats.globalAttendanceRate}%</p>
+                        </div>
+                    </div>
+                    <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4">
+                        <div className="p-4 bg-amber-50 text-amber-600 rounded-2xl"><Award size={24} /></div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio General</p>
+                            <p className="text-2xl font-black text-amber-600">{authorityStats.globalGradeAverage}</p>
+                        </div>
+                    </div>
+                    <div className="bg-[#11355a] p-6 rounded-3xl shadow-xl flex items-center gap-4 text-white">
+                        <div className="p-4 bg-white/10 rounded-2xl"><TrendingUp size={24} /></div>
+                        <div>
+                            <p className="text-[10px] font-bold text-blue-200 uppercase tracking-widest">Proyección</p>
+                            <p className="text-xl font-black text-white italic">Positiva</p>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Debt Analysis */}
