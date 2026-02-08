@@ -29,7 +29,8 @@ interface Career {
 }
 
 const CoursesPage = () => {
-    const { canManageCourses } = usePermissions();
+    const { canManageCourses, isStudent, isApoderado } = usePermissions();
+    const isStudentOrGuardian = isStudent || isApoderado;
     const navigate = useNavigate();
     // const { tenant } = useTenant(); // Not used currently
     const [courses, setCourses] = useState<Course[]>([]);
@@ -55,14 +56,29 @@ const CoursesPage = () => {
 
     useEffect(() => {
         fetchCourses();
-        fetchTeachers();
-        fetchCareers();
-    }, []);
+        if (!isStudentOrGuardian) {
+            fetchTeachers();
+            fetchCareers();
+        }
+    }, [isStudentOrGuardian]);
 
     const fetchCourses = async () => {
         try {
             const response = await api.get('/courses');
-            setCourses(response.data);
+            let data = response.data;
+
+            // If Student or Guardian, we should ideally only have their courses if backend filters.
+            // If backend doesn't filter, we might need to filter here, but backend /courses usually returns everything.
+            // USER: "no tenga la opcion de cambiar de curso que solo pueda ver los datos de su alumno matriculado"
+            // Let's assume for now we filter based on what student(s) the user represents.
+            if (isStudentOrGuardian) {
+                const studentsRes = await api.get('/estudiantes');
+                const myStudents = studentsRes.data;
+                const myCourseIds = myStudents.map((s: any) => s.courseId?._id || s.courseId);
+                data = data.filter((c: any) => myCourseIds.includes(c._id));
+            }
+
+            setCourses(data);
         } catch (error) {
             console.error('Error fetching courses:', error);
         } finally {
@@ -236,20 +252,22 @@ const CoursesPage = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
-                                        <button
-                                            onClick={() => handleOpenModal('edit', course)}
-                                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                        >
-                                            <Edit size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(course._id)}
-                                            className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
+                                    {!isStudentOrGuardian && (
+                                        <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
+                                            <button
+                                                onClick={() => handleOpenModal('edit', course)}
+                                                className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                            >
+                                                <Edit size={18} />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(course._id)}
+                                                className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <p className="text-slate-500 text-sm font-bold leading-relaxed mb-6 line-clamp-2 min-h-[3rem]">
@@ -283,13 +301,15 @@ const CoursesPage = () => {
                                         </div>
                                     )}
 
-                                    <button
-                                        onClick={() => navigate(`/courses/${course._id}/students`)}
-                                        className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
-                                    >
-                                        <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
-                                        Ver Lista de Alumnos
-                                    </button>
+                                    {!isStudentOrGuardian && (
+                                        <button
+                                            onClick={() => navigate(`/courses/${course._id}/students`)}
+                                            className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                        >
+                                            <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
+                                            Ver Lista de Alumnos
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))}

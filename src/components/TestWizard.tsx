@@ -100,16 +100,16 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
 
     return (
         <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[100] flex items-center justify-center p-4 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-5xl h-[75vh] max-h-[900px] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-500">
+            <div className="bg-white w-full max-w-5xl h-[85vh] max-h-[900px] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-500">
 
                 {/* Header */}
-                <div className="bg-[#11355a] p-10 text-white flex justify-between items-start shrink-0 relative overflow-hidden">
-                    <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="p-2 bg-white/10 rounded-xl"><Wand2 size={24} /></div>
-                            <span className="font-bold text-blue-200 tracking-widest text-xs uppercase">Asistente Inteligente</span>
+                <div className="bg-[#11355a] px-5 py-3 text-white flex justify-between items-center shrink-0 relative overflow-hidden">
+                    <div className="relative z-10 flex items-center gap-3">
+                        <div className="p-1.5 bg-white/10 rounded-lg"><Wand2 size={16} /></div>
+                        <div>
+                            <span className="font-bold text-blue-200 tracking-widest text-[8px] uppercase block leading-none mb-0.5">Asistente Inteligente</span>
+                            <h2 className="text-lg font-black tracking-tighter uppercase leading-none">Generador de Pruebas</h2>
                         </div>
-                        <h2 className="text-4xl font-black tracking-tighter uppercase leading-none">Generador de Pruebas</h2>
                     </div>
                     <button onClick={onClose} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all relative z-10">
                         <span className="sr-only">Cerrar</span>
@@ -120,11 +120,11 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                 </div>
 
                 {/* Steps Indicator */}
-                <div className="px-10 py-6 bg-slate-50 border-b border-slate-100 flex items-center gap-4 overflow-x-auto shrink-0">
+                <div className="px-5 py-2 bg-slate-50 border-b border-slate-100 flex items-center gap-2 overflow-x-auto shrink-0">
                     {[1, 2, 3].map(s => (
-                        <div key={s} className={`flex items-center gap-3 px-6 py-3 rounded-2xl transition-all ${step === s ? 'bg-white shadow-lg border-2 border-slate-100' : 'opacity-40'}`}>
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-sm ${step === s ? 'bg-[#11355a] text-white' : 'bg-slate-200 text-slate-500'}`}>{s}</div>
-                            <span className={`font-black text-xs uppercase tracking-widest whitespace-nowrap ${step === s ? 'text-[#11355a]' : 'text-slate-400'}`}>
+                        <div key={s} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-all ${step === s ? 'bg-white shadow-sm border border-slate-200' : 'opacity-40'}`}>
+                            <div className={`w-5 h-5 rounded-full flex items-center justify-center font-black text-[10px] ${step === s ? 'bg-[#11355a] text-white' : 'bg-slate-200 text-slate-500'}`}>{s}</div>
+                            <span className={`font-black text-[9px] uppercase tracking-widest whitespace-nowrap ${step === s ? 'text-[#11355a]' : 'text-slate-400'}`}>
                                 {s === 1 ? 'Configuración' : s === 2 ? 'Objetivos' : 'Preguntas'}
                             </span>
                         </div>
@@ -132,14 +132,14 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-10 custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar relative">
                     {step === 1 && (
-                        <div className="space-y-8 max-w-2xl mx-auto animate-in slide-in-from-right-4">
-                            <div className="bg-blue-50 p-6 rounded-[2rem] border border-blue-100 flex gap-4 items-start">
-                                <AlertCircle className="text-blue-600 shrink-0 mt-1" />
+                        <div className="space-y-6 max-w-2xl mx-auto animate-in slide-in-from-right-4">
+                            <div className="bg-blue-50 p-3 rounded-xl border border-blue-100 flex gap-3 items-start">
+                                <AlertCircle className="text-blue-600 shrink-0 mt-0.5" size={16} />
                                 <div>
-                                    <h4 className="font-black text-blue-800 uppercase text-xs tracking-widest mb-1">Paso 1: Configuración Básica</h4>
-                                    <p className="text-blue-600/80 text-sm font-medium leading-relaxed">Defina los parámetros generales de la evaluación. Si seleccionó un curso y asignatura previamente, estos campos estarán pre-llenados.</p>
+                                    <h4 className="font-black text-blue-800 uppercase text-[9px] tracking-widest leading-none mb-1">Paso 1: Configuración Básica</h4>
+                                    <p className="text-blue-600/80 text-[10px] font-medium leading-tight">Defina los parámetros generales de la evaluación. Estos campos pueden estar pre-llenados.</p>
                                 </div>
                             </div>
                             <div className="space-y-6">
@@ -342,13 +342,13 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-8 bg-slate-50 border-t shrink-0 flex justify-between gap-4">
+                <div className="p-4 bg-slate-50 border-t shrink-0 flex justify-between gap-3">
                     {step > 1 && (
                         <button
                             onClick={() => setStep(step - 1)}
-                            className="flex-1 py-5 bg-white text-slate-400 border border-slate-200 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
+                            className="flex-1 py-3 bg-white text-slate-400 border border-slate-200 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-slate-100 transition-all flex items-center justify-center gap-2"
                         >
-                            <ChevronLeft size={20} /> Anterior
+                            <ChevronLeft size={16} /> Anterior
                         </button>
                     )}
                     {step < 3 ? (
@@ -356,9 +356,9 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                             {step === 2 && (
                                 <button
                                     onClick={() => setStep(3)}
-                                    className="flex-1 py-5 bg-slate-100 text-slate-500 rounded-3xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
+                                    className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2"
                                 >
-                                    Saltar Objetivos →
+                                    Saltar →
                                 </button>
                             )}
                             <button
@@ -368,17 +368,17 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, onSucc
                                     if (step === 1 && !selectedSubject) return alert("Seleccione una asignatura");
                                     setStep(step + 1);
                                 }}
-                                className="flex-[2] py-5 bg-amber-500 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                                className="flex-[2] py-3 bg-amber-500 text-white rounded-xl font-black uppercase text-[9px] tracking-widest shadow-lg shadow-amber-900/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
                             >
-                                Siguiente <ChevronRight size={20} />
+                                Siguiente <ChevronRight size={16} />
                             </button>
                         </>
                     ) : (
                         <button
                             onClick={handleGenerate}
-                            className="flex-[2] py-5 bg-emerald-600 text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] transition-all flex items-center justify-center gap-2"
+                            className="flex-[2] py-3 bg-emerald-600 text-white rounded-xl font-black uppercase text-[9px] tracking-widest shadow-lg shadow-emerald-900/20 hover:scale-[1.01] transition-all flex items-center justify-center gap-2"
                         >
-                            <Wand2 size={20} /> FINALIZAR Y GENERAR PRUEBA
+                            <Wand2 size={16} /> GENERAR PRUEBA
                         </button>
                     )}
                 </div>

@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight } from 'lucide-react';
+import EvaluationCalendar from '../components/EvaluationCalendar';
+import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -27,6 +28,7 @@ const DashboardPage = () => {
     // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [pendingSignatures, setPendingSignatures] = useState([]);
+    const [adminRanking, setAdminRanking] = useState([]);
 
     useEffect(() => {
         if (user) {
@@ -60,9 +62,15 @@ const DashboardPage = () => {
                 // const anotRes = await api.get('/anotaciones');
                 // setRecentAnotaciones(anotRes.data.slice(0, 5));
             } else {
-                // [NEW] Fetch notifications for Admin/Sostenedor
+                // [NEW] Fetch notifications for Admin/Sostenedor/Director
                 const notifRes = await api.get('/user-notifications');
                 setNotifications(notifRes.data.slice(0, 5));
+
+                // [NEW] Fetch Admin Day Ranking for Director/Sostenedor
+                if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin) {
+                    const rankingRes = await api.get('/admin-days/ranking');
+                    setAdminRanking(rankingRes.data.slice(0, 5));
+                }
             }
         } catch (error) {
             console.error('Error loading dashboard data', error);
@@ -234,8 +242,8 @@ const DashboardPage = () => {
                     </div>
                 )}
 
-                {/* [NEW] General Notifications for Admin/Sostenedor */}
-                {(user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher') && (
+                {/* [NEW] General Notifications for Admin/Sostenedor/Director */}
+                {(user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher' || user?.role === 'director') && (
                     <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mt-6">
                         <div
                             className="px-8 py-6"
@@ -275,8 +283,46 @@ const DashboardPage = () => {
                         </div>
                     </div>
                 )}
+                {/* [NEW] Administrative Days Ranking for Director/Sostenedor */}
+                {(user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin) && adminRanking.length > 0 && (
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mt-6">
+                        <div
+                            className="px-8 py-6"
+                            style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
+                        >
+                            <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
+                                <Award size={18} className="text-amber-300" /> RANKING DÍAS ADMINISTRATIVOS
+                            </h2>
+                        </div>
+                        <div className="p-6 md:p-8 space-y-4">
+                            {adminRanking.map((rank: any, index: number) => (
+                                <div key={rank.userId} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-[1.5rem] transition-all border-2 border-transparent hover:border-slate-100 group">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0 ${index === 0 ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}>
+                                        #{index + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-slate-800 text-sm leading-tight uppercase">{rank.userName}</h4>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{rank.role}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-xl font-black text-blue-600 tracking-tighter">{rank.usedDays}</span>
+                                        <p className="text-[8px] font-black text-slate-300 uppercase leading-none">Días Usados</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
-            );
+
+            {/* Evaluation Calendar for Students and Guardians */}
+            {(user?.role === 'student' || user?.role === 'apoderado') && (
+                <EvaluationCalendar
+                    studentId={user?.role === 'student' ? user._id : undefined}
+                    guardianId={user?.role === 'apoderado' ? user._id : undefined}
+                />
+            )}
+
             {canEditProfile && (
                 <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                     <div

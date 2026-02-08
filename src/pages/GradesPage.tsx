@@ -194,24 +194,29 @@ const GradesPage = () => {
                 </div>
 
                 <div className="flex flex-wrap w-full md:w-auto gap-3">
-                    <select
-                        className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
-                        value={selectedCourse}
-                        onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
-                    >
-                        <option value="">Curso: Todos</option>
-                        {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                    </select>
+                    {!permissions.isStudent && !permissions.isApoderado && (
+                        <select
+                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
+                            value={selectedCourse}
+                            onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
+                        >
+                            <option value="">Curso: Todos</option>
+                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                        </select>
+                    )}
 
                     <select
                         className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
                         value={selectedSubject}
                         onChange={e => setSelectedSubject(e.target.value)}
-                        disabled={!selectedCourse}
+                        disabled={!selectedCourse && !permissions.isStudent && !permissions.isApoderado}
                     >
                         <option value="">Asignatura: Todas</option>
                         {subjects
-                            .filter(s => (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse)
+                            .filter(s => {
+                                if (permissions.isStudent || permissions.isApoderado) return true; // Subjects should already be filtered by backend or context if needed
+                                return (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse;
+                            })
                             .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
 

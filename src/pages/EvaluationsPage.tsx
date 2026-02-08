@@ -32,8 +32,8 @@ interface Subject {
 }
 
 const EvaluationsPage = () => {
-    const { canEditGrades, isSuperAdmin } = usePermissions();
-    // Reusing permissions: canEditGrades usually implies managing evaluations too for teachers.
+    const { canEditGrades, isSuperAdmin, isStudent, isApoderado, isTeacher } = usePermissions();
+    const isStaff = !isStudent && !isApoderado;
 
     const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -56,13 +56,23 @@ const EvaluationsPage = () => {
 
     useEffect(() => {
         fetchData();
-        fetchAuxData();
-    }, []);
+        if (isStaff) {
+            fetchAuxData();
+        }
+    }, [isStaff]);
 
     const fetchData = async () => {
         try {
             const response = await api.get('/evaluations');
-            setEvaluations(response.data);
+            let data = response.data;
+
+            // Students only see planned evaluations (not surprise ones until they are done, usually)
+            // But per requirement "calendario de pruebas fijadas", planned is what they need.
+            if (isStudent) {
+                data = data.filter((e: any) => e.category !== 'sorpresa' && e.category !== 'surprise');
+            }
+
+            setEvaluations(data);
             setLoading(false);
         } catch (error) {
             console.error(error);
@@ -140,14 +150,16 @@ const EvaluationsPage = () => {
         e.subject.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const canManage = canEditGrades || isSuperAdmin || usePermissions().isTeacher;
+    const canManage = (canEditGrades || isSuperAdmin || isTeacher) && isStaff;
+
+    const pageTitle = isStaff ? 'Gestión de Evaluaciones' : 'Calendario de Evaluaciones';
 
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
                 <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                     <ClipboardList className="text-[#11355a]" />
-                    Gestión de Evaluaciones
+                    {pageTitle}
                 </h1>
                 {canManage && (
                     <button

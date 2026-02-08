@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
     UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
-    DollarSign, UserCheck, CreditCard, ChevronRight, Save
+    DollarSign, UserCheck, CreditCard, ChevronRight, Save, Printer
 } from 'lucide-react';
 import { validateRut, formatRut } from '../services/utils';
 
@@ -116,6 +116,20 @@ const EnrollmentsPage = () => {
         }
     };
 
+    const handleSendReport = async () => {
+        const period = prompt('Ingrese el periodo (año) para el reporte:', new Date().getFullYear().toString());
+        if (!period) return;
+
+        try {
+            setLoading(true);
+            const response = await api.post(`/enrollments/trigger-summary?period=${period}`);
+            alert(response.data.message);
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al enviar reporte');
+        } finally {
+            setLoading(false);
+        }
+    };
     const fetchEnrollments = async () => {
         setLoading(true);
         try {
@@ -258,13 +272,22 @@ const EnrollmentsPage = () => {
                         </button>
                     </div>
                     {permissions.isSuperAdmin && activeTab === 'list' && (
-                        <button
-                            onClick={handleSendInstitutionalList}
-                            className="px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
-                        >
-                            <Save size={14} />
-                            Enviar Listado Institucional
-                        </button>
+                        <>
+                            <button
+                                onClick={handleSendInstitutionalList}
+                                className="px-6 py-2.5 bg-sky-50 text-sky-700 border border-sky-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-100 transition-all flex items-center gap-2"
+                            >
+                                <Save size={14} />
+                                Listado Institucional
+                            </button>
+                            <button
+                                onClick={handleSendReport}
+                                className="px-6 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-100 transition-all flex items-center gap-2"
+                            >
+                                <Printer size={14} />
+                                Resumen Directivos
+                            </button>
+                        </>
                     )}
                 </div>
             </div>

@@ -1,17 +1,15 @@
-
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import TestWizard from '../components/TestWizard';
+import PrintButton from '../components/PrintButton';
 import {
-    BookOpen, ClipboardList,
-    Calendar,
-    UserCheck, AlertCircle,
-    LayoutGrid, List, Search, Save,
-    Trash2, X, ShieldCheck, Wand2, GraduationCap, Printer
+    BookOpen, GraduationCap, X, Save,
+    Trash2, AlertCircle, Calendar, List, Search, Wand2, ShieldCheck,
+    UserCheck, ClipboardList, Printer, LayoutGrid
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useReactToPrint } from 'react-to-print';
 import { useRef } from 'react';
-import TestWizard from '../components/TestWizard';
 
 const UnifiedClassBook = () => {
     const { isStaff, user } = usePermissions();
@@ -671,6 +669,11 @@ const UnifiedClassBook = () => {
                                             )}
                                         </div>
                                         <div className="flex gap-2 pt-6 border-t border-slate-50">
+                                            <PrintButton
+                                                evaluationId={ev._id}
+                                                title={ev.title}
+                                                questions={ev.questions || []}
+                                            />
                                             <button onClick={() => openEvalModal(ev)} className="flex-1 py-3 bg-slate-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-50 transition-colors">Editar</button>
                                             <button onClick={async () => { if (window.confirm('¿Eliminar?')) { await api.delete(`/evaluations/${ev._id}`); refreshTabContent(); } }} className="px-4 py-3 bg-slate-50 text-rose-400 rounded-xl hover:bg-rose-50 transition-colors"><Trash2 size={16} /></button>
                                         </div>
