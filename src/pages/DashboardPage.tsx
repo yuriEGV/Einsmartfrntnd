@@ -315,8 +315,8 @@ const DashboardPage = () => {
                 )}
             </div>
 
-            {/* Evaluation Calendar for Students and Guardians */}
-            {(user?.role === 'student' || user?.role === 'apoderado') && (
+            {/* Evaluation Calendar for Students, Guardians and UTP */}
+            {(user?.role === 'student' || user?.role === 'apoderado' || user?.role === 'utp') && (
                 <EvaluationCalendar
                     studentId={user?.role === 'student' ? user._id : undefined}
                     guardianId={user?.role === 'apoderado' ? user._id : undefined}

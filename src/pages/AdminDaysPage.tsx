@@ -52,7 +52,7 @@ const AdminDaysPage = () => {
         setLoading(true);
         try {
             const [reqRes, statsRes] = await Promise.all([
-                permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin'
+                permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director'
                     ? api.get('/admin-days/all')
                     : api.get('/admin-days/my-requests'),
                 api.get('/admin-days/stats')
@@ -214,7 +214,7 @@ const AdminDaysPage = () => {
                                     </div>
 
                                     <div>
-                                        {(permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin') && (
+                                        {(permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director') && (
                                             <div className="flex items-center gap-2 mb-1">
                                                 <User size={14} className="text-slate-400" />
                                                 <span className="font-black text-slate-700 uppercase tracking-tight text-sm">{req.userId.name}</span>
@@ -233,7 +233,7 @@ const AdminDaysPage = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3">
-                                    {req.status === 'pendiente' && (permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin') ? (
+                                    {req.status === 'pendiente' && (permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director') ? (
                                         <>
                                             <button
                                                 onClick={() => handleUpdateStatus(req._id, 'aprobado')}
