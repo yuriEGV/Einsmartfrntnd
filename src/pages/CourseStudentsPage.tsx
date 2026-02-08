@@ -46,24 +46,19 @@ const CourseStudentsPage = () => {
             // Checking enrollmentController (Step 306). Yes, getEnrollmentsByCourse.
             // It should populate 'estudianteId'.
 
+            // Set data
             setStudents(enrollRes.data);
 
-            // If the course endpoint works specifically:
-            // If not, we can infer course name from first enrollment or passed state. 
-            // Let's try to get course info directly if possible.
-            // If GET /courses/:id is not implemented, we might need to find it in the list.
-            // Let's try generic GET /courses/:id
-            try {
-                // Check if route exists. We saw coursesPage list using GET /courses. 
-                // We didn't check if GET /courses/:id exists in courseRoutes.js.
-                // Assuming it does for now.
-                // Actually, let's just use what we have.
-            } catch (e) {
-                console.log("Could not fetch course details individually");
-            }
-            // For now, let's use the first enrollment's course info if available or just ID.
-            if (enrollRes.data.length > 0 && enrollRes.data[0].courseId) {
-                setCourse(enrollRes.data[0].courseId); // If populated
+            // Robust course naming
+            if (enrollRes.data.length > 0) {
+                const firstEnroll = enrollRes.data[0];
+                const courseInfo = firstEnroll.courseId || {};
+                if (courseInfo.name) {
+                    setCourse(courseInfo);
+                } else {
+                    // Try to fetch explicitly if missing or just use first available data
+                    setCourse({ _id: id, name: courseInfo.name || 'Curso' });
+                }
             }
 
         } catch (error) {

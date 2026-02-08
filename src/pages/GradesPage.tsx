@@ -21,6 +21,7 @@ interface Grade {
     score: number;
     tenantId: string;
     comments?: string;
+    subjectId?: string; // Cache subjectId if possible
 }
 
 interface Student {
@@ -33,7 +34,9 @@ interface Student {
 interface Evaluation {
     _id: string;
     title: string;
-    subject: string;
+    subjectId: string;
+    courseId: string; // Added to resolve lint errors
+    subject?: string;
 }
 
 const GradesPage = () => {
@@ -159,20 +162,20 @@ const GradesPage = () => {
     const displayedGrades = filteredGrades.filter(g => {
         if (!selectedCourse && !selectedSubject) return true;
 
-        // Find subject for this grade's evaluation
+        // Find evaluation for this grade
         const evalItem = evaluations.find(e => e._id === g.evaluationId?._id);
         if (!evalItem) return false;
 
-        // Find subject record to check courseId
-        const subjectRecord = subjects.find(s => s.name === evalItem.subject &&
-            (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse);
-
-        if (selectedCourse && !selectedSubject) {
-            return subjectRecord !== undefined;
+        // Match by subjectId if subject selected
+        if (selectedSubject) {
+            const evalSubjectId = typeof evalItem.subjectId === 'object' ? (evalItem.subjectId as any)._id : evalItem.subjectId;
+            return evalSubjectId === selectedSubject;
         }
 
-        if (selectedSubject) {
-            return subjectRecord?._id === selectedSubject;
+        // Match by courseId if course selected
+        if (selectedCourse) {
+            const evalCourseId = typeof evalItem.courseId === 'object' ? (evalItem.courseId as any)._id : evalItem.courseId;
+            return evalCourseId === selectedCourse;
         }
 
         return true;
@@ -214,8 +217,10 @@ const GradesPage = () => {
                         <option value="">Asignatura: Todas</option>
                         {subjects
                             .filter(s => {
-                                if (permissions.isStudent || permissions.isApoderado) return true; // Subjects should already be filtered by backend or context if needed
-                                return (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse;
+                                if (permissions.isStudent || permissions.isApoderado) return true;
+                                if (!selectedCourse) return true;
+                                const sCourseId = typeof s.courseId === 'object' ? s.courseId._id : s.courseId;
+                                return sCourseId === selectedCourse;
                             })
                             .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
@@ -448,7 +453,11 @@ const GradesPage = () => {
                                         required
                                     >
                                         <option value="">Seleccione...</option>
-                                        {evaluations.map(ev => <option key={ev._id} value={ev._id}>{ev.title} ({ev.subject})</option>)}
+                                        {evaluations.map(ev => (
+                                            <option key={ev._id} value={ev._id}>
+                                                {ev.title} ({ev.subject || subjects.find(s => s._id === (ev as any).subjectId)?.name || 'Gral'})
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>
