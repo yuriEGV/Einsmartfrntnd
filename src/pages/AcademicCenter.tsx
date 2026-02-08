@@ -6,9 +6,12 @@ import EvaluationsPage from './EvaluationsPage';
 import QuestionBankPage from './QuestionBankPage';
 import CurriculumMaterialPage from './CurriculumMaterialPage';
 import GradesPage from './GradesPage';
+import TestWizard from '../components/TestWizard';
 
 const AcademicCenter = () => {
     const [activeTab, setActiveTab] = useState('evaluations');
+    const [showWizard, setShowWizard] = useState(false);
+    const [wizardCategory, setWizardCategory] = useState<'planificada' | 'sorpresa'>('planificada');
 
     const tabs = [
         { id: 'evaluations', label: 'Evaluaciones (Pruebas)', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
@@ -52,7 +55,10 @@ const AcademicCenter = () => {
                         {/* Quick Actions - Compact and Elegant */}
                         <div className="flex flex-col sm:flex-row items-center gap-3">
                             <button
-                                onClick={() => setActiveTab('evaluations')}
+                                onClick={() => {
+                                    setWizardCategory('sorpresa');
+                                    setShowWizard(true);
+                                }}
                                 className="w-full sm:w-auto bg-amber-500 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] hover:scale-[1.02] hover:bg-amber-600 transition-all shadow-xl shadow-amber-500/20 flex items-center justify-center gap-2.5 group"
                             >
                                 <div className="p-1.5 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
@@ -61,7 +67,10 @@ const AcademicCenter = () => {
                                 Generar Prueba
                             </button>
                             <button
-                                onClick={() => setActiveTab('evaluations')}
+                                onClick={() => {
+                                    setWizardCategory('planificada');
+                                    setShowWizard(true);
+                                }}
                                 className="w-full sm:w-auto bg-emerald-600 text-white px-6 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-[0.15em] hover:scale-[1.02] hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2.5 group"
                             >
                                 <div className="p-1.5 bg-white/20 rounded-lg group-hover:scale-110 transition-transform">
@@ -111,6 +120,18 @@ const AcademicCenter = () => {
                     {renderContent()}
                 </div>
             </div>
+
+            {/* Test Wizard */}
+            <TestWizard
+                isOpen={showWizard}
+                onClose={() => setShowWizard(false)}
+                initialCategory={wizardCategory}
+                onSuccess={() => {
+                    setShowWizard(false);
+                    // Optionally refresh the current tab if needed
+                    setActiveTab('evaluations');
+                }}
+            />
         </div>
     );
 };

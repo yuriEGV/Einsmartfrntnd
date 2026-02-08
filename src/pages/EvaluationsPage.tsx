@@ -248,16 +248,21 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                     </div>
 
                                     {/* Action Shortcuts */}
-                                    <div className="pt-4 border-t border-slate-50 flex gap-2">
+                                    <div className="pt-4 border-t border-slate-50 flex gap-2 overflow-x-auto custom-scrollbar pb-1">
                                         <button
                                             onClick={() => setViewingEval(ev)}
-                                            className="flex-1 bg-slate-50 hover:bg-slate-100 text-slate-500 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
+                                            className="flex-1 min-w-[100px] bg-slate-50 hover:bg-slate-100 text-slate-500 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
                                         >
                                             Ver Contenido
                                         </button>
+                                        <PrintButton
+                                            evaluationId={ev._id}
+                                            title={ev.title}
+                                            questions={(ev as any).questions || []}
+                                        />
                                         <button
                                             onClick={() => window.location.href = `/grades?evaluationId=${ev._id}`}
-                                            className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
+                                            className="flex-1 min-w-[110px] bg-blue-50 hover:bg-blue-100 text-blue-600 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
                                         >
                                             Ver Resultados
                                         </button>
