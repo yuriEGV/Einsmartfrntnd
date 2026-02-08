@@ -1,11 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { usePermissions } from '../hooks/usePermissions';
-import api from '../services/api';
+import { useState } from 'react';
 import {
-    Wand2, Database, BookOpen, ClipboardList,
-    Plus, Search, Filter, ChevronRight,
-    Target, BarChart3, HelpCircle, LayoutDashboard
+    ClipboardList, Target, LayoutDashboard, Database, BarChart3
 } from 'lucide-react';
 import EvaluationsPage from './EvaluationsPage';
 import QuestionBankPage from './QuestionBankPage';
@@ -14,8 +9,6 @@ import GradesPage from './GradesPage';
 
 const AcademicCenter = () => {
     const [activeTab, setActiveTab] = useState('evaluations');
-    const { user } = useAuth();
-    const { isAdmin, isTeacher } = usePermissions();
 
     const tabs = [
         { id: 'evaluations', label: 'Evaluaciones', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
