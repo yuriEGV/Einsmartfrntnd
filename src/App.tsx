@@ -37,6 +37,7 @@ import EventRequestsPage from './pages/EventRequestsPage';
 import UnifiedClassBook from './pages/UnifiedClassBook';
 import ForcePasswordReset from './pages/ForcePasswordReset';
 import CareersPage from './pages/CareersPage';
+import AcademicCenter from './pages/AcademicCenter';
 
 function App() {
   return (
@@ -70,6 +71,7 @@ function App() {
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/curriculum-material" element={<CurriculumMaterialPage />} />
+            <Route path="/academic" element={<AcademicCenter />} />
 
             {/* Rutas para Gestión de Nóminas */}
             <Route path="/payroll" element={<PayrollPage />} />

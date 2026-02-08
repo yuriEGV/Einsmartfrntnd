@@ -39,7 +39,7 @@ interface Evaluation {
     subject?: string;
 }
 
-const GradesPage = () => {
+const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const canManageGrades = permissions.canEditGrades;
 
@@ -186,87 +186,89 @@ const GradesPage = () => {
     );
 
     return (
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <ClipboardList size={32} />
-                        Libro de Clases: Notas
-                    </h1>
-                    <p className="text-gray-500 font-medium">Registro académico oficial del establecimiento.</p>
-                </div>
-
-                <div className="flex flex-wrap w-full md:w-auto gap-3">
-                    {!permissions.isStudent && !permissions.isApoderado && (
-                        <select
-                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
-                            value={selectedCourse}
-                            onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
-                        >
-                            <option value="">Curso: Todos</option>
-                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                        </select>
-                    )}
-
-                    <select
-                        className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
-                        value={selectedSubject}
-                        onChange={e => setSelectedSubject(e.target.value)}
-                        disabled={!selectedCourse && !permissions.isStudent && !permissions.isApoderado}
-                    >
-                        <option value="">Asignatura: Todas</option>
-                        {subjects
-                            .filter(s => {
-                                if (permissions.isStudent || permissions.isApoderado) return true;
-                                if (!selectedCourse) return true;
-                                const sCourseId = typeof s.courseId === 'object' ? s.courseId._id : s.courseId;
-                                return sCourseId === selectedCourse;
-                            })
-                            .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                    </select>
-
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input
-                            placeholder="Buscar alumno..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
+        <div className={`${hideHeader ? 'p-0' : 'p-6'}`}>
+            {!hideHeader && (
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <ClipboardList size={32} />
+                            Libro de Clases: Notas
+                        </h1>
+                        <p className="text-gray-500 font-medium">Registro académico oficial del establecimiento.</p>
                     </div>
 
-                    {permissions.isStaff && (
-                        <button
-                            onClick={() => window.location.href = '/evaluations'}
-                            className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
+                    <div className="flex flex-wrap w-full md:w-auto gap-3">
+                        {!permissions.isStudent && !permissions.isApoderado && (
+                            <select
+                                className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
+                                value={selectedCourse}
+                                onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
+                            >
+                                <option value="">Curso: Todos</option>
+                                {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                            </select>
+                        )}
+
+                        <select
+                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
+                            value={selectedSubject}
+                            onChange={e => setSelectedSubject(e.target.value)}
+                            disabled={!selectedCourse && !permissions.isStudent && !permissions.isApoderado}
                         >
-                            <Plus size={20} />
-                            CREAR PRUEBA
-                        </button>
-                    )}
-                    {canManageGrades && (
+                            <option value="">Asignatura: Todas</option>
+                            {subjects
+                                .filter(s => {
+                                    if (permissions.isStudent || permissions.isApoderado) return true;
+                                    if (!selectedCourse) return true;
+                                    const sCourseId = typeof s.courseId === 'object' ? s.courseId._id : s.courseId;
+                                    return sCourseId === selectedCourse;
+                                })
+                                .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                        </select>
+
+                        <div className="relative flex-1 md:w-64">
+                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <input
+                                placeholder="Buscar alumno..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+
+                        {permissions.isStaff && (
+                            <button
+                                onClick={() => window.location.href = '/evaluations'}
+                                className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
+                            >
+                                <Plus size={20} />
+                                CREAR PRUEBA
+                            </button>
+                        )}
+                        {canManageGrades && (
+                            <button
+                                onClick={() => {
+                                    setModalMode('create');
+                                    setFormData({ _id: '', estudianteId: '', evaluationId: '', score: 4.0, comments: '' });
+                                    setStudentSearch('');
+                                    setShowModal(true);
+                                }}
+                                className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                            >
+                                <Plus size={20} />
+                                Ingresar Nota
+                            </button>
+                        )}
                         <button
-                            onClick={() => {
-                                setModalMode('create');
-                                setFormData({ _id: '', estudianteId: '', evaluationId: '', score: 4.0, comments: '' });
-                                setStudentSearch('');
-                                setShowModal(true);
-                            }}
-                            className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                            onClick={handlePrint}
+                            className="bg-white text-gray-600 px-6 py-2.5 rounded-xl font-bold border border-gray-200 flex items-center gap-2 hover:bg-gray-50 transition-all"
                         >
-                            <Plus size={20} />
-                            Ingresar Nota
+                            <Printer size={20} />
+                            Imprimir
                         </button>
-                    )}
-                    <button
-                        onClick={handlePrint}
-                        className="bg-white text-gray-600 px-6 py-2.5 rounded-xl font-bold border border-gray-200 flex items-center gap-2 hover:bg-gray-50 transition-all"
-                    >
-                        <Printer size={20} />
-                        Imprimir
-                    </button>
+                    </div>
                 </div>
-            </div>
+            )}
 
             {loading ? (
                 <div className="flex justify-center p-12">

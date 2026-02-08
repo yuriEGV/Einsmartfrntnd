@@ -21,7 +21,7 @@ interface Subject {
     courseId: string;
 }
 
-const CurriculumMaterialPage = () => {
+const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
     const [showWizard, setShowWizard] = useState(false);
@@ -222,36 +222,38 @@ const CurriculumMaterialPage = () => {
     }
 
     return (
-        <div className="p-8 max-w-7xl mx-auto">
-            <div className="flex justify-between items-center mb-10">
-                <div>
-                    <h1 className="text-4xl font-black text-[#11355a] tracking-tight flex items-center gap-3">
-                        <BookOpen size={40} className="text-blue-600" />
-                        Material Complementario
-                    </h1>
-                    <p className="text-gray-500 mt-2 text-lg">Gestiona objetivos y contenido curricular para cada curso y asignatura.</p>
+        <div className={`${hideHeader ? 'p-0' : 'p-8 max-w-7xl mx-auto'}`}>
+            {!hideHeader && (
+                <div className="flex justify-between items-center mb-10">
+                    <div>
+                        <h1 className="text-4xl font-black text-[#11355a] tracking-tight flex items-center gap-3">
+                            <BookOpen size={40} className="text-blue-600" />
+                            Material Complementario
+                        </h1>
+                        <p className="text-gray-500 mt-2 text-lg">Gestiona objetivos y contenido curricular para cada curso y asignatura.</p>
+                    </div>
+                    <div className="flex gap-4">
+                        <button
+                            onClick={() => setShowWizard(true)}
+                            className="bg-white text-[#11355a] border-2 border-[#11355a]/10 px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-50 transition-all shadow-xl shadow-blue-900/5 active:scale-95"
+                        >
+                            <Target size={24} className="text-[#11355a]" />
+                            <span className="text-xs uppercase tracking-widest">Crear Evaluación</span>
+                        </button>
+                        <button
+                            onClick={() => {
+                                setModalMode('create');
+                                resetForm();
+                                setShowModal(true);
+                            }}
+                            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
+                        >
+                            <Plus size={24} />
+                            <span className="text-xs uppercase tracking-widest">Nuevo Material</span>
+                        </button>
+                    </div>
                 </div>
-                <div className="flex gap-4">
-                    <button
-                        onClick={() => setShowWizard(true)}
-                        className="bg-white text-[#11355a] border-2 border-[#11355a]/10 px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-50 transition-all shadow-xl shadow-blue-900/5 active:scale-95"
-                    >
-                        <Target size={24} className="text-[#11355a]" />
-                        <span className="text-xs uppercase tracking-widest">Crear Evaluación</span>
-                    </button>
-                    <button
-                        onClick={() => {
-                            setModalMode('create');
-                            resetForm();
-                            setShowModal(true);
-                        }}
-                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95"
-                    >
-                        <Plus size={24} />
-                        <span className="text-xs uppercase tracking-widest">Nuevo Material</span>
-                    </button>
-                </div>
-            </div>
+            )}
 
             {/* Filters */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">

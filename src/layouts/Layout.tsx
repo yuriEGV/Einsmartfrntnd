@@ -184,6 +184,10 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
+                    {(user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                        <NavLink to="/academic" icon={Wand2}>Centro Académico</NavLink>
+                    )}
+
 
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
