@@ -125,7 +125,7 @@ const Layout = () => {
                         <h1 className="text-sm font-black tracking-tighter uppercase truncate">
                             {tenant?.name || 'MARITIMO'}
                         </h1>
-                        <span className="text-[8px] font-black text-blue-300/60 uppercase tracking-widest leading-none">Gestión Digital</span>
+                        {/* <span className="text-[8px] font-black text-blue-300/60 uppercase tracking-widest leading-none">Gestión Digital</span> */}
                     </div>
                 </div>
 
@@ -172,7 +172,7 @@ const Layout = () => {
                         )}
                         <div className="flex flex-col">
                             <span className="leading-none text-white">{tenant?.name || 'MARITIMO'}</span>
-                            <span className="text-[10px] text-blue-400 font-black tracking-[0.2em] mt-1.5 opacity-60">EINSMART® v4.0</span>
+                            {/* <span className="text-[10px] text-blue-400 font-black tracking-[0.2em] mt-1.5 opacity-60">EINSMART® v4.0</span> */}
                         </div>
                     </h1>
                 </div>
