@@ -168,12 +168,14 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
         // Match by subjectId if subject selected
         if (selectedSubject) {
+            if (!evalItem.subjectId) return false;
             const evalSubjectId = typeof evalItem.subjectId === 'object' ? (evalItem.subjectId as any)._id : evalItem.subjectId;
             return evalSubjectId === selectedSubject;
         }
 
         // Match by courseId if course selected
         if (selectedCourse) {
+            if (!evalItem.courseId) return false;
             const evalCourseId = typeof evalItem.courseId === 'object' ? (evalItem.courseId as any)._id : evalItem.courseId;
             return evalCourseId === selectedCourse;
         }
@@ -222,6 +224,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             .filter(s => {
                                 if (permissions.isStudent || permissions.isApoderado) return true;
                                 if (!selectedCourse) return true;
+                                if (!s.courseId) return false;
                                 const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
                                 return sCourseId === selectedCourse;
                             })

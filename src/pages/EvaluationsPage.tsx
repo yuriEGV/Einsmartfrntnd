@@ -139,6 +139,7 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
     const availableSubjects = subjects.filter(s => {
         if (!formData.courseId) return false;
+        if (!s.courseId) return false;
         const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
         return sCourseId === formData.courseId;
     });
