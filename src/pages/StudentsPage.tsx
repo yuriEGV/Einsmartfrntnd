@@ -4,6 +4,7 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Search, Plus, School, Mail, Printer, Trash2 } from 'lucide-react';
 import { validateRut } from '../services/utils';
+import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 
 interface Student {
     _id: string;
@@ -26,7 +27,7 @@ interface Student {
 }
 
 const StudentsPage = () => {
-    const { canManageStudents } = usePermissions();
+    const { canManageStudents, user } = usePermissions();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -282,6 +283,12 @@ const StudentsPage = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1">
+                                                    {/* Certificate button for secretaries */}
+                                                    {(user?.role === 'secretario' || user?.role === 'admin' || user?.role === 'director') && (
+                                                        <div className="mr-1">
+                                                            <CertificadoAlumnoRegular estudiante={student} />
+                                                        </div>
+                                                    )}
                                                     <button
                                                         onClick={() => handlePrint(student._id)}
                                                         className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
