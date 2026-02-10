@@ -6,12 +6,30 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
-    LogOut, Home, Users, UserPlus, FileText,
-    ClipboardList, Calendar, DollarSign, Settings,
-    School, TrendingUp, GraduationCap,
-    CheckCircle2, Menu, X, ChevronRight,
-    Bell, BookOpen, Database, CreditCard, User, Clock,
-    Wand2
+    LogOut, Home, Users, Plus,
+    BookOpen,
+    Calendar,
+    ClipboardCheck,
+    Settings,
+    LayoutDashboard,
+    GraduationCap,
+    FileText,
+    CheckSquare,
+    ClipboardList,
+    DollarSign,
+    Box,
+    Calculator,
+    MessageSquare,
+    BookMarked,
+    PieChart,
+    ChevronDown,
+    Menu,
+    X,
+    Bell,
+    UserCircle,
+    Clipboard,
+    FlaskConical,
+    Target
 } from 'lucide-react';
 
 const Layout = () => {
@@ -241,12 +259,12 @@ const Layout = () => {
                             <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
                         )}
 
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                            <NavLink to="/question-bank" icon={Database}>Banco de Preguntas</NavLink>
+                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                            <NavLink to="/plannings" icon={FileText}>Planificación</NavLink>
                         )}
 
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                            <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
+                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                            <NavLink to="/curriculum-material" icon={BookOpen}>Material Didáctico</NavLink>
                         )}
 
                         {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (

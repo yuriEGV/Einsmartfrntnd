@@ -1,40 +1,56 @@
 
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import {
     Plus,
     Search,
-    Filter,
     CheckCircle,
     XCircle,
     Clock,
     ChevronRight,
     BookOpen,
     FileText,
-    MoreVertical,
     Check,
     X,
     MessageSquare,
     AlertCircle
 } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { toast } from 'react-hot-toast';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
+interface Planning {
+    _id: string;
+    title: string;
+    type: string;
+    subjectId?: {
+        name: string;
+        _id: string;
+    };
+    teacherId?: {
+        name: string;
+        _id: string;
+    };
+    status: string;
+    description: string;
+    activities: string;
+    strategies: string;
+    feedback?: string;
+    updatedAt: string;
+    unitNumber?: number | string;
+}
+
 const PlanningPage = () => {
-    const { user } = useAuth();
     const { canApprovePlanning, isTeacher } = usePermissions();
-    const [plannings, setPlannings] = useState([]);
+    const [plannings, setPlannings] = useState<Planning[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [showReviewModal, setShowReviewModal] = useState(false);
-    const [selectedPlanning, setSelectedPlanning] = useState(null);
-    const [subjects, setSubjects] = useState([]);
-    const [objectives, setObjectives] = useState([]);
+    const [selectedPlanning, setSelectedPlanning] = useState<Planning | null>(null);
+    const [subjects, setSubjects] = useState<any[]>([]);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -43,7 +59,7 @@ const PlanningPage = () => {
         description: '',
         activities: '',
         strategies: '',
-        objectives: [],
+        objectives: [] as string[],
         unitNumber: ''
     });
 
@@ -62,6 +78,7 @@ const PlanningPage = () => {
             const res = await axios.get(`${API_URL}/plannings`);
             setPlannings(res.data);
         } catch (error) {
+            console.error(error);
             toast.error('Error al cargar planificaciones');
         } finally {
             setLoading(false);
@@ -77,50 +94,44 @@ const PlanningPage = () => {
         }
     };
 
-    const fetchObjectives = async (subjectId) => {
-        try {
-            const res = await axios.get(`${API_URL}/objectives?subjectId=${subjectId}`);
-            setObjectives(res.data);
-        } catch (error) {
-            console.error('Error objectives:', error);
-        }
-    };
-
-    const handleCreate = async (e) => {
+    const handleCreate = async (e: FormEvent) => {
         e.preventDefault();
         try {
             await axios.post(`${API_URL}/plannings`, formData);
             toast.success('Planificación creada');
             setShowCreateModal(false);
             fetchPlannings();
-        } catch (error) {
-            toast.error(error.response?.data?.message || 'Error al crear');
+        } catch (err: any) {
+            toast.error(err.response?.data?.message || 'Error al crear');
         }
     };
 
-    const handleSubmitForReview = async (id) => {
+    const handleSubmitForReview = async (id: string) => {
         try {
             await axios.post(`${API_URL}/plannings/${id}/submit`);
             toast.success('Planificación enviada a revisión');
             fetchPlannings();
         } catch (error) {
+            console.error(error);
             toast.error('Error al enviar');
         }
     };
 
-    const handleReview = async (e) => {
+    const handleReview = async (e: FormEvent) => {
         e.preventDefault();
+        if (!selectedPlanning) return;
         try {
             await axios.post(`${API_URL}/plannings/${selectedPlanning._id}/review`, reviewData);
             toast.success('Revisión completada');
             setShowReviewModal(false);
             fetchPlannings();
         } catch (error) {
+            console.error(error);
             toast.error('Error al procesar revisión');
         }
     };
 
-    const getStatusBadge = (status) => {
+    const getStatusBadge = (status: string) => {
         switch (status) {
             case 'approved': return <span className="px-2 py-1 flex items-center gap-1 text-xs font-semibold rounded-full bg-green-100 text-green-700"><CheckCircle size={14} /> Aprobado</span>;
             case 'rejected': return <span className="px-2 py-1 flex items-center gap-1 text-xs font-semibold rounded-full bg-red-100 text-red-700"><XCircle size={14} /> Rechazado</span>;
@@ -317,7 +328,6 @@ const PlanningPage = () => {
                                             value={formData.subjectId}
                                             onChange={e => {
                                                 setFormData({ ...formData, subjectId: e.target.value });
-                                                fetchObjectives(e.target.value);
                                             }}
                                         >
                                             <option value="">Seleccionar Asignatura</option>
