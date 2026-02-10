@@ -6,30 +6,12 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
-    LogOut, Home, Users, Plus,
-    BookOpen,
-    Calendar,
-    ClipboardCheck,
-    Settings,
-    LayoutDashboard,
-    GraduationCap,
-    FileText,
-    CheckSquare,
-    ClipboardList,
-    DollarSign,
-    Box,
-    Calculator,
-    MessageSquare,
-    BookMarked,
-    PieChart,
-    ChevronDown,
-    Menu,
-    X,
-    Bell,
-    UserCircle,
-    Clipboard,
-    FlaskConical,
-    Target
+    LogOut, Home, Users, UserPlus, FileText,
+    ClipboardList, Calendar, DollarSign, Settings,
+    School, TrendingUp, GraduationCap,
+    CheckCircle2, Menu, X, ChevronRight,
+    Bell, BookOpen, CreditCard, User, Clock,
+    Wand2, Plus
 } from 'lucide-react';
 
 const Layout = () => {
