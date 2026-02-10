@@ -1,5 +1,5 @@
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import {
     Plus,
     Search,
@@ -181,8 +181,8 @@ const PlanningPage = () => {
                             key={status}
                             onClick={() => setStatusFilter(status)}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${statusFilter === status
-                                    ? 'bg-[#11355a] text-white shadow-md'
-                                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                ? 'bg-[#11355a] text-white shadow-md'
+                                : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
                                 }`}
                         >
                             {status === 'all' ? 'Ver Todo' :
@@ -424,8 +424,8 @@ const PlanningPage = () => {
                                             type="button"
                                             onClick={() => setReviewData({ ...reviewData, status: 'approved' })}
                                             className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'approved'
-                                                    ? 'border-green-500 bg-green-50 text-green-700 font-bold'
-                                                    : 'border-gray-200 hover:bg-gray-50'
+                                                ? 'border-green-500 bg-green-50 text-green-700 font-bold'
+                                                : 'border-gray-200 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <Check size={18} /> Aprobar
@@ -434,8 +434,8 @@ const PlanningPage = () => {
                                             type="button"
                                             onClick={() => setReviewData({ ...reviewData, status: 'rejected' })}
                                             className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'rejected'
-                                                    ? 'border-red-500 bg-red-50 text-red-700 font-bold'
-                                                    : 'border-gray-200 hover:bg-gray-50'
+                                                ? 'border-red-500 bg-red-50 text-red-700 font-bold'
+                                                : 'border-gray-200 hover:bg-gray-50'
                                                 }`}
                                         >
                                             <X size={18} /> Rechazar

@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Plus
+    Wand2
 } from 'lucide-react';
 
 const Layout = () => {
