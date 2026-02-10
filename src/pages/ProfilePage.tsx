@@ -5,7 +5,7 @@ import { updateProfile } from '../services/authService';
 import { User, Lock, Save, ShieldCheck, AlertCircle } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
-    const { user, setUser } = useAuth();
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
