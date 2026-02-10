@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
-import EvaluationCalendar from '../components/EvaluationCalendar';
+import InstitutionalCalendar from '../components/InstitutionalCalendar';
 import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award } from 'lucide-react';
 
 const DashboardPage = () => {
@@ -283,13 +283,11 @@ const DashboardPage = () => {
                 )}
             </div>
 
-            {/* Evaluation Calendar for Students, Guardians and UTP */}
-            {(user?.role === 'student' || user?.role === 'apoderado' || user?.role === 'utp') && (
-                <EvaluationCalendar
-                    studentId={user?.role === 'student' ? user._id : undefined}
-                    guardianId={user?.role === 'apoderado' ? user._id : undefined}
-                />
-            )}
+            {/* Institutional Calendar for the whole community */}
+            <InstitutionalCalendar
+                studentId={user?.role === 'student' ? user._id : undefined}
+                guardianId={user?.role === 'apoderado' ? user._id : undefined}
+            />
         </div>
     );
 };
