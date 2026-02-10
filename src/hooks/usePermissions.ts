@@ -23,6 +23,7 @@ export interface Permissions {
     isAdmin: boolean;
     isStudent: boolean;
     isApoderado: boolean;
+    canApprovePlanning: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -61,5 +62,6 @@ export const usePermissions = (): Permissions => {
         isAdmin,
         isStudent,
         isApoderado,
+        canApprovePlanning: isAdmin || isUTP,
     };
 };
