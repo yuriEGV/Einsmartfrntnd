@@ -233,6 +233,10 @@ const Layout = () => {
                             <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
                         )}
 
+                        {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                            <NavLink to="/schedules" icon={Clock}>Horarios</NavLink>
+                        )}
+
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
                             <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
                         )}

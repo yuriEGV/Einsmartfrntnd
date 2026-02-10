@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -18,6 +18,7 @@ const DashboardPage = () => {
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [pendingSignatures, setPendingSignatures] = useState([]);
     const [adminRanking, setAdminRanking] = useState([]);
+    const [classBookMetrics, setClassBookMetrics] = useState<any>(null);
 
     useEffect(() => {
         if (user) {
@@ -53,6 +54,10 @@ const DashboardPage = () => {
                 if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin) {
                     const rankingRes = await api.get('/admin-days/ranking');
                     setAdminRanking(rankingRes.data.slice(0, 5));
+
+                    // Fetch Class Book Metrics for admins
+                    const metricsRes = await api.get('/analytics/class-book');
+                    setClassBookMetrics(metricsRes.data);
                 }
             }
         } catch (error) {
@@ -80,6 +85,29 @@ const DashboardPage = () => {
                     >
                         Ir al Libro de Clases <ChevronRight size={18} />
                     </a>
+                </div>
+            )}
+
+            {/* Alertas de Cobertura de Clases */}
+            {classBookMetrics?.alerts?.length > 0 && (
+                <div className="bg-amber-50 border-2 border-amber-100 p-6 rounded-[2.5rem] space-y-4 animate-in slide-in-from-top-4 duration-500">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-amber-500 text-white rounded-2xl shadow-lg">
+                            <TrendingUp size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-black text-amber-900 uppercase tracking-tight">Alertas de Efectividad</h3>
+                            <p className="text-xs font-bold text-amber-700/70">Se han detectado cursos con baja cobertura de horario oficial.</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {classBookMetrics.alerts.slice(0, 3).map((alert: any, idx: number) => (
+                            <div key={idx} className="bg-white/50 p-4 rounded-2xl border border-amber-200 flex items-center gap-3">
+                                <AlertCircle size={16} className="text-amber-600" />
+                                <span className="text-[10px] font-black text-amber-900 uppercase tracking-tight">{alert.message}</span>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -134,6 +162,35 @@ const DashboardPage = () => {
                     <p className="text-lg font-black text-emerald-600 uppercase italic tracking-tight">Institución Activa</p>
                     <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Periodo {new Date().getFullYear()}</p>
                 </div>
+
+                {classBookMetrics && (
+                    <div className="bg-[#11355a] p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-100/10 hover:shadow-blue-900/40 transition-all group lg:col-span-3">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                            <div className="space-y-2">
+                                <h3 className="text-blue-300 font-black text-[10px] uppercase tracking-[0.3em]">Eficiencia en Aula</h3>
+                                <p className="text-4xl font-black text-white tracking-tighter">{classBookMetrics.globalCoverage}% <span className="text-sm font-bold text-blue-400/60 uppercase">Cobertura Global</span></p>
+                            </div>
+                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 flex-1 w-full pl-0 md:pl-10">
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-blue-400/50 uppercase tracking-widest">Tiempo Perdido</p>
+                                    <p className="text-xl font-black text-rose-400">{classBookMetrics.classTimeMetrics.reduce((acc: any, curr: any) => acc + curr.totalDelay + curr.totalInterruption, 0)}m</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-blue-400/50 uppercase tracking-widest">Clases Firmadas</p>
+                                    <p className="text-xl font-black text-emerald-400">{classBookMetrics.classTimeMetrics.reduce((acc: any, curr: any) => acc + curr.classCount, 0)}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-[9px] font-black text-blue-400/50 uppercase tracking-widest">Horas Efectivas</p>
+                                    <p className="text-xl font-black text-blue-300">{Math.round(classBookMetrics.classTimeMetrics.reduce((acc: any, curr: any) => acc + curr.totalDuration, 0) / 60)}h</p>
+                                </div>
+                                <a href="/schedules" className="flex flex-col items-center justify-center p-3 border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+                                    <Clock className="text-blue-400" size={20} />
+                                    <span className="text-[8px] font-black text-white mt-1 uppercase">Ver Horarios</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Notifications & Events Section - Stacked on Mobile */}
