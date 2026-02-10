@@ -4,23 +4,12 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import EvaluationCalendar from '../components/EvaluationCalendar';
-import { User, BookOpen, GraduationCap, Save, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
     const { tenant } = useTenant();
-    const { canEditProfile, isSuperAdmin, canManageStudents } = usePermissions();
-
-    // Profile State
-    const [profileData, setProfileData] = useState({
-        name: user?.name || '',
-        email: user?.email || '',
-        rut: user?.rut || '',
-        phone: '',
-        address: ''
-    });
-    const [loading, setLoading] = useState(false);
-    const [msg, setMsg] = useState({ type: '', text: '' });
+    const { isSuperAdmin, canManageStudents } = usePermissions();
 
     const [stats, setStats] = useState({ studentCount: 0, courseCount: 0 });
     const [recentGrades, setRecentGrades] = useState([]);
@@ -32,12 +21,6 @@ const DashboardPage = () => {
 
     useEffect(() => {
         if (user) {
-            setProfileData(prev => ({
-                ...prev,
-                name: user.name,
-                email: user.email,
-                rut: user.rut || ''
-            }));
             fetchDashboardData();
         }
     }, [user]);
@@ -74,21 +57,6 @@ const DashboardPage = () => {
             }
         } catch (error) {
             console.error('Error loading dashboard data', error);
-        }
-    };
-
-    const handleUpdateProfile = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setMsg({ type: '', text: '' });
-
-        try {
-            await api.put('/auth/perfil', profileData);
-            setMsg({ type: 'success', text: 'Perfil actualizado correctamente' });
-        } catch (error: any) {
-            setMsg({ type: 'error', text: error.response?.data?.message || 'Error al actualizar' });
-        } finally {
-            setLoading(false);
         }
     };
 
