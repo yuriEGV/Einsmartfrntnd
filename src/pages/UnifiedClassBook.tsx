@@ -492,7 +492,61 @@ const UnifiedClassBook = () => {
                                                 )}
                                             </div>
                                             <h4 className="text-xl font-black text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{log.topic}</h4>
+
+                                            {/* Effectiveness Metrics */}
+                                            {log.plannedStartTime && (
+                                                <div className="flex flex-wrap gap-4 py-2 border-y border-slate-50">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase">Programado</span>
+                                                        <span className="text-[10px] font-bold text-slate-600">
+                                                            {new Date(log.plannedStartTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {new Date(log.plannedEndTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase">Ejecutado</span>
+                                                        <span className="text-[10px] font-bold text-blue-600">
+                                                            {log.startTime ? new Date(log.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'} - {log.signedAt ? new Date(log.signedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[8px] font-black text-slate-400 uppercase">% Cumplimiento</span>
+                                                        <span className={`text-[10px] font-black ${(log.duration / 90 * 100) >= 90 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                                                            {log.duration && log.plannedStartTime ? Math.round((log.duration / ((new Date(log.plannedEndTime).getTime() - new Date(log.plannedStartTime).getTime()) / 60000)) * 100) : 0}%
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <p className="text-sm font-bold text-slate-500 leading-relaxed italic line-clamp-2">{log.activities}</p>
+
+                                            {/* Justification Field */}
+                                            {(log.delayMinutes > 5 || log.interruptionMinutes > 5) && (
+                                                <div className="mt-4 p-4 bg-rose-50 rounded-2xl border border-rose-100 space-y-2">
+                                                    <div className="flex items-center gap-2 text-rose-600 text-[9px] font-black uppercase">
+                                                        <AlertCircle size={12} /> Discrepancia detectada
+                                                    </div>
+                                                    {log.isSigned ? (
+                                                        <div className="text-[10px] font-bold text-slate-600">
+                                                            <span className="text-slate-400">Justificación:</span> {log.justification || 'Sin justificación'}
+                                                        </div>
+                                                    ) : (
+                                                        <textarea
+                                                            placeholder="Justifique el retraso o término anticipado..."
+                                                            className="w-full p-3 bg-white border border-rose-200 rounded-xl text-[10px] font-bold outline-none focus:border-rose-400 transition-all"
+                                                            value={log.justification || ''}
+                                                            onChange={async (e) => {
+                                                                const val = e.target.value;
+                                                                // Debounced or local state update? For simplicity, we can update local and then have a button or update on blur.
+                                                                // Let's assume handleSaveLog or a specific update call.
+                                                                try {
+                                                                    await api.patch(`/class-logs/${log._id}/justification`, { justification: val });
+                                                                    setLogs(logs.map(l => l._id === log._id ? { ...l, justification: val } : l));
+                                                                } catch (err) { console.error(err); }
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="md:w-48 flex flex-col justify-center gap-2">
                                             {!log.isSigned && (

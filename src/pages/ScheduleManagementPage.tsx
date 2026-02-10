@@ -34,7 +34,7 @@ const DAYS = [
 ];
 
 const ScheduleManagementPage = () => {
-    const { isAdmin, isUTP, isTeacher, isDirector } = usePermissions();
+    const { isAdmin, isUTP, isDirector } = usePermissions();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -120,8 +120,7 @@ const ScheduleManagementPage = () => {
         }
     };
 
-    const canEdit = isAdmin || isUTP || isDirector || isTeacher;
-    const canDelete = isAdmin || isUTP || isDirector;
+    const canEdit = isAdmin || isUTP || isDirector;
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -184,14 +183,12 @@ const ScheduleManagementPage = () => {
                                             <p className="text-[9px] text-slate-400 font-bold uppercase truncate">{s.teacherId?.name}</p>
 
                                             {canEdit && (
-                                                canDelete && (
-                                                    <button
-                                                        onClick={() => handleDelete(s._id)}
-                                                        className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                )
+                                                <button
+                                                    onClick={() => handleDelete(s._id)}
+                                                    className="absolute top-2 right-2 p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
                                             )}
                                         </div>
                                     ))}
