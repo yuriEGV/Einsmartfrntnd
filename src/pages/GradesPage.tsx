@@ -231,15 +231,18 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
 
-                    <div className="relative flex-1 md:w-64 min-w-[200px]">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input
-                            placeholder="Buscar alumno..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    {/* Student Search - Hidden for guardians */}
+                    {permissions.user?.role !== 'apoderado' && (
+                        <div className="relative flex-1 md:w-64 min-w-[200px]">
+                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <input
+                                placeholder="Buscar alumno..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    )}
 
                     {!hideHeader && permissions.isStaff && (
                         <button
