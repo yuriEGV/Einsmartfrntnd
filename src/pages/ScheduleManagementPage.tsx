@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Trash2, Calendar, Clock, Save } from 'lucide-react';
+import { Plus, Trash2, Calendar, Clock, Save, Printer } from 'lucide-react';
 
 interface Schedule {
     _id: string;
@@ -34,7 +34,7 @@ const DAYS = [
 ];
 
 const ScheduleManagementPage = () => {
-    const { isAdmin, isUTP, isDirector } = usePermissions();
+    const { isAdmin, isUTP, isDirector, isStudent, isApoderado } = usePermissions();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -56,7 +56,7 @@ const ScheduleManagementPage = () => {
     }, []);
 
     useEffect(() => {
-        if (selectedCourse) {
+        if (selectedCourse || isStudent || isApoderado) {
             fetchSchedules();
         } else {
             setSchedules([]);
@@ -78,7 +78,8 @@ const ScheduleManagementPage = () => {
 
     const fetchSchedules = async () => {
         try {
-            const res = await api.get(`/schedules?courseId=${selectedCourse}`);
+            const url = selectedCourse ? `/schedules?courseId=${selectedCourse}` : '/schedules';
+            const res = await api.get(url);
             setSchedules(res.data);
         } catch (error) {
             console.error('Error fetching schedules', error);
@@ -120,6 +121,10 @@ const ScheduleManagementPage = () => {
         }
     };
 
+    const handlePrint = () => {
+        window.print();
+    };
+
     const canEdit = isAdmin || isUTP || isDirector;
 
     return (
@@ -132,35 +137,45 @@ const ScheduleManagementPage = () => {
                     </h1>
                     <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Definición de bloques por curso y asignatura</p>
                 </div>
-                {canEdit && selectedCourse && (
+                <div className="flex items-center gap-4">
                     <button
-                        onClick={() => {
-                            setFormData({ ...formData, courseId: selectedCourse });
-                            setShowModal(true);
-                        }}
-                        className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95"
+                        onClick={handlePrint}
+                        className="bg-slate-100 text-slate-600 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all active:scale-95 print:hidden"
                     >
-                        <Plus size={18} /> Agregar Bloque
+                        <Printer size={18} /> Imprimir
                     </button>
-                )}
+                    {canEdit && selectedCourse && (
+                        <button
+                            onClick={() => {
+                                setFormData({ ...formData, courseId: selectedCourse });
+                                setShowModal(true);
+                            }}
+                            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95"
+                        >
+                            <Plus size={18} /> Agregar Bloque
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-6">
-                <div className="max-w-md">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">SELECCIONAR CURSO PARA GESTIONAR</label>
-                    <select
-                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-black text-slate-700 appearance-none shadow-inner"
-                        value={selectedCourse}
-                        onChange={(e) => handleCourseChange(e.target.value)}
-                    >
-                        <option value="">Elegir un curso...</option>
-                        {courses.map(c => (
-                            <option key={c._id} value={c._id}>{c.name}</option>
-                        ))}
-                    </select>
-                </div>
+                {(!isStudent && !isApoderado) && (
+                    <div className="max-w-md print:hidden">
+                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">SELECCIONAR CURSO PARA GESTIONAR</label>
+                        <select
+                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-black text-slate-700 appearance-none shadow-inner"
+                            value={selectedCourse}
+                            onChange={(e) => handleCourseChange(e.target.value)}
+                        >
+                            <option value="">Elegir un curso...</option>
+                            {courses.map(c => (
+                                <option key={c._id} value={c._id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                )}
 
-                {!selectedCourse ? (
+                {(!selectedCourse && !isStudent && !isApoderado) ? (
                     <div className="py-20 text-center border-4 border-dashed border-slate-50 rounded-[3rem]">
                         <Calendar size={64} className="mx-auto text-slate-100 mb-6" />
                         <p className="text-slate-300 font-black uppercase tracking-[0.2em] text-sm">Selecciona un curso para ver su horario</p>
