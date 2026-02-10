@@ -285,6 +285,15 @@ const Layout = () => {
                             <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
                         )}
                     </div>
+
+                    {/* Profile Section - Visible to ALL users */}
+                    <div className="mt-8 pt-6 border-t border-white/10">
+                        <div className="flex items-center justify-between mb-3 px-2">
+                            <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Mi Cuenta</span>
+                            <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
+                        </div>
+                        <NavLink to="/profile" icon={User}>Mi Perfil</NavLink>
+                    </div>
                 </nav>
 
                 {/* Premium Profile Section */}
