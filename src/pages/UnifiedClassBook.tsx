@@ -8,11 +8,13 @@ import {
     UserCheck, ClipboardList, Printer, LayoutGrid
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import { useRef } from 'react';
 
 const UnifiedClassBook = () => {
     const { isStaff, user } = usePermissions();
+    const { tenant } = useTenant();
     const isStudent = user?.role === 'student';
     const printRef = useRef<HTMLDivElement>(null);
 
@@ -338,7 +340,7 @@ const UnifiedClassBook = () => {
                         <h1 className="text-3xl font-black text-[#11355a] tracking-tighter uppercase leading-none">Mi Libro Digital</h1>
                         <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.3em] mt-3 flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-100 italic">
                             <ShieldCheck size={12} className="text-emerald-500" />
-                            Entorno Seguro • Maritimo Pro 4.0
+                            Entorno Seguro • {tenant?.name || 'Einsmart'}
                         </p>
                     </div>
                 </div>

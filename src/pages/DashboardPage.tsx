@@ -119,7 +119,7 @@ const DashboardPage = () => {
                     </h1>
                     <p className="text-[10px] md:text-sm text-gray-400 font-black uppercase tracking-[0.2em] flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: tenant?.theme?.secondaryColor || '#3b82f6' }}></div>
-                        Portal: {tenant?.name || 'Maritimo 4.0'}
+                        Portal: {tenant?.name || 'Einsmart'}
                     </p>
                 </div>
                 <div className="flex items-center">

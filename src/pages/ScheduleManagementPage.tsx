@@ -34,7 +34,7 @@ const DAYS = [
 ];
 
 const ScheduleManagementPage = () => {
-    const { isSuperAdmin, canManageStudents } = usePermissions(); // Using similar permissions as courses
+    const { isAdmin, isUTP } = usePermissions();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
     const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -120,7 +120,7 @@ const ScheduleManagementPage = () => {
         }
     };
 
-    const canEdit = isSuperAdmin || canManageStudents;
+    const canEdit = isAdmin || isUTP;
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
