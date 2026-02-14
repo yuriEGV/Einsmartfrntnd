@@ -709,17 +709,27 @@ const UnifiedClassBook = () => {
                             <div className="flex justify-between items-center px-4">
                                 <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Cronograma de Evaluaciones</h2>
                                 {isStaff && (
-                                    <div className="flex gap-4">
-                                        <button onClick={() => {
-                                            setShowPruebaWizard(true);
-                                        }} className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-900/20 flex items-center gap-2">
-                                            <Wand2 size={16} /> GENERAR PRUEBA (PLATAFORMA)
+                                    <div className="flex flex-wrap gap-4 mt-8">
+                                        <button
+                                            onClick={() => setShowPruebaWizard(true)}
+                                            className="flex-1 min-w-[200px] py-6 bg-blue-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-blue-500/20 hover:bg-blue-700 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                        >
+                                            <Wand2 size={24} className="text-blue-200" />
+                                            GENERAR PRUEBA INTELIGENTE
                                         </button>
-                                        <button onClick={() => openEvalModal(null, 'sorpresa')} className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-rose-900/20 uppercase flex items-center gap-2">
-                                            <AlertCircle size={16} /> PRUEBA SORPRESA (RÁPIDA)
-                                        </button>
-                                        <button onClick={() => openEvalModal(null, 'planificada')} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                        <button
+                                            onClick={() => setShowPruebaWizard(true)}
+                                            className="flex-1 min-w-[200px] py-6 bg-slate-800 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-slate-900/10 hover:bg-slate-900 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                        >
+                                            <Calendar size={24} className="text-slate-400" />
                                             PROGRAMAR TRABAJO/PRUEBA
+                                        </button>
+                                        <button
+                                            onClick={() => setShowPruebaWizard(true)}
+                                            className="flex-1 min-w-[200px] py-6 bg-rose-600 text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-xl shadow-rose-900/20 hover:bg-rose-700 active:scale-95 transition-all flex items-center justify-center gap-3"
+                                        >
+                                            <AlertCircle size={24} className="text-rose-200" />
+                                            PRUEBA SORPRESA
                                         </button>
                                     </div>
                                 )}

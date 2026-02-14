@@ -48,7 +48,8 @@ const SubjectsPage = () => {
     const [formData, setFormData] = useState({
         _id: '',
         name: '',
-        courseId: '',
+        courseIds: [] as string[],
+        courseId: '', // For single-edit mode compatibility
         teacherId: ''
     });
 
@@ -105,9 +106,24 @@ const SubjectsPage = () => {
         e.preventDefault();
         try {
             if (modalMode === 'create') {
-                await api.post('/subjects', formData);
+                if (!formData.courseIds || formData.courseIds.length === 0) {
+                    alert('Seleccione al menos un curso');
+                    return;
+                }
+                // Bulk creation
+                await Promise.all(formData.courseIds.map(cid =>
+                    api.post('/subjects', {
+                        name: formData.name,
+                        courseId: cid,
+                        teacherId: formData.teacherId
+                    })
+                ));
             } else {
-                await api.put(`/subjects/${formData._id}`, formData);
+                await api.put(`/subjects/${formData._id}`, {
+                    name: formData.name,
+                    courseId: formData.courseId,
+                    teacherId: formData.teacherId
+                });
             }
             setShowModal(false);
             fetchData();
@@ -205,7 +221,7 @@ const SubjectsPage = () => {
                     <button
                         onClick={() => {
                             setModalMode('create');
-                            setFormData({ _id: '', name: '', courseId: '', teacherId: '' });
+                            setFormData({ _id: '', name: '', courseId: '', courseIds: [], teacherId: '' });
                             setShowModal(true);
                         }}
                         className="bg-[#11355a] text-white px-4 py-2 rounded flex items-center gap-2 hover:opacity-90 transition"
@@ -289,6 +305,7 @@ const SubjectsPage = () => {
                                                             _id: subj._id,
                                                             name: subj.name,
                                                             courseId: subj.courseId?._id,
+                                                            courseIds: [subj.courseId?._id],
                                                             teacherId: subj.teacherId?._id
                                                         });
                                                         setShowModal(true);
@@ -357,18 +374,27 @@ const SubjectsPage = () => {
                                     />
                                 </div>
                                 <div className="group">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CURSO ASIGNADO</label>
-                                    <select
-                                        required
-                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
-                                        value={formData.courseId}
-                                        onChange={e => setFormData({ ...formData, courseId: e.target.value })}
-                                    >
-                                        <option value="">Seleccionar Curso...</option>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CURSOS ASIGNADOS (SELECCIÓN MÁLTIPLE)</label>
+                                    <div className="bg-white border-2 border-slate-100 rounded-2xl p-4 max-h-48 overflow-y-auto space-y-2 custom-scrollbar">
                                         {courses.map(c => (
-                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                            <label key={c._id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-xl cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    className="w-5 h-5 rounded border-2 border-slate-200 text-blue-600 focus:ring-blue-500 transition-all cursor-pointer"
+                                                    checked={formData.courseIds?.includes(c._id)}
+                                                    onChange={e => {
+                                                        const currentIds = formData.courseIds || [];
+                                                        const newIds = e.target.checked
+                                                            ? [...currentIds, c._id]
+                                                            : currentIds.filter(id => id !== c._id);
+                                                        setFormData({ ...formData, courseIds: newIds });
+                                                    }}
+                                                />
+                                                <span className="font-black text-slate-600 text-sm">{c.name}</span>
+                                            </label>
                                         ))}
-                                    </select>
+                                    </div>
+                                    <p className="text-[9px] font-bold text-slate-400 mt-2 ml-1 uppercase">Se creará un registro por cada curso seleccionado.</p>
                                 </div>
                                 <div className="group">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">PROFESOR JEFE / TITULAR</label>

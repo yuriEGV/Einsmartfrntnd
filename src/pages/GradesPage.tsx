@@ -136,8 +136,9 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
             setShowModal(false);
             setStudentSearch('');
             fetchInitialData();
-        } catch (error) {
-            alert('Error al guardar nota');
+        } catch (error: any) {
+            console.error('Error saving grade:', error);
+            alert(error.response?.data?.message || 'Error al guardar nota. Verifique que el estudiante tenga matrícula confirmada.');
         }
     };
 

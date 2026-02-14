@@ -218,7 +218,7 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border border-blue-100">
-                                                {(ev.courseId as any)?.name || 'Sin Curso'}
+                                                {typeof ev.courseId === 'object' ? (ev.courseId as any)?.name : 'Sin Curso'}
                                             </span>
                                             {(ev as any).category === 'sorpresa' && (
                                                 <span className="bg-rose-50 text-rose-600 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter border border-rose-100 animate-pulse">
@@ -264,7 +264,9 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                 <div className="space-y-4 relative z-10">
                                     <div className="flex justify-between items-end">
                                         <div className="flex flex-col gap-1">
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{ev.subject}</span>
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                                {typeof (ev as any).subjectId === 'object' ? (ev as any).subjectId?.name : (ev as any).subject || 'Sin Asignatura'}
+                                            </span>
                                             <div className="flex items-center gap-2">
                                                 <div className="p-1.5 bg-slate-50 text-slate-400 rounded-lg group-hover:bg-blue-50 group-hover:text-blue-600 transition-all">
                                                     <Plus size={14} className="rotate-45" />

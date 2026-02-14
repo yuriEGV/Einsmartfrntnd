@@ -135,30 +135,34 @@ const PrintButton = ({ evaluationId, title, questions }: PrintButtonProps) => {
                                             <p className="text-sm font-black text-slate-500 uppercase tracking-widest">Evaluación de Aprendizaje</p>
                                         </div>
                                         <div className="text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                            Fecha: {new Date().toLocaleDateString('es-ES')}
+                                            Fecha de Emisión: {new Date().toLocaleDateString('es-ES')}
                                         </div>
                                     </div>
 
                                     {/* Student Info Box */}
-                                    <div className="grid grid-cols-3 gap-6 mb-12">
-                                        <div className="col-span-2 border-2 border-slate-900 p-4 rounded-xl">
+                                    <div className="grid grid-cols-2 gap-6 mb-12">
+                                        <div className="border-2 border-slate-900 p-4 rounded-xl">
                                             <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Nombre del Alumno(a)</span>
                                             <div className="h-6 border-b border-slate-300"></div>
                                         </div>
                                         <div className="border-2 border-slate-900 p-4 rounded-xl">
-                                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Curso</span>
+                                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">R.U.T / Identificación</span>
                                             <div className="h-6 border-b border-slate-300"></div>
+                                        </div>
+                                        <div className="border-2 border-slate-900 p-4 rounded-xl">
+                                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Puntaje Ideal</span>
+                                            <div className="h-6 font-black text-lg flex items-center"> 100 PTS</div>
                                         </div>
                                         <div className="border-2 border-slate-900 p-4 rounded-xl">
                                             <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Puntaje Obtenido</span>
-                                            <div className="h-6 border-b border-slate-300"></div>
-                                        </div>
-                                        <div className="border-2 border-slate-900 p-4 rounded-xl">
-                                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Puntaje Total</span>
-                                            <div className="h-6 font-black text-lg flex items-center"> / 100</div>
+                                            <div className="h-6"></div>
                                         </div>
                                         <div className="border-2 border-slate-900 p-4 rounded-xl">
                                             <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Nota Final</span>
+                                            <div className="h-6 font-black text-2xl"></div>
+                                        </div>
+                                        <div className="border-2 border-slate-900 p-4 rounded-xl">
+                                            <span className="text-[9px] font-black uppercase text-slate-400 block mb-2">Firma / Timbre</span>
                                             <div className="h-6"></div>
                                         </div>
                                     </div>
