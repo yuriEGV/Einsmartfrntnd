@@ -109,7 +109,19 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                         api.get(`/plannings?subjectId=${selectedSubject}&status=approved`),
                         api.get(`/objectives?subjectId=${selectedSubject}`)
                     ]);
-                    setBankQuestions(bankRes.data);
+
+                    let finalQuestions = bankRes.data;
+
+                    // Fallback: If no questions for this specific ID, try by subject name (shared bank)
+                    if (finalQuestions.length === 0) {
+                        const targetSubject = subjects.find(s => s._id === selectedSubject);
+                        if (targetSubject) {
+                            const nameRes = await api.get(`/questions?subjectId=${targetSubject.name}`);
+                            finalQuestions = nameRes.data;
+                        }
+                    }
+
+                    setBankQuestions(finalQuestions);
                     setAvailableMaterials(matRes.data);
 
                     // Extract objectives from plannings
@@ -217,41 +229,76 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar relative">
+                <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar relative bg-slate-50/20">
                     {step === 1 && (
-                        <div className="space-y-10 max-w-3xl mx-auto animate-in slide-in-from-right-4 py-6">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black text-[#00a86b] uppercase tracking-[0.2em] ml-2">Título de la Evaluación</label>
-                                <input
-                                    autoFocus
-                                    value={formData.title}
-                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                    className="w-full px-8 py-7 bg-slate-50 border-2 border-slate-100 rounded-[2rem] focus:border-[#00a86b]/30 focus:bg-white outline-none font-black text-2xl text-slate-700 shadow-inner transition-all"
-                                    placeholder="Ej: Control de Lectura #2"
-                                />
-                            </div>
+                        <div className="space-y-6 max-w-3xl mx-auto animate-in slide-in-from-right-4 py-4">
+                            <div className="bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-[#00a86b] uppercase tracking-widest ml-1">Título de la Evaluación</label>
+                                    <input
+                                        autoFocus
+                                        value={formData.title}
+                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-black text-xl text-slate-700 transition-all"
+                                        placeholder="Ej: Control de Lectura #2"
+                                    />
+                                </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Fecha Programada</label>
-                                    <div className="relative group">
-                                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00a86b] transition-colors" size={20} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Programada</label>
+                                        <div className="relative group">
+                                            <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                            <input
+                                                type="date"
+                                                value={formData.date}
+                                                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora de Inicio</label>
                                         <input
-                                            type="date"
-                                            value={formData.date}
-                                            onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                            className="w-full pl-16 pr-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-bold text-slate-600 shadow-inner transition-all"
+                                            type="time"
+                                            value={formData.time}
+                                            onChange={e => setFormData({ ...formData, time: e.target.value })}
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Hora de Inicio</label>
-                                    <input
-                                        type="time"
-                                        value={formData.time}
-                                        onChange={e => setFormData({ ...formData, time: e.target.value })}
-                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-bold text-slate-600 shadow-inner transition-all"
-                                    />
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Curso</label>
+                                        <select
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
+                                            value={selectedCourse}
+                                            onChange={e => {
+                                                setSelectedCourse(e.target.value);
+                                                setSelectedSubject('');
+                                            }}
+                                        >
+                                            <option value="">Seleccionar Curso...</option>
+                                            {courses.map(c => (
+                                                <option key={c._id} value={c._id}>{c.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asignatura</label>
+                                        <select
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
+                                            value={selectedSubject}
+                                            onChange={e => setSelectedSubject(e.target.value)}
+                                            disabled={!selectedCourse}
+                                        >
+                                            <option value="">Seleccionar Asignatura...</option>
+                                            {filteredSubjects.map(s => (
+                                                <option key={s._id} value={s._id}>{s.name} {s.isComplementary ? '(COMP)' : ''}</option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 

@@ -15,6 +15,10 @@ interface Course {
         name: string;
         email: string;
     };
+    careerId?: {
+        _id: string;
+        name: string;
+    };
     createdAt: string;
 }
 
@@ -43,6 +47,11 @@ const CoursesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
+
+    // Subjects Modal
+    const [showSubjectsModal, setShowSubjectsModal] = useState(false);
+    const [viewingCourseSubjects, setViewingCourseSubjects] = useState<any[]>([]);
+    const [viewingCourseName, setViewingCourseName] = useState('');
 
     // Form specific state
     const [formData, setFormData] = useState({
@@ -135,6 +144,18 @@ const CoursesPage = () => {
             });
         }
         setShowModal(true);
+    };
+
+    const handleViewSubjects = async (course: Course) => {
+        try {
+            setViewingCourseName(course.name);
+            const res = await api.get(`/subjects?courseId=${course._id}`);
+            setViewingCourseSubjects(res.data);
+            setShowSubjectsModal(true);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar ramos');
+        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -244,8 +265,13 @@ const CoursesPage = () => {
                                             <BookOpen size={28} />
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[150px]">
+                                            <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[200px]">
                                                 {course.name}
+                                                {course.careerId?.name && (
+                                                    <span className="block text-[10px] text-blue-500 font-black opacity-80 mt-0.5">
+                                                        {course.careerId.name}
+                                                    </span>
+                                                )}
                                             </h3>
                                             <div className="inline-block px-2 py-0.5 bg-slate-50 border border-slate-100 rounded text-[9px] font-mono font-black text-slate-400 uppercase tracking-tighter mt-1">
                                                 ID: {course.code || course._id.slice(-4)}
@@ -254,6 +280,14 @@ const CoursesPage = () => {
                                     </div>
                                     {!isStudentOrGuardian && (
                                         <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
+                                            <button
+                                                onClick={() => handleViewSubjects(course)}
+                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all flex items-center gap-1.5"
+                                                title="Ver Ramos"
+                                            >
+                                                <BookOpen size={18} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Ver Ramos</span>
+                                            </button>
                                             <button
                                                 onClick={() => handleOpenModal('edit', course)}
                                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
@@ -287,29 +321,27 @@ const CoursesPage = () => {
                                         </div>
                                     </div>
 
-                                    {(course as any).careerId && (
-                                        <div className="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100">
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100">
-                                                <GraduationCap size={18} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Carrera / Especialidad</div>
-                                                <div className="text-xs font-black text-indigo-900 truncate">
-                                                    {(course as any).careerId?.name || (course as any).careerId}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* Career display moved to header area but keeping this for legacy if needed or removing it to clean up */}
+                                    {/* Removing the redundant career block to make space for the button */}
 
-                                    {!isStudentOrGuardian && (
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => navigate(`/courses/${course._id}/students`)}
-                                            className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                            onClick={() => handleViewSubjects(course)}
+                                            className="flex-1 py-3 bg-blue-50 text-blue-700 border border-blue-100 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
-                                            Ver Lista de Alumnos
+                                            <BookOpen size={14} />
+                                            Ramos / Malla
                                         </button>
-                                    )}
+                                        {!isStudentOrGuardian && (
+                                            <button
+                                                onClick={() => navigate(`/courses/${course._id}/students`)}
+                                                className="flex-1 py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                            >
+                                                <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
+                                                Alumnos
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -464,6 +496,57 @@ const CoursesPage = () => {
                     </div>
                 )
             }
+            {/* Subjects Modal */}
+            {showSubjectsModal && (
+                <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95">
+                        <div className="p-8 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white shrink-0">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-black uppercase tracking-tight">Ramos del Curso: {viewingCourseName}</h3>
+                                    <p className="text-xs font-bold text-blue-100 uppercase tracking-widest mt-1">Malla Curricular Vigente</p>
+                                </div>
+                                <button onClick={() => setShowSubjectsModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                                    <Trash2 size={24} className="rotate-45" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-8 space-y-4 bg-slate-50">
+                            {viewingCourseSubjects.length > 0 ? viewingCourseSubjects.map((subject: any) => (
+                                <div key={subject._id} className="p-5 bg-white rounded-3xl border-2 border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner font-black">
+                                            {subject.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <div className="font-black text-slate-800 uppercase tracking-tight">{subject.name}</div>
+                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                        </div>
+                                    </div>
+                                    {subject.isComplementary && (
+                                        <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
+                                            Complementario
+                                        </span>
+                                    )}
+                                </div>
+                            )) : (
+                                <div className="py-20 text-center border-4 border-dashed border-slate-200 rounded-[2.5rem]">
+                                    <BookOpen size={48} className="mx-auto text-slate-200 mb-4" />
+                                    <p className="text-slate-400 font-bold">No hay ramos registrados para este curso.</p>
+                                </div>
+                            )}
+                        </div>
+                        <div className="p-6 bg-white border-t flex justify-end">
+                            <button
+                                onClick={() => setShowSubjectsModal(false)}
+                                className="px-8 py-3 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 active:scale-95 transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };
