@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2, Search, FileText, Loader2, Table } from 'lucide-react';
+import { Plus, Trash2, Search, FileText, Loader2 } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import RubricBuilder from '../components/RubricBuilder';
-import { usePermissions } from '../hooks/usePermissions';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -39,7 +38,6 @@ const RubricsPage = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [showBuilder, setShowBuilder] = useState(false);
     const [editingRubric, setEditingRubric] = useState<Rubric | null>(null);
-    const { canManageSubjects, isTeacher } = usePermissions(); // Assuming these permissions are relevant
 
     const fetchRubrics = async () => {
         try {
