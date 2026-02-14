@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Search, Plus, School, Mail, Printer, Trash2 } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2, Users } from 'lucide-react';
 import { validateRut } from '../services/utils';
 import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap } from 'lucide-react';
 
 interface Course {
     _id: string;
