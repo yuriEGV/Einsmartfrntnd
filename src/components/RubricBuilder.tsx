@@ -18,16 +18,19 @@ interface Criterion {
 }
 
 interface Rubric {
+    _id?: string;
     title: string;
     description: string;
     levels: Level[];
     criteria: Criterion[];
+    subjectId?: { _id: string; name: string } | string;
+    teacherId?: { _id: string; name: string } | string;
 }
 
 interface Props {
     onSave: (rubric: Rubric) => void;
     onCancel: () => void;
-    initialData?: Rubric | null;
+    initialData?: Rubric | any;
 }
 
 const RubricBuilder: React.FC<Props> = ({ onSave, onCancel, initialData }) => {
