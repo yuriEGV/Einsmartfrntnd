@@ -84,7 +84,6 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     });
 
     const [questionSearch, setQuestionSearch] = useState('');
-    const [difficultyFilter, setDifficultyFilter] = useState<'all' | 'easy' | 'medium' | 'hard'>('all');
 
     useEffect(() => {
         const fetchInitial = async () => {
@@ -421,7 +420,6 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                 <div className="space-y-4 pt-4 max-h-[400px] overflow-y-auto px-1 custom-scrollbar">
                                     {bankQuestions
                                         .filter(q => q.questionText.toLowerCase().includes(questionSearch.toLowerCase()))
-                                        .filter(q => difficultyFilter === 'all' || q.difficulty === difficultyFilter)
                                         .map((q: any) => (
                                             <label key={q._id} className={`group relative p-6 bg-white rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-6 hover:shadow-xl hover:-translate-y-1 ${selectedBankQuestions.includes(q._id) ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-slate-100 hover:border-indigo-200'}`}>
                                                 <input
