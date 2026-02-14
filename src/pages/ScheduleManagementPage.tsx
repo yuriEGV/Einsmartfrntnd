@@ -148,6 +148,7 @@ const ScheduleManagementPage = () => {
                         <button
                             onClick={() => {
                                 setFormData({ ...formData, courseId: selectedCourse });
+                                fetchSubjects(selectedCourse); // Load subjects when modal opens
                                 setShowModal(true);
                             }}
                             className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95"

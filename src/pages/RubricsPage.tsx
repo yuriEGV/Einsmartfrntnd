@@ -79,16 +79,11 @@ const RubricsPage = () => {
 
     const handleSave = async (rubricData: Rubric) => {
         try {
-            const token = localStorage.getItem('token');
             if (editingRubric?._id) {
-                await axios.put(`${API_URL}/rubrics/${editingRubric._id}`, rubricData, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.put(`/rubrics/${editingRubric._id}`, rubricData);
                 toast.success('Rúbrica actualizada');
             } else {
-                await axios.post(`${API_URL}/rubrics`, rubricData, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await api.post('/rubrics', rubricData);
                 toast.success('Rúbrica creada');
             }
             fetchRubrics();
