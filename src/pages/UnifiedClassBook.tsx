@@ -66,8 +66,11 @@ const UnifiedClassBook = () => {
         title: '',
         date: new Date().toISOString().split('T')[0],
         category: 'planificada' as 'planificada' | 'sorpresa',
-        questions: [] as string[]
+        questions: [] as string[],
+        objectives: [] as string[]
     });
+
+    const [availableObjectives, setAvailableObjectives] = useState<string[]>([]);
 
     // Test Generation Wizard State
     const [showPruebaWizard, setShowPruebaWizard] = useState(false);
@@ -218,30 +221,44 @@ const UnifiedClassBook = () => {
         } catch (err) { alert('Error al firmar'); }
     };
 
-    const openEvalModal = async (ev?: any) => {
+    const openEvalModal = async (ev: any = null, defaultCategory: 'planificada' | 'sorpresa' = 'planificada') => {
         if (ev) {
             setEvalFormData({
                 _id: ev._id,
                 title: ev.title,
                 date: new Date(ev.date).toISOString().split('T')[0],
-                category: ev.category || 'planificada',
-                questions: ev.questions || []
+                category: ev.category,
+                questions: ev.questions?.map((q: any) => q._id || q) || [],
+                objectives: ev.objectives || []
             });
         } else {
             setEvalFormData({
                 _id: '',
                 title: '',
                 date: new Date().toISOString().split('T')[0],
-                category: 'planificada',
-                questions: []
+                category: defaultCategory,
+                questions: [],
+                objectives: []
             });
         }
 
-        setShowQuestionForm(false); // Reset form
-        // Fetch bank questions for context (Subject and Grade)
+        // Fetch bank questions & objectives for context
         try {
-            const res = await api.get(`/questions?subjectId=${selectedSubject}`);
-            setBankQuestions(res.data);
+            const [qRes, cRes, pRes, bRes] = await Promise.all([
+                api.get(`/questions?subjectId=${selectedSubject}`),
+                api.get(`/curriculum-materials/subject/${selectedSubject}`),
+                api.get(`/plannings?subjectId=${selectedSubject}&status=approved`),
+                api.get(`/objectives?subjectId=${selectedSubject}`)
+            ]);
+            setBankQuestions(qRes.data);
+
+            // Aggregate Objectives
+            const allObjs = new Set<string>();
+            cRes.data.forEach((m: any) => m.objectives?.forEach((o: string) => allObjs.add(o)));
+            pRes.data.forEach((p: any) => p.objectives?.forEach((o: any) => allObjs.add(o.description || o)));
+            bRes.data.forEach((o: any) => allObjs.add(o.description || o.code));
+
+            setAvailableObjectives(Array.from(allObjs));
         } catch (err) { console.error(err); }
 
         setShowEvalModal(true);
@@ -282,7 +299,8 @@ const UnifiedClassBook = () => {
                 category: evalFormData.category,
                 courseId: selectedCourse,
                 subjectId: selectedSubject,
-                questions: evalFormData.questions
+                questions: evalFormData.questions,
+                objectives: evalFormData.objectives
             };
             if (evalFormData._id) {
                 await api.put(`/evaluations/${evalFormData._id}`, payload);
@@ -695,10 +713,13 @@ const UnifiedClassBook = () => {
                                         <button onClick={() => {
                                             setShowPruebaWizard(true);
                                         }} className="bg-amber-500 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-amber-900/20 flex items-center gap-2">
-                                            <Wand2 size={16} /> GENERAR PRUEBA
+                                            <Wand2 size={16} /> GENERAR PRUEBA (PLATAFORMA)
                                         </button>
-                                        <button onClick={() => openEvalModal()} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
-                                            PROGRAMAR PRUEBA
+                                        <button onClick={() => openEvalModal(null, 'sorpresa')} className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-rose-900/20 uppercase flex items-center gap-2">
+                                            <AlertCircle size={16} /> PRUEBA SORPRESA (RÁPIDA)
+                                        </button>
+                                        <button onClick={() => openEvalModal(null, 'planificada')} className="bg-emerald-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-emerald-900/20 uppercase">
+                                            PROGRAMAR TRABAJO/PRUEBA
                                         </button>
                                     </div>
                                 )}
@@ -888,6 +909,38 @@ const UnifiedClassBook = () => {
                                         </button>
                                     </div>
                                 )}
+
+                                {/* Objectives Selection */}
+                                <div className="space-y-4 pt-6 border-t border-slate-100">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-2">
+                                        Objetivos de Aprendizaje
+                                        <span className="text-blue-600 font-bold ml-2">{evalFormData.objectives.length} seleccionados</span>
+                                    </label>
+                                    <div className="space-y-2 max-h-[200px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {availableObjectives.length === 0 ? (
+                                            <div className="text-center py-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sin objetivos vinculados</p>
+                                            </div>
+                                        ) : (
+                                            availableObjectives.map((obj, i) => (
+                                                <label key={i} className={`p-4 rounded-2xl border-2 cursor-pointer transition-all flex items-start gap-3 ${evalFormData.objectives.includes(obj) ? 'border-blue-500 bg-blue-50' : 'border-slate-100 hover:border-blue-200'}`}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={evalFormData.objectives.includes(obj)}
+                                                        onChange={() => {
+                                                            const newObjs = evalFormData.objectives.includes(obj)
+                                                                ? evalFormData.objectives.filter(o => o !== obj)
+                                                                : [...evalFormData.objectives, obj];
+                                                            setEvalFormData({ ...evalFormData, objectives: newObjs });
+                                                        }}
+                                                        className="mt-0.5 w-4 h-4 accent-blue-600"
+                                                    />
+                                                    <p className={`font-bold text-xs ${evalFormData.objectives.includes(obj) ? 'text-blue-900' : 'text-slate-600'}`}>{obj}</p>
+                                                </label>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
 
                                 {/* Mobile-Responsive Search and Filters */}
                                 <div className="space-y-4">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Trash2, Search, FileText, Loader2 } from 'lucide-react';
 import api from '../services/api';
 import { toast } from 'react-hot-toast';
+import { usePermissions } from '../hooks/usePermissions';
 import RubricBuilder from '../components/RubricBuilder';
 
 
@@ -23,7 +24,9 @@ interface Criterion {
 interface Rubric {
     _id?: string;
     title: string;
-    description: string;
+    description?: string;
+    status: 'draft' | 'submitted' | 'approved' | 'rejected';
+    feedback?: string;
     levels: Level[];
     criteria: Criterion[];
     subjectId?: { _id: string; name: string } | string;
@@ -32,6 +35,7 @@ interface Rubric {
 }
 
 const RubricsPage = () => {
+    const { isTeacher, isSuperAdmin, isDirector, isUTP } = usePermissions();
     const [rubrics, setRubrics] = useState<Rubric[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -56,7 +60,7 @@ const RubricsPage = () => {
     }, []);
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar esta rúbrica? Esto podría afectar a las planificaciones asociadas.')) return;
+        if (!window.confirm('¿Eliminar rúbrica?')) return;
 
         try {
             await api.delete(`/rubrics/${id}`);
@@ -65,6 +69,30 @@ const RubricsPage = () => {
         } catch (error) {
             console.error(error);
             toast.error('Error al eliminar la rúbrica');
+        }
+    };
+
+    const handleSubmitForReview = async (id: string) => {
+        try {
+            await api.post(`/rubrics/${id}/submit`);
+            toast.success('Rúbrica enviada para revisión.');
+            fetchRubrics();
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Error al enviar');
+        }
+    };
+
+    const handleReview = async (id: string, status: 'approved' | 'rejected') => {
+        const feedback = status === 'rejected' ? window.prompt('Motivo del rechazo:') : '';
+        if (status === 'rejected' && feedback === null) return;
+        try {
+            await api.post(`/rubrics/${id}/review`, { status, feedback });
+            toast.success(status === 'approved' ? 'Rúbrica aprobada.' : 'Rúbrica rechazada.');
+            fetchRubrics();
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Error al revisar');
         }
     };
 
@@ -161,13 +189,49 @@ const RubricsPage = () => {
                                 <h3 className="text-lg font-black text-slate-800 mb-2 line-clamp-1" title={rubric.title}>
                                     {rubric.title}
                                 </h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {rubric.status === 'draft' && <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[8px] font-black uppercase">Borrador</span>}
+                                    {rubric.status === 'submitted' && <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">En Revisión</span>}
+                                    {rubric.status === 'approved' && <span className="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">Aprobada</span>}
+                                    {rubric.status === 'rejected' && <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">Rechazada</span>}
+                                </div>
+                                {rubric.status === 'rejected' && rubric.feedback && (
+                                    <p className="text-[9px] font-bold text-rose-400 mt-1 italic border-l-2 border-rose-200 pl-2"> feedback: {rubric.feedback}</p>
+                                )}
                                 <p className="text-sm text-slate-500 line-clamp-2 mb-6 h-10">
                                     {rubric.description || 'Sin descripción'}
                                 </p>
 
-                                <div className="flex items-center justify-between text-xs font-bold text-slate-400 border-t border-slate-100 pt-4">
+                                <div className="flex items-center justify-between text-xs font-bold text-slate-400 border-t border-slate-100 pt-4 mb-4">
                                     <span>{rubric.criteria.length} Criterios</span>
                                     <span>{rubric.levels.length} Niveles</span>
+                                </div>
+
+                                <div className="flex flex-wrap gap-2 relative z-10">
+                                    {isTeacher && (rubric.status === 'draft' || rubric.status === 'rejected') && (
+                                        <button
+                                            onClick={(e) => { e.stopPropagation(); handleSubmitForReview(rubric._id!); }}
+                                            className="w-full bg-indigo-600 text-white py-2 rounded-xl font-black uppercase text-[9px] tracking-widest shadow-lg shadow-indigo-200"
+                                        >
+                                            Enviar a Revisión
+                                        </button>
+                                    )}
+                                    {(isSuperAdmin || isDirector || isUTP) && rubric.status === 'submitted' && (
+                                        <div className="flex gap-2 w-full mt-2">
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleReview(rubric._id!, 'approved'); }}
+                                                className="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                                            >
+                                                Aprobar
+                                            </button>
+                                            <button
+                                                onClick={(e) => { e.stopPropagation(); handleReview(rubric._id!, 'rejected'); }}
+                                                className="flex-1 bg-rose-600 text-white py-2 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                                            >
+                                                Rechazar
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 <button

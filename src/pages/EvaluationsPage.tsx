@@ -19,6 +19,8 @@ interface Evaluation {
     date: string;
     courseId: { _id: string; name: string };
     category: 'planificada' | 'sorpresa';
+    status: 'draft' | 'submitted' | 'approved' | 'rejected';
+    feedback?: string;
 }
 
 interface Course {
@@ -33,7 +35,7 @@ interface Subject {
 }
 
 const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
-    const { canEditGrades, isSuperAdmin, isStudent, isApoderado, isTeacher } = usePermissions();
+    const { canEditGrades, isSuperAdmin, isStudent, isApoderado, isTeacher, isDirector, isUTP } = usePermissions();
     const isStaff = !isStudent && !isApoderado;
 
     const [evaluations, setEvaluations] = useState<Evaluation[]>([]);
@@ -135,6 +137,28 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
         }
     };
 
+    const handleSubmitForReview = async (id: string) => {
+        try {
+            await api.post(`/evaluations/${id}/submit`);
+            alert('Evaluación enviada para revisión.');
+            fetchData();
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al enviar');
+        }
+    };
+
+    const handleReview = async (id: string, status: 'approved' | 'rejected') => {
+        const feedback = status === 'rejected' ? window.prompt('Motivo del rechazo:') : '';
+        if (status === 'rejected' && feedback === null) return;
+        try {
+            await api.post(`/evaluations/${id}/review`, { status, feedback });
+            alert(status === 'approved' ? 'Evaluación aprobada.' : 'Evaluación rechazada.');
+            fetchData();
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al revisar');
+        }
+    };
+
     const [showWizard, setShowWizard] = useState(false);
 
     const availableSubjects = subjects.filter(s => {
@@ -202,7 +226,16 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                                 </span>
                                             )}
                                         </div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            {ev.status === 'draft' && <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-[8px] font-black uppercase">Borrador</span>}
+                                            {ev.status === 'submitted' && <span className="bg-blue-100 text-blue-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">En Revisión</span>}
+                                            {ev.status === 'approved' && <span className="bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">Aprobada</span>}
+                                            {ev.status === 'rejected' && <span className="bg-rose-100 text-rose-600 px-2 py-0.5 rounded text-[8px] font-black uppercase">Rechazada</span>}
+                                        </div>
                                         <h3 className="font-black text-lg text-slate-800 tracking-tight leading-tight group-hover:text-blue-600 transition-colors">{ev.title}</h3>
+                                        {ev.status === 'rejected' && ev.feedback && (
+                                            <p className="text-[9px] font-bold text-rose-400 mt-1 italic border-l-2 border-rose-200 pl-2"> feedback: {ev.feedback}</p>
+                                        )}
                                     </div>
                                     {canManage && (
                                         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
@@ -249,7 +282,7 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                     </div>
 
                                     {/* Action Shortcuts */}
-                                    <div className="pt-4 border-t border-slate-50 flex gap-2 overflow-x-auto custom-scrollbar pb-1">
+                                    <div className="pt-4 border-t border-slate-50 flex flex-wrap gap-2 pb-1">
                                         <button
                                             onClick={() => setViewingEval(ev)}
                                             className="flex-1 min-w-[100px] bg-slate-50 hover:bg-slate-100 text-slate-500 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
@@ -261,12 +294,42 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                             title={ev.title}
                                             questions={(ev as any).questions || []}
                                         />
-                                        <button
-                                            onClick={() => window.location.href = `/grades?evaluationId=${ev._id}`}
-                                            className="flex-1 min-w-[110px] bg-blue-50 hover:bg-blue-100 text-blue-600 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
-                                        >
-                                            Ver Resultados
-                                        </button>
+
+                                        {/* Workflow Buttons */}
+                                        {isTeacher && (ev.status === 'draft' || ev.status === 'rejected') && (
+                                            <button
+                                                onClick={() => handleSubmitForReview(ev._id)}
+                                                className="flex-1 min-w-[100px] bg-indigo-600 text-white py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all shadow-lg shadow-indigo-200"
+                                            >
+                                                Enviar a Revisión
+                                            </button>
+                                        )}
+
+                                        {(isSuperAdmin || isDirector || isUTP) && ev.status === 'submitted' && (
+                                            <div className="flex gap-2 w-full mt-2">
+                                                <button
+                                                    onClick={() => handleReview(ev._id, 'approved')}
+                                                    className="flex-1 bg-emerald-600 text-white py-2 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                                                >
+                                                    Aprobar
+                                                </button>
+                                                <button
+                                                    onClick={() => handleReview(ev._id, 'rejected')}
+                                                    className="flex-1 bg-rose-600 text-white py-2 rounded-xl font-black uppercase text-[8px] tracking-widest"
+                                                >
+                                                    Rechazar
+                                                </button>
+                                            </div>
+                                        )}
+
+                                        {ev.status === 'approved' && (
+                                            <button
+                                                onClick={() => window.location.href = `/grades?evaluationId=${ev._id}`}
+                                                className="flex-1 min-w-[110px] bg-blue-50 hover:bg-blue-100 text-blue-600 py-2.5 rounded-xl font-black uppercase text-[9px] tracking-widest transition-all"
+                                            >
+                                                Ver Resultados
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
