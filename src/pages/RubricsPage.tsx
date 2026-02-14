@@ -25,7 +25,7 @@ interface Rubric {
     _id?: string;
     title: string;
     description?: string;
-    status: 'draft' | 'submitted' | 'approved' | 'rejected';
+    status?: 'draft' | 'submitted' | 'approved' | 'rejected';
     feedback?: string;
     levels: Level[];
     criteria: Criterion[];
@@ -96,9 +96,22 @@ const RubricsPage = () => {
         }
     };
 
-    const handleSave = () => {
-        setShowBuilder(false);
-        fetchRubrics();
+    const handleSave = async (rubricData: Rubric) => {
+        try {
+            if (editingRubric && editingRubric._id) {
+                await api.put(`/rubrics/${editingRubric._id}`, rubricData);
+                toast.success('Rúbrica actualizada');
+            } else {
+                await api.post('/rubrics', rubricData);
+                toast.success('Rúbrica creada exitosamente');
+            }
+            setShowBuilder(false);
+            setEditingRubric(null);
+            fetchRubrics();
+        } catch (error: any) {
+            console.error(error);
+            toast.error(error.response?.data?.message || 'Error al guardar rúbrica');
+        }
     };
 
     const filteredRubrics = rubrics.filter(r =>

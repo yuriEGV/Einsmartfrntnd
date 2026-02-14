@@ -92,6 +92,10 @@ const UnifiedClassBook = () => {
 
     const [attendanceConfirmed, setAttendanceConfirmed] = useState(false);
 
+    // Rubric View State
+    const [showRubricModal, setShowRubricModal] = useState(false);
+    const [selectedRubric, setSelectedRubric] = useState<any>(null);
+
     // -------------------------------------------------------------------------
     // Data Fetching
     // -------------------------------------------------------------------------
@@ -799,7 +803,22 @@ const UnifiedClassBook = () => {
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">Nota (1.0 - 7.0)</label>
-                                    <input type="number" step="0.1" min="1" max="7" required value={gradeFormData.score} onChange={e => setGradeFormData({ ...gradeFormData, score: parseFloat(e.target.value) })} className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-black text-[#11355a] text-center text-2xl" />
+                                    <div className="flex gap-4">
+                                        <input type="number" shadow-sm step="0.1" min="1" max="7" required value={gradeFormData.score} onChange={e => setGradeFormData({ ...gradeFormData, score: parseFloat(e.target.value) })} className="flex-1 px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-black text-[#11355a] text-center text-2xl" />
+                                        {evaluations.find(e => e._id === gradeFormData.evaluationId)?.rubricId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setSelectedRubric(evaluations.find(e => e._id === gradeFormData.evaluationId).rubricId);
+                                                    setShowRubricModal(true);
+                                                }}
+                                                className="px-6 py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-[10px] uppercase tracking-widest border-2 border-blue-100 hover:bg-blue-100 transition-all flex items-center gap-2"
+                                            >
+                                                <List size={18} />
+                                                Ver Rúbrica
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                             <div className="bg-blue-50 p-6 rounded-[1.5rem] border border-blue-100 text-[10px] text-blue-700 font-bold leading-relaxed flex items-start gap-4">
@@ -1114,6 +1133,66 @@ const UnifiedClassBook = () => {
                     setActiveTab('evaluaciones');
                 }}
             />
+
+            {/* Rubric Preview Modal */}
+            {showRubricModal && selectedRubric && (
+                <div className="fixed inset-0 bg-slate-900/90 backdrop-blur-md z-[110] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-6xl max-h-[90vh] rounded-[3rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
+                        <div className="bg-[#11355a] p-8 text-white flex justify-between items-center shrink-0">
+                            <div>
+                                <h2 className="text-2xl font-black tracking-tighter uppercase">{selectedRubric.title}</h2>
+                                <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mt-1">Instrumento de Evaluación Objetiva</p>
+                            </div>
+                            <button onClick={() => setShowRubricModal(false)} className="p-2 hover:bg-white/10 rounded-full transition-all">
+                                <X size={32} />
+                            </button>
+                        </div>
+                        <div className="flex-1 overflow-auto p-10">
+                            <div className="mb-8">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Descripción</h4>
+                                <p className="text-slate-600 font-medium italic">{selectedRubric.description || 'Sin descripción adicional.'}</p>
+                            </div>
+                            <div className="overflow-hidden border border-slate-100 rounded-[2rem] shadow-sm">
+                                <table className="w-full border-collapse">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="p-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 w-1/4">Criterio</th>
+                                            {selectedRubric.levels.map((level: any, i: number) => (
+                                                <th key={i} className="p-6 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-slate-100">
+                                                    {level.name}
+                                                    <div className="text-blue-600 text-[12px] mt-1">{level.points} pts</div>
+                                                </th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {selectedRubric.criteria.map((criterion: any, cIdx: number) => (
+                                            <tr key={cIdx} className="hover:bg-slate-50/50">
+                                                <td className="p-6 align-top">
+                                                    <div className="font-black text-slate-800 text-sm">{criterion.name}</div>
+                                                </td>
+                                                {criterion.descriptors.map((desc: any, dIdx: number) => (
+                                                    <td key={dIdx} className="p-6 align-top">
+                                                        <div className="text-xs text-slate-500 font-medium leading-relaxed">{desc.text}</div>
+                                                    </td>
+                                                ))}
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div className="p-8 bg-slate-50 border-t border-slate-100 flex justify-end">
+                            <button
+                                onClick={() => setShowRubricModal(false)}
+                                className="px-10 py-4 bg-[#11355a] text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:bg-blue-900 transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

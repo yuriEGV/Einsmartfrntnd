@@ -22,6 +22,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [selectedCourse, setSelectedCourse] = useState(initialCourseId || '');
     const [selectedSubject, setSelectedSubject] = useState(initialSubjectId || '');
     const [availableMaterials, setAvailableMaterials] = useState<any[]>([]);
+    const [availableRubrics, setAvailableRubrics] = useState<any[]>([]); // New
     const [planningObjectives, setPlanningObjectives] = useState<string[]>([]);
     const [baseObjectives, setBaseObjectives] = useState<any[]>([]);
     const [selectedOAs, setSelectedOAs] = useState<string[]>([]);
@@ -30,6 +31,19 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [loading, setLoading] = useState(false);
     const [isCheckingConflict, setIsCheckingConflict] = useState(false);
     const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+
+    // Fetch Rubrics
+    useEffect(() => {
+        if (selectedSubject) {
+            const fetchRubrics = async () => {
+                try {
+                    const res = await api.get(`/rubrics?subjectId=${selectedSubject}&status=approved`);
+                    setAvailableRubrics(res.data);
+                } catch (err) { console.error(err); }
+            };
+            fetchRubrics();
+        }
+    }, [selectedSubject]);
 
     // Question Creation State
     const [showQuestionForm, setShowQuestionForm] = useState(false);
@@ -80,7 +94,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
         time: '08:00',
         type: 'sumativa' as 'formativa' | 'sumativa' | 'diagnostica',
         maxScore: 7.0,
-        category: initialCategory || 'planificada' as 'planificada' | 'sorpresa'
+        category: initialCategory || 'planificada' as 'planificada' | 'sorpresa',
+        rubricId: ''
     });
 
     const [questionSearch, setQuestionSearch] = useState('');
@@ -300,6 +315,26 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                         </select>
                                     </div>
                                 </div>
+
+                                {availableRubrics.length > 0 && (
+                                    <div className="space-y-2 animate-in slide-in-from-left-2">
+                                        <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1 flex items-center gap-2">
+                                            <FileText size={14} />
+                                            Vincular Rúbrica de Evaluación (Opcional)
+                                        </label>
+                                        <select
+                                            className="w-full px-6 py-4 bg-blue-50/50 border-2 border-blue-100 rounded-2xl outline-none font-bold text-blue-700 appearance-none focus:border-blue-300 transition-all"
+                                            value={formData.rubricId}
+                                            onChange={e => setFormData({ ...formData, rubricId: e.target.value })}
+                                        >
+                                            <option value="">No usar rúbrica</option>
+                                            {availableRubrics.map(r => (
+                                                <option key={r._id} value={r._id}>{r.title}</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-[9px] font-bold text-blue-400/80 ml-1 uppercase tracking-tight">Utilice una rúbrica aprobada para calificar de forma objetiva.</p>
+                                    </div>
+                                )}
                             </div>
 
                             {conflictWarning && (
@@ -311,33 +346,6 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                     </div>
                                 </div>
                             )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Curso / Nivel</label>
-                                    <select
-                                        value={selectedCourse}
-                                        onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}
-                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500/30 outline-none font-bold text-slate-600 shadow-inner transition-all"
-                                        disabled={!!initialCourseId}
-                                    >
-                                        <option value="">Seleccione Curso...</option>
-                                        {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
-                                    </select>
-                                </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Asignatura</label>
-                                    <select
-                                        value={selectedSubject}
-                                        onChange={e => setSelectedSubject(e.target.value)}
-                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-500/30 outline-none font-bold text-slate-600 shadow-inner transition-all"
-                                        disabled={!!initialSubjectId || !selectedCourse}
-                                    >
-                                        <option value="">Seleccione Asignatura...</option>
-                                        {filteredSubjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
-                                    </select>
-                                </div>
-                            </div>
                         </div>
                     )}
 
