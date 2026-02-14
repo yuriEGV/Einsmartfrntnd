@@ -147,7 +147,14 @@ const ScheduleManagementPage = () => {
                     {canEdit && selectedCourse && (
                         <button
                             onClick={() => {
-                                setFormData({ ...formData, courseId: selectedCourse });
+                                setFormData({
+                                    courseId: selectedCourse,
+                                    subjectId: '',
+                                    teacherId: '',
+                                    dayOfWeek: 1,
+                                    startTime: '08:00',
+                                    endTime: '09:30'
+                                });
                                 fetchSubjects(selectedCourse); // Load subjects when modal opens
                                 setShowModal(true);
                             }}

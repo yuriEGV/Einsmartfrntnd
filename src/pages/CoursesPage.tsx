@@ -52,6 +52,12 @@ const CoursesPage = () => {
     const [showSubjectsModal, setShowSubjectsModal] = useState(false);
     const [viewingCourseSubjects, setViewingCourseSubjects] = useState<any[]>([]);
     const [viewingCourseName, setViewingCourseName] = useState('');
+    const [viewingCourseId, setViewingCourseId] = useState('');
+    const [newSubjectData, setNewSubjectData] = useState({
+        name: '',
+        teacherId: '',
+        isComplementary: false
+    });
 
     // Form specific state
     const [formData, setFormData] = useState({
@@ -148,6 +154,7 @@ const CoursesPage = () => {
 
     const handleViewSubjects = async (course: Course) => {
         try {
+            setViewingCourseId(course._id);
             setViewingCourseName(course.name);
             const res = await api.get(`/subjects?courseId=${course._id}`);
             setViewingCourseSubjects(res.data);
@@ -155,6 +162,23 @@ const CoursesPage = () => {
         } catch (error) {
             console.error(error);
             alert('Error al cargar ramos');
+        }
+    };
+
+    const handleAssignSubject = async () => {
+        try {
+            await api.post('/subjects', {
+                ...newSubjectData,
+                courseId: viewingCourseId
+            });
+            // Refresh list
+            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+            setViewingCourseSubjects(res.data);
+            // Reset form
+            setNewSubjectData({ name: '', teacherId: '', isComplementary: false });
+        } catch (error) {
+            console.error(error);
+            alert('Error al asignar ramo');
         }
     };
 
@@ -511,30 +535,90 @@ const CoursesPage = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-8 space-y-4 bg-slate-50">
-                            {viewingCourseSubjects.length > 0 ? viewingCourseSubjects.map((subject: any) => (
-                                <div key={subject._id} className="p-5 bg-white rounded-3xl border-2 border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner font-black">
-                                            {subject.name.charAt(0)}
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-slate-50">
+                            {/* Quick Add Form */}
+                            <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-100 shadow-sm space-y-4">
+                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1">Asignar Nuevo Ramo</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                        placeholder="Nombre del Ramo (Ej: Ciencias)"
+                                        className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm"
+                                        value={newSubjectData.name}
+                                        onChange={e => setNewSubjectData({ ...newSubjectData, name: e.target.value })}
+                                    />
+                                    <select
+                                        className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm appearance-none"
+                                        value={newSubjectData.teacherId}
+                                        onChange={e => setNewSubjectData({ ...newSubjectData, teacherId: e.target.value })}
+                                    >
+                                        <option value="">Seleccionar Docente...</option>
+                                        {teachers.map((t: any) => (
+                                            <option key={t._id} value={t._id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-2 border-slate-200 text-blue-600"
+                                            checked={newSubjectData.isComplementary}
+                                            onChange={e => setNewSubjectData({ ...newSubjectData, isComplementary: e.target.checked })}
+                                        />
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Es Complementario</span>
+                                    </label>
+                                    <button
+                                        onClick={handleAssignSubject}
+                                        disabled={!newSubjectData.name || !newSubjectData.teacherId}
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-200"
+                                    >
+                                        Asignar ramo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Malla Curricular Vigente</h4>
+                                {viewingCourseSubjects.length > 0 ? viewingCourseSubjects.map((subject: any) => (
+                                    <div key={subject._id} className="p-5 bg-white rounded-3xl border-2 border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner font-black">
+                                                {subject.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="font-black text-slate-800 uppercase tracking-tight">{subject.name}</div>
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <div className="font-black text-slate-800 uppercase tracking-tight">{subject.name}</div>
-                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                        <div className="flex items-center gap-2">
+                                            {subject.isComplementary && (
+                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
+                                                    Complementario
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={async () => {
+                                                    if (window.confirm('¿Desvincular este ramo del curso?')) {
+                                                        try {
+                                                            await api.delete(`/subjects/${subject._id}`);
+                                                            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+                                                            setViewingCourseSubjects(res.data);
+                                                        } catch (err) { alert('Error al eliminar'); }
+                                                    }
+                                                }}
+                                                className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
                                         </div>
                                     </div>
-                                    {subject.isComplementary && (
-                                        <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
-                                            Complementario
-                                        </span>
-                                    )}
-                                </div>
-                            )) : (
-                                <div className="py-20 text-center border-4 border-dashed border-slate-200 rounded-[2.5rem]">
-                                    <BookOpen size={48} className="mx-auto text-slate-200 mb-4" />
-                                    <p className="text-slate-400 font-bold">No hay ramos registrados para este curso.</p>
-                                </div>
-                            )}
+                                )) : (
+                                    <div className="py-20 text-center border-4 border-dashed border-slate-200 rounded-[2.5rem]">
+                                        <BookOpen size={48} className="mx-auto text-slate-200 mb-4" />
+                                        <p className="text-slate-400 font-bold">No hay ramos registrados para este curso.</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                         <div className="p-6 bg-white border-t flex justify-end">
                             <button
