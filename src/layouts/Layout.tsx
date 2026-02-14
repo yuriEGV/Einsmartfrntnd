@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Table
+    Wand2
 } from 'lucide-react';
 
 const Layout = () => {
@@ -187,6 +187,18 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
+                    {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
+                        <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
+                    )}
+
+                    {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
+                        <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
+                    )}
+
+                    {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                        <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
+                    )}
+
                     {/* Centro Académico Submenu */}
                     {(user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
                         <div className="space-y-1">
@@ -210,40 +222,8 @@ const Layout = () => {
 
                             {/* Submenu Items */}
                             <div className={`pl-4 space-y-1 overflow-hidden transition-all duration-300 ${isAcademicOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
-                                {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
-                                    <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
-                                )}
-
-                                {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
-                                    <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
-                                )}
-
-                                {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
-                                    <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones</NavLink>
-                                )}
-
-                                {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                                    <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
-                                )}
-
-                                {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                                    <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
-                                )}
-
-                                {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
-                                    <NavLink to="/schedules" icon={Clock}>Horarios</NavLink>
-                                )}
-
                                 {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                                    <NavLink to="/plannings" icon={FileText}>Planificación</NavLink>
-                                )}
-
-                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                                    <NavLink to="/rubrics" icon={Table}>Rúbricas</NavLink>
-                                )}
-
-                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                                    <NavLink to="/curriculum-material" icon={BookOpen}>Material Didáctico</NavLink>
+                                    <NavLink to="/academic" icon={Wand2}>Gestionar Currículum</NavLink>
                                 )}
                             </div>
                         </div>

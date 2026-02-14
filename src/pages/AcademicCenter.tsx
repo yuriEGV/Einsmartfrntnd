@@ -1,32 +1,38 @@
 import { useState } from 'react';
 import {
-    ClipboardList, Target, LayoutDashboard, Database, BarChart3, Calendar, Wand2
+    ClipboardList, Target, LayoutDashboard, Database, BarChart3, Calendar, Wand2, Table, BookOpen
 } from 'lucide-react';
 import EvaluationsPage from './EvaluationsPage';
 import QuestionBankPage from './QuestionBankPage';
 import CurriculumMaterialPage from './CurriculumMaterialPage';
 import GradesPage from './GradesPage';
+import PlanningPage from './PlanningPage';
+import RubricsPage from './RubricsPage';
 import TestWizard from '../components/TestWizard';
 
 const AcademicCenter = () => {
-    const [activeTab, setActiveTab] = useState('evaluations');
+    const [activeTab, setActiveTab] = useState('planning');
     const [showWizard, setShowWizard] = useState(false);
     const [wizardCategory, setWizardCategory] = useState<'planificada' | 'sorpresa'>('planificada');
 
     const tabs = [
-        { id: 'evaluations', label: 'Evaluaciones (Pruebas)', icon: ClipboardList, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { id: 'planning', label: 'Planificaciones', icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { id: 'materials', label: 'Material Didáctico', icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { id: 'evaluations', label: 'Pruebas y Evaluaciones', icon: ClipboardList, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { id: 'questions', label: 'Banco de Preguntas', icon: Database, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { id: 'planning', label: 'Planificación (Contenidos)', icon: Target, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-emerald-600', bg: 'bg-emerald-50' }
+        { id: 'rubrics', label: 'Rúbricas', icon: Table, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-rose-600', bg: 'bg-rose-50' }
     ];
 
     const renderContent = () => {
         switch (activeTab) {
+            case 'planning': return <PlanningPage hideHeader={true} />;
+            case 'materials': return <CurriculumMaterialPage hideHeader={true} />;
             case 'evaluations': return <EvaluationsPage hideHeader={true} />;
             case 'questions': return <QuestionBankPage hideHeader={true} />;
-            case 'planning': return <CurriculumMaterialPage hideHeader={true} />;
+            case 'rubrics': return <RubricsPage hideHeader={true} />;
             case 'results': return <GradesPage hideHeader={true} />;
-            default: return <EvaluationsPage hideHeader={true} />;
+            default: return <PlanningPage />;
         }
     };
 

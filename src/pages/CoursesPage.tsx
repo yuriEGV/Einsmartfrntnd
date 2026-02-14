@@ -305,14 +305,6 @@ const CoursesPage = () => {
                                     {!isStudentOrGuardian && (
                                         <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-300 scale-95 group-hover:scale-100">
                                             <button
-                                                onClick={() => handleViewSubjects(course)}
-                                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all flex items-center gap-1.5"
-                                                title="Ver Ramos"
-                                            >
-                                                <BookOpen size={18} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest hidden md:inline">Ver Ramos</span>
-                                            </button>
-                                            <button
                                                 onClick={() => handleOpenModal('edit', course)}
                                                 className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
                                             >

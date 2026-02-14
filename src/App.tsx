@@ -19,12 +19,9 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CoursesPage from './pages/CoursesPage';
 import CourseStudentsPage from './pages/CourseStudentsPage';
-import SubjectsPage from './pages/SubjectsPage';
-import EvaluationsPage from './pages/EvaluationsPage';
 import AttendancePage from './pages/AttendancePage';
 import TariffsPage from './pages/TariffsPage';
 import MessagesPage from './pages/MessagesPage';
-import CurriculumMaterialPage from './pages/CurriculumMaterialPage';
 import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de Nóminas
 import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
 import SostenedorDashboard from './pages/SostenedorDashboard';
@@ -39,8 +36,6 @@ import ForcePasswordReset from './pages/ForcePasswordReset';
 import CareersPage from './pages/CareersPage';
 import AcademicCenter from './pages/AcademicCenter';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
-import PlanningPage from './pages/PlanningPage';
-import RubricsPage from './pages/RubricsPage';
 
 function App() {
   return (
@@ -68,15 +63,11 @@ function App() {
             <Route path="/my-payments" element={<GuardianPaymentsPage />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
-            <Route path="/subjects" element={<SubjectsPage />} />
-            <Route path="/evaluations" element={<EvaluationsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/curriculum-material" element={<CurriculumMaterialPage />} />
             <Route path="/academic" element={<AcademicCenter />} />
             <Route path="/schedules" element={<ScheduleManagementPage />} />
-            <Route path="/plannings" element={<PlanningPage />} />
 
             {/* Rutas para Gestión de Nóminas */}
             <Route path="/payroll" element={<PayrollPage />} />
@@ -85,7 +76,6 @@ function App() {
             <Route path="/guardians" element={<GuardiansPage />} />
             <Route path="/class-book" element={<UnifiedClassBook />} />
             <Route path="/question-bank" element={<QuestionBankPage />} />
-            <Route path="/rubrics" element={<RubricsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin-days" element={<AdminDaysPage />} />
             <Route path="/event-requests" element={<EventRequestsPage />} />

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface Level {
     name: string;
@@ -189,9 +190,19 @@ const RubricBuilder: React.FC<Props> = ({ onSave, onCancel, initialData }) => {
                     Cancelar
                 </button>
                 <button
-                    onClick={() => onSave(rubric)}
-                    disabled={!rubric.title || rubric.criteria.some(c => !c.name)}
-                    className="px-8 py-3 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg disabled:opacity-50 disabled:shadow-none w-full md:w-auto"
+                    onClick={() => {
+                        if (!rubric.title.trim()) {
+                            toast.error('Por favor, ingresa un título para la rúbrica');
+                            return;
+                        }
+                        if (rubric.criteria.some(c => !c.name.trim())) {
+                            toast.error('Todos los criterios deben tener un nombre');
+                            return;
+                        }
+                        console.log('Saving rubric:', rubric);
+                        onSave(rubric);
+                    }}
+                    className="px-8 py-3 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg w-full md:w-auto active:scale-95"
                 >
                     Guardar Rúbrica
                 </button>

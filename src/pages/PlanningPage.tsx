@@ -53,7 +53,7 @@ interface Rubric {
     criteria: { name: string; descriptors: { levelName: string; text: string }[] }[];
 }
 
-const PlanningPage = () => {
+const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const { canApprovePlanning, isTeacher } = usePermissions();
     const [plannings, setPlannings] = useState<Planning[]>([]);
     const [loading, setLoading] = useState(true);
@@ -186,20 +186,22 @@ const PlanningPage = () => {
 
     return (
         <div className="p-6 max-w-7xl mx-auto min-h-screen bg-gray-50">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Planificaciones Didácticas</h1>
-                    <p className="text-gray-500 mt-1">Gestión pedagógica y aprobación de contenidos.</p>
+            {!hideHeader && (
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Planificaciones Didácticas</h1>
+                        <p className="text-gray-500 mt-1">Gestión pedagógica y aprobación de contenidos.</p>
+                    </div>
+                    {isTeacher && (
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center gap-2 bg-[#11355a] text-white px-6 py-3 rounded-xl hover:bg-[#1a4a7c] transition-all shadow-lg shadow-blue-900/10"
+                        >
+                            <Plus size={20} /> Nueva Planificación
+                        </button>
+                    )}
                 </div>
-                {isTeacher && (
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 bg-[#11355a] text-white px-6 py-3 rounded-xl hover:bg-[#1a4a7c] transition-all shadow-lg shadow-blue-900/10"
-                    >
-                        <Plus size={20} /> Nueva Planificación
-                    </button>
-                )}
-            </div>
+            )}
 
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mb-8 flex flex-col md:flex-row gap-4 items-center">
                 <div className="relative flex-1 w-full">
