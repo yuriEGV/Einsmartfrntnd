@@ -13,8 +13,6 @@ import {
     X,
     MessageSquare,
     AlertCircle,
-    MessageSquare,
-    AlertCircle,
     Table
 } from 'lucide-react';
 import api from '../services/api';
@@ -476,7 +474,7 @@ const PlanningPage = () => {
                             onCancel={() => setShowRubricBuilder(false)}
                             onSave={async (newRubric) => {
                                 try {
-                                    const res = await axios.post(`${API_URL}/rubrics`, newRubric);
+                                    const res = await api.post('/rubrics', newRubric);
                                     toast.success('Rúbrica guardada');
                                     fetchRubrics();
                                     setFormData({ ...formData, rubricId: res.data._id });
