@@ -12,11 +12,13 @@ import {
     Check,
     X,
     MessageSquare,
-    AlertCircle
+    AlertCircle,
+    Table
 } from 'lucide-react';
 import axios from 'axios';
 import { usePermissions } from '../hooks/usePermissions';
 import { toast } from 'react-hot-toast';
+import RubricBuilder from '../components/RubricBuilder';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -39,6 +41,15 @@ interface Planning {
     feedback?: string;
     updatedAt: string;
     unitNumber?: number | string;
+    rubricId?: any;
+}
+
+interface Rubric {
+    _id: string;
+    title: string;
+    description?: string;
+    levels: { name: string; points: number }[];
+    criteria: { name: string; descriptors: { levelName: string; text: string }[] }[];
 }
 
 const PlanningPage = () => {
@@ -51,6 +62,9 @@ const PlanningPage = () => {
     const [showReviewModal, setShowReviewModal] = useState(false);
     const [selectedPlanning, setSelectedPlanning] = useState<Planning | null>(null);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [rubrics, setRubrics] = useState<Rubric[]>([]);
+    const [showRubricBuilder, setShowRubricBuilder] = useState(false);
+    const [viewingRubric, setViewingRubric] = useState<Rubric | null>(null);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -60,7 +74,8 @@ const PlanningPage = () => {
         activities: '',
         strategies: '',
         objectives: [] as string[],
-        unitNumber: ''
+        unitNumber: '',
+        rubricId: ''
     });
 
     const [reviewData, setReviewData] = useState({
@@ -71,7 +86,17 @@ const PlanningPage = () => {
     useEffect(() => {
         fetchPlannings();
         fetchSubjects();
+        fetchRubrics();
     }, []);
+
+    const fetchRubrics = async () => {
+        try {
+            const res = await axios.get(`${API_URL}/rubrics`);
+            setRubrics(res.data);
+        } catch (error) {
+            console.error('Error fetching rubrics:', error);
+        }
+    };
 
     const fetchPlannings = async () => {
         try {
@@ -100,6 +125,17 @@ const PlanningPage = () => {
             await axios.post(`${API_URL}/plannings`, formData);
             toast.success('Planificación creada');
             setShowCreateModal(false);
+            setFormData({
+                title: '',
+                type: 'unidad',
+                subjectId: '',
+                description: '',
+                activities: '',
+                strategies: '',
+                objectives: [] as string[],
+                unitNumber: '',
+                rubricId: ''
+            });
             fetchPlannings();
         } catch (err: any) {
             toast.error(err.response?.data?.message || 'Error al crear');
@@ -229,6 +265,15 @@ const PlanningPage = () => {
                                         </p>
                                     </div>
                                     <div className="flex gap-1">
+                                        {p.rubricId && (
+                                            <button
+                                                onClick={() => setViewingRubric(p.rubricId)}
+                                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                                title="Ver Rúbrica"
+                                            >
+                                                <Table size={20} />
+                                            </button>
+                                        )}
                                         {canApprovePlanning && p.status === 'submitted' && (
                                             <button
                                                 onClick={() => { setSelectedPlanning(p); setShowReviewModal(true); }}
@@ -378,6 +423,27 @@ const PlanningPage = () => {
                                     </div>
                                 </div>
 
+                                <div className="space-y-1.5">
+                                    <label className="text-sm font-semibold text-gray-700 flex justify-between">
+                                        Rúbrica de Evaluación (Opcional)
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowRubricBuilder(true)}
+                                            className="text-xs text-blue-600 hover:underline"
+                                        >
+                                            + Crear Nueva Rúbrica
+                                        </button>
+                                    </label>
+                                    <select
+                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                        value={formData.rubricId}
+                                        onChange={e => setFormData({ ...formData, rubricId: e.target.value })}
+                                    >
+                                        <option value="">Seleccionar Rúbrica existente</option>
+                                        {rubrics.map(r => <option key={r._id} value={r._id}>{r.title}</option>)}
+                                    </select>
+                                </div>
+
                                 <div className="flex justify-end gap-3 pt-4 border-t">
                                     <button
                                         type="button"
@@ -394,6 +460,70 @@ const PlanningPage = () => {
                                     </button>
                                 </div>
                             </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Rubric Builder Modal */}
+            {showRubricBuilder && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+                    <div className="w-full max-w-5xl shadow-2xl animate-in zoom-in-95 duration-200">
+                        <RubricBuilder
+                            onCancel={() => setShowRubricBuilder(false)}
+                            onSave={async (newRubric) => {
+                                try {
+                                    const res = await axios.post(`${API_URL}/rubrics`, newRubric);
+                                    toast.success('Rúbrica guardada');
+                                    fetchRubrics();
+                                    setFormData({ ...formData, rubricId: res.data._id });
+                                    setShowRubricBuilder(false);
+                                } catch (error) {
+                                    toast.error('Error al guardar rúbrica');
+                                }
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {/* Rubric Viewer Modal */}
+            {viewingRubric && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl p-8">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900">{viewingRubric.title}</h2>
+                                <p className="text-gray-500">{viewingRubric.description}</p>
+                            </div>
+                            <button onClick={() => setViewingRubric(null)} className="text-gray-400 hover:text-gray-600">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-[#11355a] text-white">
+                                    <tr>
+                                        <th className="p-4 border-b font-semibold min-w-[200px]">Criterio</th>
+                                        {viewingRubric.levels.map((level, i) => (
+                                            <th key={i} className="p-4 border-b font-semibold text-center min-w-[150px]">
+                                                {level.name} ({level.points} pts)
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {viewingRubric.criteria.map((criterion, cIndex) => (
+                                        <tr key={cIndex}>
+                                            <td className="p-4 font-bold text-gray-900 bg-gray-50/50">{criterion.name}</td>
+                                            {criterion.descriptors.map((descriptor, dIndex) => (
+                                                <td key={dIndex} className="p-4 text-sm text-gray-600">{descriptor.text}</td>
+                                            ))}
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
