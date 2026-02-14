@@ -27,10 +27,11 @@ interface Rubric {
 interface Props {
     onSave: (rubric: Rubric) => void;
     onCancel: () => void;
+    initialData?: Rubric | null;
 }
 
-const RubricBuilder: React.FC<Props> = ({ onSave, onCancel }) => {
-    const [rubric, setRubric] = useState<Rubric>({
+const RubricBuilder: React.FC<Props> = ({ onSave, onCancel, initialData }) => {
+    const [rubric, setRubric] = useState<Rubric>(initialData || {
         title: '',
         description: '',
         levels: [

@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2
+    Wand2, Table
 } from 'lucide-react';
 
 const Layout = () => {
@@ -22,6 +22,7 @@ const Layout = () => {
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isAcademicOpen, setIsAcademicOpen] = useState(false);
     const location = useLocation();
 
     const handleLogout = () => {
@@ -186,18 +187,66 @@ const Layout = () => {
 
                     <NavLink to="/" icon={Home}>Escritorio</NavLink>
 
+                    {/* Centro Académico Submenu */}
                     {(user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
-                        <NavLink to="/academic" icon={Wand2}>Centro Académico</NavLink>
-                    )}
+                        <div className="space-y-1">
+                            <button
+                                onClick={() => setIsAcademicOpen(!isAcademicOpen)}
+                                className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 group ${isAcademicOpen
+                                    ? 'bg-white/10'
+                                    : 'hover:bg-white/5'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-xl transition-colors ${isAcademicOpen ? 'bg-white/10' : 'bg-transparent group-hover:bg-white/5'}`}>
+                                        <Wand2 size={18} className={isAcademicOpen ? 'text-white' : 'text-blue-300 group-hover:text-white'} />
+                                    </div>
+                                    <span className={`font-black text-[11px] uppercase tracking-widest ${isAcademicOpen ? 'text-white' : 'text-blue-200/80 group-hover:text-white'}`}>
+                                        Centro Académico
+                                    </span>
+                                </div>
+                                <ChevronRight size={14} className={`text-white/40 transition-transform duration-300 ${isAcademicOpen ? 'rotate-90' : ''}`} />
+                            </button>
 
+                            {/* Submenu Items */}
+                            <div className={`pl-4 space-y-1 overflow-hidden transition-all duration-300 ${isAcademicOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
+                                    <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
+                                )}
 
+                                {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
+                                    <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
+                                )}
 
-                    {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
-                        <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
-                    )}
+                                {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
+                                    <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones</NavLink>
+                                )}
 
-                    {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
-                        <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
+                                {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                                    <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
+                                )}
+
+                                {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                                    <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
+                                )}
+
+                                {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                                    <NavLink to="/schedules" icon={Clock}>Horarios</NavLink>
+                                )}
+
+                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                                    <NavLink to="/plannings" icon={FileText}>Planificación</NavLink>
+                                )}
+
+                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                                    <NavLink to="/rubrics" icon={Table}>Rúbricas</NavLink>
+                                )}
+
+                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                                    <NavLink to="/curriculum-material" icon={BookOpen}>Material Didáctico</NavLink>
+                                )}
+                            </div>
+                        </div>
                     )}
 
                     {/* Redundant links hidden for teachers to favor unified dashboard */}
@@ -206,10 +255,6 @@ const Layout = () => {
                             <NavLink to="/grades" icon={ClipboardList}>Notas Globales</NavLink>
                             <NavLink to="/attendance" icon={CheckCircle2}>Asistencia Global</NavLink>
                         </>
-                    )}
-
-                    {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
-                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
                     )}
 
                     {/* Redefine messages visibility: Only staff */}
@@ -225,28 +270,8 @@ const Layout = () => {
                             <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
                         </div>
 
-                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
-                            <NavLink to="/schedules" icon={Clock}>Horarios</NavLink>
-                        )}
-
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
                             <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                            <NavLink to="/plannings" icon={FileText}>Planificación</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                            <NavLink to="/curriculum-material" icon={BookOpen}>Material Didáctico</NavLink>
                         )}
 
                         {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (
@@ -289,28 +314,19 @@ const Layout = () => {
                             <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
                         )}
                     </div>
-
-                    {/* Profile Section - Visible to ALL users */}
-                    <div className="mt-8 pt-6 border-t border-white/10">
-                        <div className="flex items-center justify-between mb-3 px-2">
-                            <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Mi Cuenta</span>
-                            <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
-                        </div>
-                        <NavLink to="/profile" icon={User}>Mi Perfil</NavLink>
-                    </div>
                 </nav>
 
                 {/* Premium Profile Section */}
                 <div className="p-8 border-t border-white/5 bg-black/20 relative z-20">
                     <div className="flex items-center gap-4 mb-6">
-                        <Link to="/profile" className="relative group">
+                        <Link to="/" className="relative group">
                             <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
                                 {user?.name?.substring(0, 1) || <User size={20} />}
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#11355a] shadow-lg"></div>
                         </Link>
                         <div className="min-w-0">
-                            <Link to="/profile" className="text-sm font-black text-white truncate leading-tight hover:text-blue-200 block transition-colors">{user?.name || 'Invitado'}</Link>
+                            <span className="text-sm font-black text-white truncate leading-tight block">{user?.name || 'Invitado'}</span>
                             <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block">{user?.role}</div>
                         </div>
                     </div>

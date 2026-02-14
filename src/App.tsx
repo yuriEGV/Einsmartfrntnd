@@ -40,6 +40,7 @@ import CareersPage from './pages/CareersPage';
 import AcademicCenter from './pages/AcademicCenter';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
 import PlanningPage from './pages/PlanningPage';
+import RubricsPage from './pages/RubricsPage';
 
 function App() {
   return (
@@ -84,6 +85,7 @@ function App() {
             <Route path="/guardians" element={<GuardiansPage />} />
             <Route path="/class-book" element={<UnifiedClassBook />} />
             <Route path="/question-bank" element={<QuestionBankPage />} />
+            <Route path="/rubrics" element={<RubricsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin-days" element={<AdminDaysPage />} />
             <Route path="/event-requests" element={<EventRequestsPage />} />

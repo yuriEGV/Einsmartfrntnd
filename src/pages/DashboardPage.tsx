@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -111,8 +111,8 @@ const DashboardPage = () => {
                 </div>
             )}
 
-            {/* Header / Welcome - Compact on Mobile */}
-            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
+            {/* Header / Welcome & Quick Profile - Compact on Mobile */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-6 bg-white md:bg-transparent p-5 md:p-0 rounded-3xl shadow-sm md:shadow-none border md:border-none">
                 <div className="space-y-1">
                     <h1 className="text-xl md:text-4xl font-black text-gray-800 tracking-tight leading-tight">
                         <span className="block md:inline text-blue-600 opacity-90">Hola,</span> {user?.name.split(' ')[0]}
@@ -122,8 +122,20 @@ const DashboardPage = () => {
                         Portal: {tenant?.name || 'Einsmart'}
                     </p>
                 </div>
-                <div className="flex items-center">
-                    <span className={`px-4 py-1.5 rounded-full text-[10px] md:text-xs font-black uppercase tracking-widest border
+
+                {/* Integrated Profile Widget */}
+                <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-full shadow-sm border border-slate-100 scale-90 origin-right">
+                    <a href="/profile" className="flex items-center gap-4 group">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black shadow-lg group-hover:scale-110 transition-transform">
+                            {user?.name?.charAt(0) || <User size={20} />}
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs font-black text-slate-700 uppercase tracking-tight group-hover:text-blue-600 transition-colors">Mi Cuenta</span>
+                            <span className="text-[10px] font-bold text-slate-400">Ver Perfil</span>
+                        </div>
+                    </a>
+                    <div className="h-8 w-[1px] bg-slate-100"></div>
+                    <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border
                         ${isSuperAdmin ? 'bg-purple-50 text-purple-700 border-purple-100' : 'bg-blue-50 text-blue-700 border-blue-100'}`}>
                         {user?.role}
                     </span>
