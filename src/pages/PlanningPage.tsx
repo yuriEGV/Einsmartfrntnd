@@ -13,14 +13,17 @@ import {
     X,
     MessageSquare,
     AlertCircle,
+    MessageSquare,
+    AlertCircle,
     Table
 } from 'lucide-react';
-import axios from 'axios';
+import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { toast } from 'react-hot-toast';
 import RubricBuilder from '../components/RubricBuilder';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Remove API_URL as api service handles it
+// const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 interface Planning {
     _id: string;
@@ -91,7 +94,7 @@ const PlanningPage = () => {
 
     const fetchRubrics = async () => {
         try {
-            const res = await axios.get(`${API_URL}/rubrics`);
+            const res = await api.get('/rubrics');
             setRubrics(res.data);
         } catch (error) {
             console.error('Error fetching rubrics:', error);
@@ -100,7 +103,7 @@ const PlanningPage = () => {
 
     const fetchPlannings = async () => {
         try {
-            const res = await axios.get(`${API_URL}/plannings`);
+            const res = await api.get('/planning');
             setPlannings(res.data);
         } catch (error) {
             console.error(error);
@@ -112,7 +115,7 @@ const PlanningPage = () => {
 
     const fetchSubjects = async () => {
         try {
-            const res = await axios.get(`${API_URL}/subjects`);
+            const res = await api.get('/subjects');
             setSubjects(res.data);
         } catch (error) {
             console.error('Error subjects:', error);
@@ -122,7 +125,7 @@ const PlanningPage = () => {
     const handleCreate = async (e: FormEvent) => {
         e.preventDefault();
         try {
-            await axios.post(`${API_URL}/plannings`, formData);
+            await api.post('/planning', formData);
             toast.success('Planificación creada');
             setShowCreateModal(false);
             setFormData({
@@ -144,7 +147,7 @@ const PlanningPage = () => {
 
     const handleSubmitForReview = async (id: string) => {
         try {
-            await axios.post(`${API_URL}/plannings/${id}/submit`);
+            await api.post(`/planning/${id}/submit`);
             toast.success('Planificación enviada a revisión');
             fetchPlannings();
         } catch (error) {
@@ -157,7 +160,7 @@ const PlanningPage = () => {
         e.preventDefault();
         if (!selectedPlanning) return;
         try {
-            await axios.post(`${API_URL}/plannings/${selectedPlanning._id}/review`, reviewData);
+            await api.post(`/planning/${selectedPlanning._id}/review`, reviewData);
             toast.success('Revisión completada');
             setShowReviewModal(false);
             fetchPlannings();
