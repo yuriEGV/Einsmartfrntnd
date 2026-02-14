@@ -127,18 +127,13 @@ const RubricsPage = () => {
 
             {/* Builder Modal */}
             {showBuilder && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm">
-                    <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl animate-in zoom-in-95 duration-200">
-                        {/* We need to update RubricBuilder to accept initialData if we want to edit. 
-                             For now, let's assume RubricBuilder might handle simple creation or we might need to update it.
-                             Looking at the previous file content, RubricBuilder takes onSave and onCancel. 
-                             It doesn't seem to take initialData prop in the previous view, so I might need to update it or just use it for creation for now.
-                             Wait, I'll check RubricBuilder again if needed. For now, I'll pass it if I update it, or just creation.
-                          */}
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-0 md:p-4 bg-slate-900/80 backdrop-blur-sm">
+                    {/* RubricBuilder handles its own container styling */}
+                    <div className="w-full max-w-7xl h-full md:h-auto">
                         <RubricBuilder
                             onCancel={() => setShowBuilder(false)}
                             onSave={handleSave}
-                            // @ts-ignore - Assuming we will add initialData support or it's just creation for now if prop doesn't exist
+                            // @ts-ignore
                             initialData={editingRubric}
                         />
                     </div>
