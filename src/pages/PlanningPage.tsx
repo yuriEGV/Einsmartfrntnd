@@ -136,8 +136,8 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                 await api.put(`/planning/${editingId}`, dataToSubmit);
                 toast.success('Planificación actualizada');
             } else {
-                await api.post('/planning', dataToSubmit);
-                toast.success('Planificación creada');
+                await api.post('/planning', { ...dataToSubmit, status: 'submitted' });
+                toast.success('Planificación creada y enviada a revisión');
             }
             setShowCreateModal(false);
             resetForm();
@@ -533,7 +533,7 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                             type="submit"
                                             className="px-8 py-2.5 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg shadow-blue-900/10"
                                         >
-                                            {editingId ? 'Actualizar Planificación' : 'Guardar como Borrador'}
+                                            {editingId ? 'Actualizar Planificación' : 'Guardar y Enviar a Revisión'}
                                         </button>
                                     </div>
                                 </form>

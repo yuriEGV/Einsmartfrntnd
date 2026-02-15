@@ -375,18 +375,29 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                         value={formData.subjectId}
                                         onChange={e => setFormData({ ...formData, subjectId: e.target.value })}
                                     >
-                                        <option value="">-- Seleccionar --</option>
-                                        {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.courseId?.name})</option>)}
+                                        <option value="">-- Seleccionar Asignatura --</option>
+                                        {subjects.map(s => (
+                                            <option key={s._id} value={s._id}>
+                                                {s.courseId?.name ? `${s.courseId.name} - ` : ''}{s.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Grado/Nivel</label>
-                                    <input
-                                        placeholder="Ej: 8° Básico"
+                                    <select
+                                        required
                                         className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none font-bold"
                                         value={formData.grade}
                                         onChange={e => setFormData({ ...formData, grade: e.target.value })}
-                                    />
+                                    >
+                                        <option value="">-- Seleccionar Nivel --</option>
+                                        {Array.from(new Set(subjects.map(s => s.courseId?.name || s.grade).filter(Boolean))).map(g => (
+                                            <option key={g as string} value={g as string}>{g as string}</option>
+                                        ))}
+                                        {!subjects.length && <option value="Básico">Básico</option>}
+                                        {!subjects.length && <option value="Medio">Medio</option>}
+                                    </select>
                                 </div>
                             </div>
 

@@ -29,8 +29,10 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [bankQuestions, setBankQuestions] = useState<any[]>([]);
     const [selectedBankQuestions, setSelectedBankQuestions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
-    const [isCheckingConflict, setIsCheckingConflict] = useState(false);
     const [conflictWarning, setConflictWarning] = useState<string | null>(null);
+    const [dayEvaluations, setDayEvaluations] = useState<any[]>([]);
+    const [daySchedules, setDaySchedules] = useState<any[]>([]);
+    const [isLoadingDayData, setIsLoadingDayData] = useState(false);
 
     // Fetch Rubrics
     useEffect(() => {
@@ -158,28 +160,37 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
         if (initialCategory) setFormData(prev => ({ ...prev, category: initialCategory }));
     }, [initialCourseId, initialSubjectId, initialCategory]);
 
-    // Conflict check effect
+    // Conflict and Schedule check effect
     useEffect(() => {
-        const checkConflict = async () => {
-            if (!selectedCourse || !formData.date || !formData.time) return;
-            setIsCheckingConflict(true);
+        const fetchDayData = async () => {
+            if (!selectedCourse || !formData.date) return;
+            setIsLoadingDayData(true);
             try {
-                const res = await api.get(`/evaluations?courseId=${selectedCourse}&date=${formData.date}`);
-                const evals = res.data;
-                if (evals.length > 0) {
-                    setConflictWarning(`Atención: Ya hay ${evals.length} evaluaciones programadas para este curso en esta fecha.`);
+                const dateObj = new Date(formData.date + 'T12:00:00'); // Use mid-day to avoid TZ shifts
+                const dayOfWeek = dateObj.getDay();
+
+                const [evalsRes, schedulesRes] = await Promise.all([
+                    api.get(`/evaluations?courseId=${selectedCourse}&date=${formData.date}`),
+                    api.get(`/schedules?courseId=${selectedCourse}&dayOfWeek=${dayOfWeek}`)
+                ]);
+
+                setDayEvaluations(evalsRes.data);
+                setDaySchedules(schedulesRes.data);
+
+                if (evalsRes.data.length > 0) {
+                    setConflictWarning(`Atención: Ya hay ${evalsRes.data.length} evaluaciones programadas para este curso en esta fecha.`);
                 } else {
                     setConflictWarning(null);
                 }
             } catch (error) {
-                console.error('Error checking conflict:', error);
+                console.error('Error fetching day data:', error);
             } finally {
-                setIsCheckingConflict(false);
+                setIsLoadingDayData(false);
             }
         };
 
-        checkConflict();
-    }, [selectedCourse, formData.date, formData.time]);
+        fetchDayData();
+    }, [selectedCourse, formData.date]);
 
     const handleGenerate = async () => {
         if (!formData.title) return alert("Por favor, ingrese un título.");
@@ -338,12 +349,66 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                 )}
                             </div>
 
+                            {/* Visual Timeline / Schedule Checker */}
+                            {(daySchedules.length > 0 || dayEvaluations.length > 0) && (
+                                <div className="bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm space-y-4 animate-in fade-in slide-in-from-bottom-2">
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                            <Calendar size={14} />
+                                            Vista del Día y Horarios
+                                        </h3>
+                                        {isLoadingDayData && <div className="animate-spin rounded-full h-4 w-4 border-2 border-indigo-600 border-t-transparent"></div>}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {/* Schedules */}
+                                        {daySchedules.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-tighter ml-1">Horario del Curso</p>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {daySchedules.map((s, idx) => (
+                                                        <div key={idx} className="px-3 py-2 bg-slate-50 border border-slate-100 rounded-xl flex flex-col">
+                                                            <span className="text-[8px] font-black text-slate-400">{s.startTime} - {s.endTime}</span>
+                                                            <span className="text-[10px] font-bold text-slate-600 truncate max-w-[100px]">{s.subjectId?.name}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Existing Evaluations */}
+                                        {dayEvaluations.length > 0 && (
+                                            <div className="space-y-2">
+                                                <p className="text-[9px] font-black text-rose-300 uppercase tracking-tighter ml-1">Evaluaciones Existentes</p>
+                                                <div className="space-y-2">
+                                                    {dayEvaluations.map((ev, idx) => (
+                                                        <div key={idx} className="p-3 bg-rose-50 border border-rose-100 rounded-xl flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-rose-500 shadow-sm">
+                                                                    <FileText size={16} />
+                                                                </div>
+                                                                <div>
+                                                                    <p className="text-[10px] font-black text-rose-700 uppercase tracking-tight">{ev.title}</p>
+                                                                    <p className="text-[9px] font-bold text-rose-400">{ev.subjectId?.name} • {new Date(ev.date).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</p>
+                                                                </div>
+                                                            </div>
+                                                            <AlertCircle size={16} className="text-rose-300" />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {conflictWarning && (
                                 <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-[1.5rem] flex items-start gap-4 animate-in zoom-in-95">
                                     <AlertCircle className="text-rose-500 shrink-0 mt-1" size={24} />
                                     <div>
-                                        <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario</p>
+                                        <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario Detectado</p>
                                         <p className="text-rose-500 font-bold text-xs mt-1">{conflictWarning}</p>
+                                        <p className="text-rose-400 text-[9px] mt-2 font-bold uppercase">Considere reprogramar para evitar sobrecargar a los estudiantes.</p>
                                     </div>
                                 </div>
                             )}
@@ -499,7 +564,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
 
                                 <button
                                     onClick={handleGenerate}
-                                    disabled={loading || isCheckingConflict}
+                                    disabled={loading || isLoadingDayData}
                                     className={`w-full py-6 text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group ${formData.category === 'sorpresa' ? 'bg-amber-500 shadow-amber-900/40' : 'bg-[#00a86b] shadow-emerald-900/40'} ${loading ? 'opacity-50' : ''}`}
                                 >
                                     <FileText size={24} className="group-hover:rotate-12 transition-transform" />
