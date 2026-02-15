@@ -42,6 +42,11 @@ const UnifiedClassBook = () => {
     const [evaluations, setEvaluations] = useState<any[]>([]);
     const [showGradeModal, setShowGradeModal] = useState(false);
 
+    // View Mode & Details
+    const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
+    const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
+    const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<any>(null);
+
     // Signature State
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [signingLogId, setSigningLogId] = useState<string | null>(null);
@@ -316,7 +321,12 @@ const UnifiedClassBook = () => {
                                                     </div>
                                                 </div>
                                                 <div className="mt-4 pt-4 border-t border-slate-50 flex gap-2">
-                                                    <button className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all">HOJA DE VIDA</button>
+                                                    <button
+                                                        onClick={() => { setSelectedStudentForDetail(s); setShowStudentDetailModal(true); }}
+                                                        className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all"
+                                                    >
+                                                        HOJA DE VIDA
+                                                    </button>
                                                     <button className="p-2 border border-slate-100 text-slate-400 rounded-lg hover:text-blue-500 transition-colors">
                                                         <UserPlus size={16} />
                                                     </button>
@@ -327,7 +337,6 @@ const UnifiedClassBook = () => {
                                 </div>
                             )}
 
-                            {/* TAB CONTEXT: ASISTENCIA */}
                             {activeTab === 'asistencia' && (
                                 <div className="space-y-8">
                                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
@@ -340,6 +349,22 @@ const UnifiedClassBook = () => {
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-4 w-full xl:w-auto">
+                                            <div className="flex bg-slate-50 p-1 rounded-2xl border-2 border-slate-100">
+                                                <button
+                                                    onClick={() => setAttendanceViewMode('grid')}
+                                                    className={`p-3 rounded-xl transition-all ${attendanceViewMode === 'grid' ? 'bg-white shadow-md text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    title="Vista Cuadrícula"
+                                                >
+                                                    <LayoutGrid size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => setAttendanceViewMode('list')}
+                                                    className={`p-3 rounded-xl transition-all ${attendanceViewMode === 'list' ? 'bg-white shadow-md text-blue-600' : 'text-slate-400 hover:text-slate-600'}`}
+                                                    title="Vista Lista"
+                                                >
+                                                    <List size={18} />
+                                                </button>
+                                            </div>
                                             <select
                                                 value={selectedBlock}
                                                 onChange={e => setSelectedBlock(e.target.value)}
@@ -358,44 +383,78 @@ const UnifiedClassBook = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                                        {students.map((s: any) => (
-                                            <div key={s._id} className={`bg-white rounded-[3rem] p-6 shadow-xl border-4 transition-all relative overflow-hidden flex flex-col items-center text-center
+                                    {attendanceViewMode === 'grid' ? (
+                                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                                            {students.map((s: any) => (
+                                                <div key={s._id} className={`bg-white rounded-[3rem] p-6 shadow-xl border-4 transition-all relative overflow-hidden flex flex-col items-center text-center
                                                 ${attendanceMap[s._id] === 'ausente' ? 'border-rose-100 bg-rose-50/10' :
-                                                    attendanceMap[s._id] === 'atraso' ? 'border-amber-100 bg-amber-50/10' :
-                                                        'border-slate-50 hover:border-blue-200'}`}>
+                                                        attendanceMap[s._id] === 'atraso' ? 'border-amber-100 bg-amber-50/10' :
+                                                            'border-slate-50 hover:border-blue-200'}`}>
 
-                                                <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-6 relative group cursor-pointer"
-                                                    onClick={() => setAttendanceMap({ ...attendanceMap, [s._id]: attendanceMap[s._id] === 'presente' ? 'ausente' : 'presente' })}>
-                                                    <div className="text-2xl font-black text-slate-300 uppercase">{s.nombres[0]}{s.apellidos[0]}</div>
-                                                    {attendanceMap[s._id] === 'presente' && <div className="absolute inset-0 bg-emerald-500/10 rounded-full flex items-center justify-center ring-4 ring-emerald-500/20"><UserCheck size={40} className="text-emerald-500" /></div>}
-                                                    {attendanceMap[s._id] === 'ausente' && <div className="absolute inset-0 bg-rose-500/10 rounded-full flex items-center justify-center ring-4 ring-rose-500/30"><X size={40} className="text-rose-500" /></div>}
-                                                </div>
+                                                    <div className="w-24 h-24 rounded-full bg-slate-100 flex items-center justify-center mb-6 relative group cursor-pointer"
+                                                        onClick={() => setAttendanceMap({ ...attendanceMap, [s._id]: attendanceMap[s._id] === 'presente' ? 'ausente' : 'presente' })}>
+                                                        <div className="text-2xl font-black text-slate-300 uppercase">{s.nombres[0]}{s.apellidos[0]}</div>
+                                                        {attendanceMap[s._id] === 'presente' && <div className="absolute inset-0 bg-emerald-500/10 rounded-full flex items-center justify-center ring-4 ring-emerald-500/20"><UserCheck size={40} className="text-emerald-500" /></div>}
+                                                        {attendanceMap[s._id] === 'ausente' && <div className="absolute inset-0 bg-rose-500/10 rounded-full flex items-center justify-center ring-4 ring-rose-500/30"><X size={40} className="text-rose-500" /></div>}
+                                                    </div>
 
-                                                <h4 className="text-xs font-black text-[#11355a] uppercase tracking-tight mb-2 line-clamp-1">{s.apellidos}, {s.nombres}</h4>
+                                                    <h4 className="text-xs font-black text-[#11355a] uppercase tracking-tight mb-2 line-clamp-1">{s.apellidos}, {s.nombres}</h4>
 
-                                                <div className="flex gap-1 w-full mt-4">
-                                                    {[
-                                                        { id: 'presente', label: 'P', color: 'emerald' },
-                                                        { id: 'ausente', label: 'A', color: 'rose' },
-                                                        { id: 'atraso', label: 'T', color: 'amber' },
-                                                        { id: 'retiro_anticipado', label: 'R', color: 'indigo' }
-                                                    ].map(status => (
-                                                        <button
-                                                            key={status.id}
-                                                            onClick={() => setAttendanceMap({ ...attendanceMap, [s._id]: status.id })}
-                                                            className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase transition-all
+                                                    <div className="flex gap-1 w-full mt-4">
+                                                        {[
+                                                            { id: 'presente', label: 'P', color: 'emerald' },
+                                                            { id: 'ausente', label: 'A', color: 'rose' },
+                                                            { id: 'atraso', label: 'T', color: 'amber' },
+                                                            { id: 'retiro_anticipado', label: 'R', color: 'indigo' }
+                                                        ].map(status => (
+                                                            <button
+                                                                key={status.id}
+                                                                onClick={() => setAttendanceMap({ ...attendanceMap, [s._id]: status.id })}
+                                                                className={`flex-1 py-3 rounded-2xl text-[9px] font-black uppercase transition-all
                                                             ${attendanceMap[s._id] === status.id
-                                                                    ? `bg-${status.color}-600 text-white shadow-lg`
-                                                                    : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
-                                                        >
-                                                            {status.label}
-                                                        </button>
-                                                    ))}
+                                                                        ? `bg-${status.color}-600 text-white shadow-lg`
+                                                                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                                            >
+                                                                {status.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))}
-                                    </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3 bg-white p-6 rounded-[2rem] shadow-xl border border-slate-100">
+                                            {students.map((s: any) => (
+                                                <div key={s._id} className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${attendanceMap[s._id] === 'ausente' ? 'bg-rose-50/30 border-rose-100' : 'bg-white border-slate-50 hover:border-blue-100'}`}>
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center font-black text-slate-400 text-xs">
+                                                            {s.nombres[0]}{s.apellidos[0]}
+                                                        </div>
+                                                        <span className="font-bold text-slate-700 text-sm uppercase">{s.apellidos}, {s.nombres}</span>
+                                                    </div>
+                                                    <div className="flex gap-2">
+                                                        {[
+                                                            { id: 'presente', label: 'Presente', color: 'emerald' },
+                                                            { id: 'ausente', label: 'Ausente', color: 'rose' },
+                                                            { id: 'atraso', label: 'Atrasado', color: 'amber' },
+                                                            { id: 'retiro_anticipado', label: 'Retirado', color: 'indigo' }
+                                                        ].map(status => (
+                                                            <button
+                                                                key={status.id}
+                                                                onClick={() => setAttendanceMap({ ...attendanceMap, [s._id]: status.id })}
+                                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-all
+                                                                ${attendanceMap[s._id] === status.id
+                                                                        ? `bg-${status.color}-500 text-white shadow-lg`
+                                                                        : 'bg-slate-50 text-slate-400 hover:bg-slate-100'}`}
+                                                            >
+                                                                {status.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
@@ -618,64 +677,146 @@ const UnifiedClassBook = () => {
                                 </div>
                             )}
                         </div>
-                    )}
-                </div>
             </div>
 
-            {/* MODALS Area (Minimal Placeholders) */}
-            {showGradeModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95">
-                        <div className="bg-[#11355a] p-8 text-white flex justify-between items-center">
-                            <h2 className="text-xl font-bold flex items-center gap-3"><GraduationCap size={24} /> Ingresar Calificación</h2>
-                            <button onClick={() => setShowGradeModal(false)} className="text-white/40 hover:text-white transition-colors"><X size={32} /></button>
-                        </div>
-                        <div className="p-10 space-y-8">
-                            <p className="text-sm font-bold text-slate-500 italic">Módulo de ingreso rápido en proceso de optimización para tablets.</p>
-                            <button onClick={() => setShowGradeModal(false)} className="w-full py-6 bg-slate-100 text-slate-400 rounded-3xl font-black uppercase text-xs tracking-widest transition-all">Cerrar Ventana</button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Signature PIN Modal */}
-            {showSignatureModal && (
-                <div className="fixed inset-0 bg-[#11355a]/90 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[3.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 p-10 text-center border-b-[12px] border-blue-600">
-                        <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 animate-bounce">
-                            <ShieldCheck size={48} />
-                        </div>
-                        <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter mb-2">Firma Digital Avanzada</h2>
-                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-10 leading-relaxed">
-                            Ingrese su PIN de seguridad docente para validar el cierre legal de este registro pedagógico.
-                        </p>
-
-                        <div className="space-y-6">
-                            <input
-                                type="password"
-                                maxLength={4}
-                                value={pin}
-                                onChange={e => setPin(e.target.value)}
-                                className="w-full text-center text-4xl tracking-[1em] font-black py-6 bg-slate-50 border-4 border-slate-100 rounded-[2rem] outline-none focus:border-blue-500 transition-all"
-                                placeholder="****"
-                            />
-                            <div className="flex gap-4">
-                                <button onClick={() => setShowSignatureModal(false)} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest">Cancelar</button>
-                                <button
-                                    onClick={handleSignLog}
-                                    disabled={pin.length < 4}
-                                    className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 disabled:opacity-50"
-                                >
-                                    RECONOCER Y FIRMAR
-                                </button>
+                {/* MODALS Area (Minimal Placeholders) */}
+                {
+                    showGradeModal && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95">
+                                <div className="bg-[#11355a] p-8 text-white flex justify-between items-center">
+                                    <h2 className="text-xl font-bold flex items-center gap-3"><GraduationCap size={24} /> Ingresar Calificación</h2>
+                                    <button onClick={() => setShowGradeModal(false)} className="text-white/40 hover:text-white transition-colors"><X size={32} /></button>
+                                </div>
+                                <div className="p-10 space-y-8">
+                                    <p className="text-sm font-bold text-slate-500 italic">Módulo de ingreso rápido en proceso de optimización para tablets.</p>
+                                    <button onClick={() => setShowGradeModal(false)} className="w-full py-6 bg-slate-100 text-slate-400 rounded-3xl font-black uppercase text-xs tracking-widest transition-all">Cerrar Ventana</button>
+                                </div>
                             </div>
                         </div>
-                        <p className="mt-8 text-[8px] font-black text-slate-300 uppercase tracking-tighter">Certificado Digital ID: LCD-CHILE-{tenant?._id?.slice(-8)}</p>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+                    )
+                }
+
+                {/* Signature PIN Modal */}
+                {
+                    showSignatureModal && (
+                        <div className="fixed inset-0 bg-[#11355a]/90 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[3.5rem] w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 p-10 text-center border-b-[12px] border-blue-600">
+                                <div className="w-24 h-24 bg-blue-50 text-blue-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 animate-bounce">
+                                    <ShieldCheck size={48} />
+                                </div>
+                                <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter mb-2">Firma Digital Avanzada</h2>
+                                <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mb-10 leading-relaxed">
+                                    Ingrese su PIN de seguridad docente para validar el cierre legal de este registro pedagógico.
+                                </p>
+
+                                <div className="space-y-6">
+                                    <input
+                                        type="password"
+                                        maxLength={4}
+                                        value={pin}
+                                        onChange={e => setPin(e.target.value)}
+                                        className="w-full text-center text-4xl tracking-[1em] font-black py-6 bg-slate-50 border-4 border-slate-100 rounded-[2rem] outline-none focus:border-blue-500 transition-all"
+                                        placeholder="****"
+                                    />
+                                    <div className="flex gap-4">
+                                        <button onClick={() => setShowSignatureModal(false)} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest">Cancelar</button>
+                                        <button
+                                            onClick={handleSignLog}
+                                            disabled={pin.length < 4}
+                                            className="flex-[2] py-5 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-900/20 disabled:opacity-50"
+                                        >
+                                            RECONOCER Y FIRMAR
+                                        </button>
+                                    </div>
+                                </div>
+                                <p className="mt-8 text-[8px] font-black text-slate-300 uppercase tracking-tighter">Certificado Digital ID: LCD-CHILE-{tenant?._id?.slice(-8)}</p>
+                            </div>
+                        </div>
+                    )
+                }
+
+                {/* Student Detail Modal */}
+                {
+                    showStudentDetailModal && selectedStudentForDetail && (
+                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                            <div className="bg-white rounded-[3rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 max-h-[90vh] flex flex-col">
+                                <div className="bg-[#11355a] p-8 text-white flex justify-between items-center shrink-0">
+                                    <div>
+                                        <h2 className="text-xl font-black uppercase tracking-tight flex items-center gap-3">
+                                            <GraduationCap size={24} className="text-blue-300" />
+                                            Ficha del Estudiante
+                                        </h2>
+                                        <p className="text-[10px] text-blue-200 font-bold uppercase tracking-widest mt-1">Expediente Digital Completo</p>
+                                    </div>
+                                    <button onClick={() => setShowStudentDetailModal(false)} className="bg-white/10 p-2 rounded-full hover:bg-white/20 transition-colors"><X size={24} /></button>
+                                </div>
+
+                                <div className="p-8 overflow-y-auto custom-scrollbar space-y-8">
+                                    {/* Personal Info */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Información Personal</h3>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="p-4 bg-slate-50 rounded-2xl">
+                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Nombre Completo</label>
+                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.nombres} {selectedStudentForDetail.apellidos}</div>
+                                            </div>
+                                            <div className="p-4 bg-slate-50 rounded-2xl">
+                                                <label className="text-[9px] font-bold text-slate-400 uppercase">RUT</label>
+                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.rut || 'No Registrado'}</div>
+                                            </div>
+                                            <div className="p-4 bg-slate-50 rounded-2xl">
+                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Matrícula</label>
+                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.matricula || 'No Registrada'}</div>
+                                            </div>
+                                            <div className="p-4 bg-slate-50 rounded-2xl">
+                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Email</label>
+                                                <div className="text-sm font-black text-[#11355a] truncate">{selectedStudentForDetail.email}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Apoderado Info */}
+                                    {selectedStudentForDetail.guardian && (
+                                        <div className="space-y-4">
+                                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Datos del Apoderado</h3>
+                                            <div className="bg-blue-50/50 p-6 rounded-3xl border border-blue-100 space-y-3">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-xs font-bold text-[#11355a] uppercase">{selectedStudentForDetail.guardian.nombre} {selectedStudentForDetail.guardian.apellidos}</span>
+                                                    <span className="text-[10px] px-3 py-1 bg-blue-100 text-blue-700 rounded-full font-black uppercase">{selectedStudentForDetail.guardian.parentesco || 'Apoderado'}</span>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                                                    <div><span className="font-bold">Tel:</span> {selectedStudentForDetail.guardian.telefono}</div>
+                                                    <div><span className="font-bold">Email:</span> {selectedStudentForDetail.guardian.correo}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Quick Stats Placeholder */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div className="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100">
+                                            <div className="text-2xl font-black text-emerald-600">95%</div>
+                                            <div className="text-[8px] font-bold text-emerald-400 uppercase">Asistencia</div>
+                                        </div>
+                                        <div className="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100">
+                                            <div className="text-2xl font-black text-blue-600">6.2</div>
+                                            <div className="text-[8px] font-bold text-blue-400 uppercase">Promedio</div>
+                                        </div>
+                                        <div className="p-4 bg-amber-50 rounded-2xl text-center border border-amber-100">
+                                            <div className="text-2xl font-black text-amber-600">2</div>
+                                            <div className="text-[8px] font-bold text-amber-400 uppercase">Anotaciones</div>
+                                        </div>
+                                    </div>
+
+                                    <button onClick={() => setShowStudentDetailModal(false)} className="w-full py-4 bg-[#11355a] text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg">Cerrar Ficha</button>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            </div >
+            );
 };
 
-export default UnifiedClassBook;
+            export default UnifiedClassBook;
