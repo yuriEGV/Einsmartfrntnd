@@ -17,10 +17,10 @@ const AcademicCenter = () => {
 
     const tabs = [
         { id: 'planning', label: 'Planificaciones', icon: Target, color: 'text-blue-600', bg: 'bg-blue-50' },
-        { id: 'materials', label: 'Material Didáctico', icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { id: 'evaluations', label: 'Pruebas y Evaluaciones', icon: ClipboardList, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { id: 'questions', label: 'Banco de Preguntas', icon: Database, color: 'text-amber-600', bg: 'bg-amber-50' },
         { id: 'rubrics', label: 'Rúbricas', icon: Table, color: 'text-purple-600', bg: 'bg-purple-50' },
+        { id: 'questions', label: 'Banco de Preguntas', icon: Database, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { id: 'evaluations', label: 'Pruebas y Evaluaciones', icon: ClipboardList, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { id: 'materials', label: 'Material Didáctico', icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50' },
         { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-rose-600', bg: 'bg-rose-50' }
     ];
 

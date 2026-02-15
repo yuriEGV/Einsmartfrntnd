@@ -82,6 +82,12 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
         }
     };
 
+    const handleSubjectChange = (subjectId: string) => {
+        const subject = subjects.find(s => s._id === subjectId);
+        const grade = subject?.courseId?.name || subject?.grade || '';
+        setFormData({ ...formData, subjectId, grade });
+    };
+
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
@@ -373,7 +379,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                         required
                                         className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none font-bold"
                                         value={formData.subjectId}
-                                        onChange={e => setFormData({ ...formData, subjectId: e.target.value })}
+                                        onChange={e => handleSubjectChange(e.target.value)}
                                     >
                                         <option value="">-- Seleccionar Asignatura --</option>
                                         {subjects.map(s => (
@@ -384,20 +390,22 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Grado/Nivel</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Grado/Nivel Auto-Asignado</label>
                                     <select
                                         required
-                                        className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 outline-none font-bold"
+                                        className="w-full px-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-400 cursor-not-allowed"
                                         value={formData.grade}
-                                        onChange={e => setFormData({ ...formData, grade: e.target.value })}
+                                        disabled
                                     >
-                                        <option value="">-- Seleccionar Nivel --</option>
+                                        <option value="">-- Automático por Asignatura --</option>
                                         {Array.from(new Set(subjects.map(s => s.courseId?.name || s.grade).filter(Boolean))).map(g => (
                                             <option key={g as string} value={g as string}>{g as string}</option>
                                         ))}
-                                        {!subjects.length && <option value="Básico">Básico</option>}
-                                        {!subjects.length && <option value="Medio">Medio</option>}
+                                        {formData.grade && !subjects.some(s => (s.courseId?.name || s.grade) === formData.grade) && (
+                                            <option value={formData.grade}>{formData.grade}</option>
+                                        )}
                                     </select>
+                                    <p className="text-[8px] font-bold text-indigo-400/60 ml-1 uppercase tracking-tight">El grado se vincula a la asignatura seleccionada.</p>
                                 </div>
                             </div>
 
@@ -483,7 +491,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             </button>
                         </form>
                     </div>
-                </div>
+                </div >
             )}
 
             {/* Test Wizard */}
@@ -495,7 +503,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     alert('¡Evaluación creada exitosamente!');
                 }}
             />
-        </div>
+        </div >
     );
 };
 
