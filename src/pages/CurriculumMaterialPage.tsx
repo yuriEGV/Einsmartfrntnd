@@ -4,7 +4,7 @@ import curriculumService, { type CurriculumMaterial } from '../services/curricul
 import {
     BookOpen, Plus, Search,
     Trash2, X, Save, File,
-    Edit, Target
+    Edit, Target, Printer
 } from 'lucide-react';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -160,6 +160,48 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
             console.error('Error:', err);
             alert('Error al eliminar material');
         }
+    };
+
+    const handlePrint = (material: CurriculumMaterial) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const objectivesHtml = (material.objectives || [])
+            .map(obj => `<li>${obj}</li>`)
+            .join('');
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${material.title}</title>
+                    <style>
+                        body { font-family: sans-serif; padding: 40px; }
+                        h1 { color: #11355a; }
+                        .meta { color: #666; margin-bottom: 20px; }
+                        .section { margin-top: 30px; }
+                        ul { padding-left: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>${material.title}</h1>
+                    <div class="meta">
+                        <p>${material.description || ''}</p>
+                    </div>
+                    <div class="section">
+                        <h3>Objetivos de Aprendizaje:</h3>
+                        <ul>${objectivesHtml}</ul>
+                    </div>
+                    ${material.content ? `<div class="section"><h3>Contenido:</h3><div>${material.content}</div></div>` : ''}
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            window.close();
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     };
 
     const openEditModal = (material: CurriculumMaterial) => {
@@ -389,12 +431,18 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
                                     </div>
                                 )}
 
-                                <div className="flex gap-2">
+                                <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => openEditModal(material)}
                                         className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg font-bold text-sm hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
                                     >
                                         <Edit size={16} /> Editar
+                                    </button>
+                                    <button
+                                        onClick={() => handlePrint(material)}
+                                        className="flex-1 py-2 bg-emerald-50 text-emerald-600 rounded-lg font-bold text-sm hover:bg-emerald-100 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <Printer size={16} /> Imprimir
                                     </button>
                                     <button
                                         onClick={() => material._id && handleDelete(material._id)}

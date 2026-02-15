@@ -158,15 +158,29 @@ const RubricsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
             {/* Search & List */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <div className="relative mb-6">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por título o descripción..."
-                        className="w-full pl-12 pr-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-blue-500/20 text-slate-700 font-medium outline-none transition-all"
-                        value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                    />
+                <div className="flex flex-col md:flex-row gap-4 items-center">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input
+                            type="text"
+                            placeholder="Buscar rúbricas..."
+                            className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-slate-600"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                    </div>
+                    {hideHeader && (isTeacher || isDirector || isUTP || isSuperAdmin) && (
+                        <button
+                            onClick={() => {
+                                setEditingRubric(null);
+                                setShowBuilder(true);
+                            }}
+                            className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition-all shadow-lg"
+                            title="Nueva Rúbrica"
+                        >
+                            <Plus size={20} />
+                        </button>
+                    )}
                 </div>
 
                 {loading ? (

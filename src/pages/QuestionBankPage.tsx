@@ -5,7 +5,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import TestWizard from '../components/TestWizard';
 import {
     Database, Plus, Search, Trash2, Edit, Save,
-    X, CheckCircle, HelpCircle, Sparkles
+    X, CheckCircle, HelpCircle, Sparkles, Wand2
 } from 'lucide-react';
 
 interface Question {
@@ -174,14 +174,52 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div className="md:col-span-2">
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Buscador</label>
-                    <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
-                        <input
-                            placeholder="Buscar preguntas..."
-                            className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-indigo-500 outline-none font-bold"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
+                    <div className="flex flex-col md:flex-row gap-4 items-center">
+                        <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                            <input
+                                type="text"
+                                placeholder="Buscar preguntas..."
+                                className="w-full pl-10 pr-4 py-3 bg-slate-50 border-2 border-slate-50 rounded-2xl focus:border-blue-500 outline-none transition-all font-bold text-slate-600"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                        {hideHeader && (permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isUTP) && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setShowWizard(true)}
+                                    className="bg-white text-slate-800 border-2 border-slate-100 p-3 rounded-2xl hover:bg-slate-50 transition-all shadow-lg"
+                                    title="Crear Evaluación"
+                                >
+                                    <Wand2 size={20} />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setFormData({
+                                            _id: '',
+                                            questionText: '',
+                                            subjectId: '',
+                                            grade: '',
+                                            type: 'multiple_choice' as any,
+                                            difficulty: 'medium' as any,
+                                            options: [
+                                                { text: '', isCorrect: false },
+                                                { text: '', isCorrect: false },
+                                                { text: '', isCorrect: false },
+                                                { text: '', isCorrect: false }
+                                            ],
+                                            tags: []
+                                        });
+                                        setShowModal(true);
+                                    }}
+                                    className="bg-blue-600 text-white p-3 rounded-2xl hover:bg-blue-700 transition-all shadow-lg"
+                                    title="NUEVA PREGUNTA"
+                                >
+                                    <Plus size={20} />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <div>

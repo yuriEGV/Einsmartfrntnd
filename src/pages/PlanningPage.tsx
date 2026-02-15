@@ -126,12 +126,17 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
     const handleCreate = async (e: FormEvent) => {
         e.preventDefault();
+        const dataToSubmit = {
+            ...formData,
+            unitNumber: formData.unitNumber ? Number(formData.unitNumber) : 0
+        };
+
         try {
             if (editingId) {
-                await api.put(`/planning/${editingId}`, formData);
+                await api.put(`/planning/${editingId}`, dataToSubmit);
                 toast.success('Planificación actualizada');
             } else {
-                await api.post('/planning', formData);
+                await api.post('/planning', dataToSubmit);
                 toast.success('Planificación creada');
             }
             setShowCreateModal(false);
