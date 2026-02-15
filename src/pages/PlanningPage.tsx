@@ -231,6 +231,15 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                         </button>
                     ))}
                 </div>
+                {hideHeader && isTeacher && (
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="bg-[#11355a] text-white p-2 rounded-lg hover:bg-[#1a4a7c] transition-all shadow-lg"
+                        title="Nueva Planificación"
+                    >
+                        <Plus size={20} />
+                    </button>
+                )}
             </div>
 
             {loading ? (

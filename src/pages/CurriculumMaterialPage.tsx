@@ -259,7 +259,7 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
 
             {/* Filters */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-8">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-4 items-end">
                     <div>
                         <label className="block text-sm font-bold text-gray-700 mb-2">Buscar</label>
                         <div className="relative">
@@ -317,6 +317,28 @@ const CurriculumMaterialPage = ({ hideHeader = false }: { hideHeader?: boolean }
                             <Search size={16} /> BUSCAR
                         </button>
                     </div>
+                    {hideHeader && (
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => setShowWizard(true)}
+                                className="flex-1 bg-white text-[#11355a] border-2 border-[#11355a]/10 p-3 rounded-xl hover:bg-blue-50 transition-all shadow-lg"
+                                title="Crear Evaluación"
+                            >
+                                <Target size={20} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setModalMode('create');
+                                    resetForm();
+                                    setShowModal(true);
+                                }}
+                                className="flex-1 bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 transition-all shadow-lg"
+                                title="Nuevo Material"
+                            >
+                                <Plus size={20} />
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 

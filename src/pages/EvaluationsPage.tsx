@@ -204,6 +204,15 @@ const EvaluationsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
                 />
+                {hideHeader && canManage && (
+                    <button
+                        onClick={() => setShowWizard(true)}
+                        className="bg-[#11355a] text-white p-2 rounded-lg hover:bg-[#1a4a7c] transition-all shadow-lg"
+                        title="Nueva Evaluación"
+                    >
+                        <Plus size={20} />
+                    </button>
+                )}
             </div>
 
             {loading ? <p className="text-center py-20 font-black text-slate-300 uppercase animate-pulse">Cargando Evaluaciones...</p> : (

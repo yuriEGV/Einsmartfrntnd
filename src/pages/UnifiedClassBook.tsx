@@ -3,7 +3,8 @@ import api from '../services/api';
 import {
     BookOpen, GraduationCap, X,
     Calendar, List, ShieldCheck,
-    UserCheck, ClipboardList, Printer, LayoutGrid, Heart, UserPlus, AlertCircle
+    UserCheck, ClipboardList, Printer, LayoutGrid, Heart, UserPlus, AlertCircle,
+    ChevronLeft, ChevronRight, Search
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
@@ -19,6 +20,8 @@ const UnifiedClassBook = () => {
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [students, setStudents] = useState<any[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
     // Sub-states
     const [logs, setLogs] = useState<any[]>([]);
@@ -200,17 +203,22 @@ const UnifiedClassBook = () => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 w-full lg:w-auto relative z-10">
-                    <div className="flex-1 lg:w-72">
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Curso / Nivel</label>
-                        <select className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all shadow-sm"
+                    <button onClick={() => setSidebarExpanded(!sidebarExpanded)}
+                        className="p-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 transition-all shadow-sm flex items-center gap-2 font-black text-[10px] uppercase">
+                        {sidebarExpanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+                        <span className="hidden sm:inline">{sidebarExpanded ? 'Contraer' : 'Expandir'}</span>
+                    </button>
+                    <div className="flex-1 lg:w-60">
+                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">Curso / Nivel</label>
+                        <select className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all shadow-sm text-xs"
                             value={selectedCourse} onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}>
-                            <option value="">-- ELIGIR CURSO --</option>
+                            <option value="">-- CURSO --</option>
                             {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                         </select>
                     </div>
-                    <div className="flex-1 lg:w-72">
-                        <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-2">Asignatura</label>
-                        <select className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl focus:border-blue-500 outline-none font-black text-slate-700 disabled:opacity-50 transition-all shadow-sm"
+                    <div className="flex-1 lg:w-60">
+                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-2">Asignatura</label>
+                        <select className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 disabled:opacity-50 transition-all shadow-sm text-xs"
                             value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} disabled={!selectedCourse}>
                             <option value="">-- SELECCIONAR --</option>
                             {filteredSubjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
@@ -222,19 +230,20 @@ const UnifiedClassBook = () => {
             {/* Layout Wrapper */}
             <div className="flex flex-col lg:flex-row gap-8">
                 {/* Sidebar Navigation */}
-                <div className="lg:w-80 shrink-0 space-y-3 print:hidden">
+                <div className={`${sidebarExpanded ? 'lg:w-72' : 'lg:w-20'} shrink-0 space-y-3 print:hidden transition-all duration-300`}>
                     {[
-                        { id: 'ficha', label: 'Ficha de Vida', icon: GraduationCap },
-                        { id: 'asistencia', label: 'Asistencia Diaria', icon: UserCheck },
-                        { id: 'leccionario', label: 'Leccionario Digital', icon: List },
-                        { id: 'notas', label: 'Libro de Notas', icon: ClipboardList },
-                        { id: 'citaciones', label: 'Citaciones / Apod.', icon: Calendar }
+                        { id: 'ficha', label: 'Ficha Estudiantes', icon: GraduationCap },
+                        { id: 'asistencia', label: 'Lista Digital', icon: UserCheck },
+                        { id: 'leccionario', label: 'Leccionario', icon: List },
+                        { id: 'notas', label: 'Calificaciones', icon: ClipboardList },
+                        { id: 'citaciones', label: 'Citaciones', icon: Calendar }
                     ].map((tab: any) => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-                            className={`w-full flex items-center gap-4 px-6 py-5 rounded-3xl font-black text-[11px] uppercase tracking-[0.2em] transition-all
-                            ${activeTab === tab.id ? 'bg-[#11355a] text-white shadow-2xl -translate-x-2' : 'bg-white text-slate-400 border border-slate-100 shadow-sm'}`}>
+                            title={tab.label}
+                            className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all
+                            ${activeTab === tab.id ? 'bg-[#11355a] text-white shadow-xl -translate-x-1' : 'bg-white text-slate-400 border border-slate-100 shadow-sm hover:border-blue-200'}`}>
                             <tab.icon size={20} className={activeTab === tab.id ? 'text-blue-400' : 'text-slate-300'} />
-                            {tab.label}
+                            {sidebarExpanded && <span>{tab.label}</span>}
                         </button>
                     ))}
 
@@ -262,28 +271,55 @@ const UnifiedClassBook = () => {
                         <div className="space-y-6">
                             {/* TAB CONTEXT: FICHA DE VIDA */}
                             {activeTab === 'ficha' && (
-                                <div className="space-y-8">
-                                    <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter px-4">Ficha de Vida del Alumno (Libro Digital)</h2>
-                                    <div className="grid gap-6 md:grid-cols-2">
-                                        {students.map((s: any) => (
-                                            <div key={s._id} className="bg-white p-8 rounded-[3rem] shadow-xl border border-slate-50 hover:border-blue-300 transition-all flex gap-8 group">
-                                                <div className="w-24 h-24 rounded-[2rem] bg-slate-50 flex items-center justify-center text-slate-200 text-3xl font-black uppercase border border-slate-100">
-                                                    {s.nombres[0]}{s.apellidos[0]}
+                                <div className="space-y-6">
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-4 bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
+                                        <h3 className="text-xl font-black text-[#11355a] tracking-tighter uppercase">Ficha Estudiantes</h3>
+                                        <div className="relative w-full md:w-96">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                            <input
+                                                type="text"
+                                                placeholder="Buscar por nombre o RUT..."
+                                                value={searchQuery}
+                                                onChange={e => setSearchQuery(e.target.value)}
+                                                className="w-full pl-12 pr-6 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-bold text-slate-700 transition-all text-sm"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {students.filter(s =>
+                                            s.nombres.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            s.apellidos.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            s.rut?.includes(searchQuery)
+                                        ).map((s: any) => (
+                                            <div key={s._id} className="bg-white p-6 rounded-2xl shadow-lg border border-slate-50 relative group hover:border-blue-300 transition-all">
+                                                <div className="flex gap-4">
+                                                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0">
+                                                        <span className="text-xl font-black text-slate-300 uppercase">{s.nombres[0]}{s.apellidos[0]}</span>
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <h4 className="font-black text-[#11355a] text-sm uppercase leading-tight mb-1">{s.apellidos}, {s.nombres}</h4>
+                                                        <div className="space-y-1">
+                                                            <div className="flex justify-between text-[10px]">
+                                                                <span className="text-slate-400 font-bold uppercase">RUT</span>
+                                                                <span className="text-slate-700 font-black">{s.rut || 'No Reg.'}</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-[10px]">
+                                                                <span className="text-slate-400 font-bold uppercase">Edad</span>
+                                                                <span className="text-slate-700 font-black">{s.fechaNacimiento ? new Date().getFullYear() - new Date(s.fechaNacimiento).getFullYear() : '--'} Años</span>
+                                                            </div>
+                                                            <div className="flex justify-between text-[10px]">
+                                                                <span className="text-slate-400 font-bold uppercase">Salud</span>
+                                                                <span className="text-slate-700 font-black">{s.salud || 'Sin Registro'}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="flex-1">
-                                                    <div className="flex justify-between items-start mb-4">
-                                                        <h4 className="text-lg font-black text-[#11355a] uppercase tracking-tight leading-none group-hover:text-blue-600">{s.apellidos}, {s.nombres}</h4>
-                                                        {s.programaPIE && <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border border-purple-200">PIE</span>}
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[10px] items-center">
-                                                        <div className="text-slate-400 font-black uppercase">RUT</div><div className="text-slate-700 font-bold">{s.rut || 'No Registrado'}</div>
-                                                        <div className="text-slate-400 font-black uppercase">Edad</div><div className="text-slate-700 font-bold">{s.edad} Años</div>
-                                                        <div className="text-slate-400 font-black uppercase">Salud</div><div className="text-slate-700 font-bold flex items-center gap-1 text-rose-500"><Heart size={10} /> {s.salud?.seguro || 'Fonasa'}</div>
-                                                    </div>
-                                                    <div className="flex gap-2 mt-8">
-                                                        <button className="flex-1 py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Hoja de Vida</button>
-                                                        <button className="px-4 py-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all"><UserPlus size={16} /></button>
-                                                    </div>
+                                                <div className="mt-4 pt-4 border-t border-slate-50 flex gap-2">
+                                                    <button className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all">HOJA DE VIDA</button>
+                                                    <button className="p-2 border border-slate-100 text-slate-400 rounded-lg hover:text-blue-500 transition-colors">
+                                                        <UserPlus size={16} />
+                                                    </button>
                                                 </div>
                                             </div>
                                         ))}
@@ -436,11 +472,18 @@ const UnifiedClassBook = () => {
                                 </div>
                             )}
 
-                            {/* TAB CONTEXT: NOTAS (PREVIEW) */}
+                            {/* TAB CONTEXT: NOTAS */}
                             {activeTab === 'notas' && (
-                                <div className="space-y-8 bg-white p-10 rounded-[4rem] shadow-xl border border-slate-100">
-                                    <div className="flex justify-between items-center px-4">
-                                        <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Sábana de Notas (Decreto 67)</h2>
+                                <div className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
+                                    <div className="flex justify-between items-center border-b border-slate-50 pb-6 mb-2">
+                                        <h2 className="text-xl font-black text-[#11355a] uppercase tracking-tighter">
+                                            Notas - {courses.find(c => c._id === selectedCourse)?.name || 'Seleccione Curso'}
+                                        </h2>
+                                        <div className="px-4 py-2 bg-amber-50 rounded-lg border border-amber-100">
+                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Decreto 67</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-end items-center px-4">
                                         <button onClick={() => setShowGradeModal(true)} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">INGRESAR NOTA</button>
                                     </div>
                                     <div className="overflow-x-auto">
