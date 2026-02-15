@@ -31,8 +31,74 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [loading, setLoading] = useState(false);
     const [conflictWarning, setConflictWarning] = useState<string | null>(null);
     const [dayEvaluations, setDayEvaluations] = useState<any[]>([]);
+    const [monthEvaluations, setMonthEvaluations] = useState<any[]>([]);
     const [daySchedules, setDaySchedules] = useState<any[]>([]);
     const [isLoadingDayData, setIsLoadingDayData] = useState(false);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
+    const [confirmConflict, setConfirmConflict] = useState(false);
+
+    // MiniCalendar Helper Component
+    const MiniCalendar = ({ selectedDate, onDateSelect, evaluations }: { selectedDate: string, onDateSelect: (d: string) => void, evaluations: any[] }) => {
+        const year = currentMonth.getFullYear();
+        const month = currentMonth.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        const startingDayOfWeek = firstDay.getDay();
+        const daysInMonth = lastDay.getDate();
+
+        const getEvalCount = (day: number) => {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return evaluations.filter(e => e.date.split('T')[0] === dateStr).length;
+        };
+
+        const days = [];
+        for (let i = 0; i < startingDayOfWeek; i++) days.push(<div key={`empty-${i}`} className="h-8 md:h-10" />);
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const count = getEvalCount(d);
+            const isSelected = selectedDate === dateStr;
+            const isToday = new Date().toISOString().split('T')[0] === dateStr;
+
+            days.push(
+                <button
+                    key={d}
+                    type="button"
+                    onClick={() => onDateSelect(dateStr)}
+                    className={`h-8 md:h-10 rounded-xl relative flex items-center justify-center text-[10px] font-black transition-all ${isSelected ? 'bg-[#00a86b] text-white shadow-lg scale-110 z-10' :
+                        isToday ? 'bg-blue-50 text-blue-600 border border-blue-100' :
+                            'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                        }`}
+                >
+                    {d}
+                    {count > 0 && !isSelected && (
+                        <div className={`absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-white flex items-center justify-center text-[8px] ${count > 1 ? 'bg-rose-500 text-white' : 'bg-amber-500 text-white'}`}>
+                            {count}
+                        </div>
+                    )}
+                </button>
+            );
+        }
+
+        return (
+            <div className="space-y-3">
+                <div className="flex items-center justify-between px-2">
+                    <span className="text-[10px] font-black text-slate-800 uppercase tracking-widest">
+                        {currentMonth.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}
+                    </span>
+                    <div className="flex gap-1">
+                        <button type="button" onClick={() => setCurrentMonth(new Date(year, month - 1))} className="p-1 hover:bg-slate-100 rounded-lg transition-all"><ChevronLeft size={14} /></button>
+                        <button type="button" onClick={() => setCurrentMonth(new Date(year, month + 1))} className="p-1 hover:bg-slate-100 rounded-lg transition-all"><ChevronRight size={14} /></button>
+                    </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                    {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => (
+                        <div key={d} className="text-[8px] font-black text-slate-300 text-center py-1">{d}</div>
+                    ))}
+                    {days}
+                </div>
+            </div>
+        );
+    };
 
     // Fetch Rubrics
     useEffect(() => {
@@ -163,34 +229,47 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     // Conflict and Schedule check effect
     useEffect(() => {
         const fetchDayData = async () => {
-            if (!selectedCourse || !formData.date) return;
+            if (!selectedCourse) return;
             setIsLoadingDayData(true);
             try {
-                const dateObj = new Date(formData.date + 'T12:00:00'); // Use mid-day to avoid TZ shifts
-                const dayOfWeek = dateObj.getDay();
+                const results = [];
 
-                const [evalsRes, schedulesRes] = await Promise.all([
-                    api.get(`/evaluations?courseId=${selectedCourse}&date=${formData.date}`),
-                    api.get(`/schedules?courseId=${selectedCourse}&dayOfWeek=${dayOfWeek}`)
-                ]);
-
-                setDayEvaluations(evalsRes.data);
-                setDaySchedules(schedulesRes.data);
-
-                if (evalsRes.data.length > 0) {
-                    setConflictWarning(`Atención: Ya hay ${evalsRes.data.length} evaluaciones programadas para este curso en esta fecha.`);
-                } else {
-                    setConflictWarning(null);
+                // Fetch daily data if date is selected
+                if (formData.date) {
+                    const dateObj = new Date(formData.date + 'T12:00:00');
+                    const dayOfWeek = dateObj.getDay();
+                    results.push(api.get(`/evaluations?courseId=${selectedCourse}&date=${formData.date}`));
+                    results.push(api.get(`/schedules?courseId=${selectedCourse}&dayOfWeek=${dayOfWeek}`));
                 }
+
+                // Fetch month data for calendar
+                results.push(api.get(`/evaluations?courseId=${selectedCourse}&month=${currentMonth.toISOString()}`));
+
+                const responses = await Promise.all(results);
+
+                if (formData.date) {
+                    setDayEvaluations(responses[0].data);
+                    setDaySchedules(responses[1].data);
+                    setMonthEvaluations(responses[2].data);
+
+                    if (responses[0].data.length > 0) {
+                        setConflictWarning(`Atención: Ya hay ${responses[0].data.length} evaluaciones programadas para este curso en esta fecha.`);
+                    } else {
+                        setConflictWarning(null);
+                    }
+                } else {
+                    setMonthEvaluations(responses[0].data);
+                }
+
             } catch (error) {
-                console.error('Error fetching day data:', error);
+                console.error('Error fetching data:', error);
             } finally {
                 setIsLoadingDayData(false);
             }
         };
 
         fetchDayData();
-    }, [selectedCourse, formData.date]);
+    }, [selectedCourse, formData.date, currentMonth]);
 
     const handleGenerate = async () => {
         if (!formData.title) return alert("Por favor, ingrese un título.");
@@ -260,76 +339,108 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                     {step === 1 && (
                         <div className="space-y-6 max-w-3xl mx-auto animate-in slide-in-from-right-4 py-4">
                             <div className="bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-[#00a86b] uppercase tracking-widest ml-1">Título de la Evaluación</label>
-                                    <input
-                                        autoFocus
-                                        value={formData.title}
-                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-black text-xl text-slate-700 transition-all"
-                                        placeholder="Ej: Control de Lectura #2"
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Programada</label>
-                                        <div className="relative group">
-                                            <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between px-1">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calendario de Disponibilidad</label>
+                                            <div className="flex gap-2">
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 rounded-full bg-amber-500" />
+                                                    <span className="text-[8px] font-bold text-slate-400">1</span>
+                                                </div>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="w-2 h-2 rounded-full bg-rose-500" />
+                                                    <span className="text-[8px] font-bold text-slate-400">2+</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50/50 p-6 rounded-[2.5rem] border-2 border-slate-50 shadow-inner">
+                                            <MiniCalendar
+                                                selectedDate={formData.date}
+                                                onDateSelect={(d: string) => setFormData({ ...formData, date: d })}
+                                                evaluations={monthEvaluations}
+                                            />
+                                        </div>
+                                        <div className="relative group px-1">
+                                            <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300" size={16} />
                                             <input
                                                 type="date"
                                                 value={formData.date}
                                                 onChange={e => setFormData({ ...formData, date: e.target.value })}
-                                                className="w-full pl-14 pr-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
+                                                className="w-full pl-14 pr-6 py-3 bg-white border-2 border-slate-100 rounded-2xl outline-none font-bold text-xs text-slate-600 focus:border-indigo-500/20"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora de Inicio</label>
-                                        <input
-                                            type="time"
-                                            value={formData.time}
-                                            onChange={e => setFormData({ ...formData, time: e.target.value })}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
-                                        />
-                                    </div>
-                                </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Curso</label>
-                                        <select
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
-                                            value={selectedCourse}
-                                            onChange={e => {
-                                                setSelectedCourse(e.target.value);
-                                                setSelectedSubject('');
-                                            }}
-                                        >
-                                            <option value="">Seleccionar Curso...</option>
-                                            {courses.map(c => (
-                                                <option key={c._id} value={c._id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asignatura</label>
-                                        <select
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
-                                            value={selectedSubject}
-                                            onChange={e => setSelectedSubject(e.target.value)}
-                                            disabled={!selectedCourse}
-                                        >
-                                            <option value="">Seleccionar Asignatura...</option>
-                                            {filteredSubjects.map(s => (
-                                                <option key={s._id} value={s._id}>{s.name} {s.isComplementary ? '(COMP)' : ''}</option>
-                                            ))}
-                                        </select>
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-[#00a86b] uppercase tracking-widest ml-1">Título de la Evaluación</label>
+                                            <input
+                                                autoFocus
+                                                value={formData.title}
+                                                onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-[#00a86b]/30 focus:bg-white outline-none font-black text-xl text-slate-700 transition-all"
+                                                placeholder="Ej: Control de Lectura #2"
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora inicio</label>
+                                                <input
+                                                    type="time"
+                                                    value={formData.time}
+                                                    onChange={e => setFormData({ ...formData, time: e.target.value })}
+                                                    className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Calificación Máx.</label>
+                                                <input
+                                                    type="number"
+                                                    step="0.1"
+                                                    value={formData.maxScore}
+                                                    onChange={e => setFormData({ ...formData, maxScore: parseFloat(e.target.value) })}
+                                                    className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Curso</label>
+                                            <select
+                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
+                                                value={selectedCourse}
+                                                onChange={e => {
+                                                    setSelectedCourse(e.target.value);
+                                                    setSelectedSubject('');
+                                                }}
+                                            >
+                                                <option value="">Seleccionar Curso...</option>
+                                                {courses.map(c => (
+                                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asignatura</label>
+                                            <select
+                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 appearance-none"
+                                                value={selectedSubject}
+                                                onChange={e => setSelectedSubject(e.target.value)}
+                                                disabled={!selectedCourse}
+                                            >
+                                                <option value="">Seleccionar Asignatura...</option>
+                                                {filteredSubjects.map(s => (
+                                                    <option key={s._id} value={s._id}>{s.name} {s.isComplementary ? '(COMP)' : ''}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
 
                                 {availableRubrics.length > 0 && (
-                                    <div className="space-y-2 animate-in slide-in-from-left-2">
+                                    <div className="space-y-2 animate-in slide-in-from-left-2 border-t pt-6">
                                         <label className="text-[10px] font-black text-blue-500 uppercase tracking-widest ml-1 flex items-center gap-2">
                                             <FileText size={14} />
                                             Vincular Rúbrica de Evaluación (Opcional)
@@ -344,7 +455,6 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                                 <option key={r._id} value={r._id}>{r.title}</option>
                                             ))}
                                         </select>
-                                        <p className="text-[9px] font-bold text-blue-400/80 ml-1 uppercase tracking-tight">Utilice una rúbrica aprobada para calificar de forma objetiva.</p>
                                     </div>
                                 )}
                             </div>
@@ -403,13 +513,24 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                             )}
 
                             {conflictWarning && (
-                                <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-[1.5rem] flex items-start gap-4 animate-in zoom-in-95">
-                                    <AlertCircle className="text-rose-500 shrink-0 mt-1" size={24} />
-                                    <div>
-                                        <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario Detectado</p>
-                                        <p className="text-rose-500 font-bold text-xs mt-1">{conflictWarning}</p>
-                                        <p className="text-rose-400 text-[9px] mt-2 font-bold uppercase">Considere reprogramar para evitar sobrecargar a los estudiantes.</p>
+                                <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-[1.5rem] flex flex-col gap-4 animate-in zoom-in-95">
+                                    <div className="flex items-start gap-4">
+                                        <AlertCircle className="text-rose-500 shrink-0 mt-1" size={24} />
+                                        <div>
+                                            <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario Detectado</p>
+                                            <p className="text-rose-500 font-bold text-xs mt-1">{conflictWarning}</p>
+                                            <p className="text-rose-400 text-[9px] mt-2 font-bold uppercase">Considere reprogramar para evitar sobrecargar a los estudiantes.</p>
+                                        </div>
                                     </div>
+                                    <label className="flex items-center gap-3 p-4 bg-white/60 rounded-xl cursor-pointer hover:bg-white transition-all border border-rose-100">
+                                        <input
+                                            type="checkbox"
+                                            checked={confirmConflict}
+                                            onChange={e => setConfirmConflict(e.target.checked)}
+                                            className="w-5 h-5 accent-rose-500"
+                                        />
+                                        <span className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Entiendo el conflicto y deseo continuar de todas formas</span>
+                                    </label>
                                 </div>
                             )}
                         </div>
@@ -564,8 +685,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
 
                                 <button
                                     onClick={handleGenerate}
-                                    disabled={loading || isLoadingDayData}
-                                    className={`w-full py-6 text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group ${formData.category === 'sorpresa' ? 'bg-amber-500 shadow-amber-900/40' : 'bg-[#00a86b] shadow-emerald-900/40'} ${loading ? 'opacity-50' : ''}`}
+                                    disabled={loading || isLoadingDayData || (!!conflictWarning && !confirmConflict)}
+                                    className={`w-full py-6 text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group ${formData.category === 'sorpresa' ? 'bg-amber-500 shadow-amber-900/40' : 'bg-[#00a86b] shadow-emerald-900/40'} ${(loading || (conflictWarning && !confirmConflict)) ? 'opacity-50 cursor-not-allowed grayscale' : ''}`}
                                 >
                                     <FileText size={24} className="group-hover:rotate-12 transition-transform" />
                                     {loading ? 'PUBLICANDO...' : (formData.category === 'sorpresa' ? 'PUBLICAR EVALUACIÓN SORPRESA' : 'PUBLICAR EVALUACIÓN')}
