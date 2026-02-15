@@ -128,16 +128,18 @@ const RubricsPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                         <h1 className="text-3xl font-black text-slate-800 tracking-tighter">Gestión de Rúbricas</h1>
                         <p className="text-slate-500 font-medium">Crea y administra matrices de evaluación para tus planificaciones</p>
                     </div>
-                    <button
-                        onClick={() => {
-                            setEditingRubric(null);
-                            setShowBuilder(true);
-                        }}
-                        className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#1a4a7c] transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20 active:scale-95"
-                    >
-                        <Plus size={20} />
-                        Nueva Rúbrica
-                    </button>
+                    {(isTeacher || isDirector || isUTP || isSuperAdmin) && (
+                        <button
+                            onClick={() => {
+                                setEditingRubric(null);
+                                setShowBuilder(true);
+                            }}
+                            className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#1a4a7c] transition-all flex items-center gap-2 shadow-lg shadow-blue-900/20 active:scale-95"
+                        >
+                            <Plus size={20} />
+                            Nueva Rúbrica
+                        </button>
+                    )}
                 </div>
             )}
 

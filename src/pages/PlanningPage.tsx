@@ -56,7 +56,7 @@ interface Rubric {
 }
 
 const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
-    const { canApprovePlanning, isTeacher } = usePermissions();
+    const { canApprovePlanning, isTeacher, isDirector, isUTP, isSuperAdmin } = usePermissions();
     const [plannings, setPlannings] = useState<Planning[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -234,7 +234,7 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             <h1 className="text-3xl font-bold text-gray-900">Planificaciones Didácticas</h1>
                             <p className="text-gray-500 mt-1">Gestión pedagógica y aprobación de contenidos.</p>
                         </div>
-                        {isTeacher && (
+                        {(isTeacher || isDirector || isUTP || isSuperAdmin) && (
                             <button
                                 onClick={() => setShowCreateModal(true)}
                                 className="flex items-center gap-2 bg-[#11355a] text-white px-6 py-3 rounded-xl hover:bg-[#1a4a7c] transition-all shadow-lg shadow-blue-900/10"
@@ -273,7 +273,7 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             </button>
                         ))}
                     </div>
-                    {hideHeader && isTeacher && (
+                    {hideHeader && (isTeacher || isDirector || isUTP || isSuperAdmin) && (
                         <button
                             onClick={() => setShowCreateModal(true)}
                             className="bg-[#11355a] text-white p-2 rounded-lg hover:bg-[#1a4a7c] transition-all shadow-lg"
