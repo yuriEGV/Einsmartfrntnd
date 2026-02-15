@@ -3,7 +3,7 @@ import api from '../services/api';
 import {
     BookOpen, GraduationCap, X,
     Calendar, List, ShieldCheck,
-    UserCheck, ClipboardList, Printer, LayoutGrid, Heart, UserPlus, AlertCircle,
+    UserCheck, ClipboardList, Printer, LayoutGrid, UserPlus, AlertCircle,
     ChevronLeft, ChevronRight, Search
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
