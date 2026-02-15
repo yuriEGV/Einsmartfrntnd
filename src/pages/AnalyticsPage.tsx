@@ -326,62 +326,65 @@ const AnalyticsPage = () => {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
-                    <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
-                        <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
-                            <Target size={24} className="text-rose-300" />
-                            Ranking de Morosidad
-                        </h2>
-                    </div>
-                    <div className="overflow-x-auto">
-                        <table className="min-w-full">
-                            <thead className="bg-rose-50">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Apoderado Responsable</th>
-                                    <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Estudiante</th>
-                                    <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Deuda Total</th>
-                                    <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-rose-100">
-                                {debtorRanking && debtorRanking.length > 0 ? (
-                                    debtorRanking.map((debtor: any) => (
-                                        <tr key={debtor._id} className="hover:bg-rose-50/50 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="font-black text-gray-800">{debtor.guardianName || 'Sin Apoderado'}</div>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <div className="font-bold text-gray-600">{debtor.studentName}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="text-xl font-black text-rose-600">${debtor.totalDebt ? debtor.totalDebt.toLocaleString() : '0'}</div>
-                                            </td>
-                                            <td className="px-6 py-4 text-center">
-                                                <div className="flex flex-col items-center gap-1">
-                                                    <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                        {debtor.overdueCount} Vencidos
-                                                    </span>
-                                                    {debtor.pendingCount > 0 && (
-                                                        <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                            {debtor.pendingCount} Pendientes
+                {/* Only show payment ranking for paid schools */}
+                {tenant?.paymentType === 'paid' && (
+                    <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                        <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
+                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                                <Target size={24} className="text-rose-300" />
+                                Ranking de Morosidad
+                            </h2>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                                <thead className="bg-rose-50">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Apoderado Responsable</th>
+                                        <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Estudiante</th>
+                                        <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Deuda Total</th>
+                                        <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-rose-100">
+                                    {debtorRanking && debtorRanking.length > 0 ? (
+                                        debtorRanking.map((debtor: any) => (
+                                            <tr key={debtor._id} className="hover:bg-rose-50/50 transition-colors">
+                                                <td className="px-6 py-4">
+                                                    <div className="font-black text-gray-800">{debtor.guardianName || 'Sin Apoderado'}</div>
+                                                </td>
+                                                <td className="px-6 py-4">
+                                                    <div className="font-bold text-gray-600">{debtor.studentName}</div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="text-xl font-black text-rose-600">${debtor.totalDebt ? debtor.totalDebt.toLocaleString() : '0'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 text-center">
+                                                    <div className="flex flex-col items-center gap-1">
+                                                        <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                            {debtor.overdueCount} Vencidos
                                                         </span>
-                                                    )}
-                                                </div>
+                                                        {debtor.pendingCount > 0 && (
+                                                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
+                                                                {debtor.pendingCount} Pendientes
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-20 text-center">
+                                                <ShieldCheck size={48} className="mx-auto text-slate-100 mb-4" />
+                                                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin deudas vencidas registradas</p>
                                             </td>
                                         </tr>
-                                    ))
-                                ) : (
-                                    <tr>
-                                        <td colSpan={4} className="px-6 py-20 text-center">
-                                            <ShieldCheck size={48} className="mx-auto text-slate-100 mb-4" />
-                                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin deudas vencidas registradas</p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                </div>
+                )}
 
                 <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
                     <div className="px-8 py-5 flex items-center justify-between" style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}>
