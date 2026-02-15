@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     ChevronLeft, ChevronRight,
-    AlertCircle, Calendar, Search, ShieldCheck, FileText, Plus
+    AlertCircle, Calendar, Search, ShieldCheck, FileText, Plus, RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -36,6 +36,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [isLoadingDayData, setIsLoadingDayData] = useState(false);
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [confirmConflict, setConfirmConflict] = useState(false);
+    const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     // MiniCalendar Helper Component
     const MiniCalendar = ({ selectedDate, onDateSelect, evaluations }: { selectedDate: string, onDateSelect: (d: string) => void, evaluations: any[] }) => {
@@ -269,7 +270,12 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
         };
 
         fetchDayData();
-    }, [selectedCourse, formData.date, currentMonth]);
+    }, [selectedCourse, formData.date, currentMonth, refreshTrigger]);
+
+    // Reset conflict confirmation on date/course change
+    useEffect(() => {
+        setConfirmConflict(false);
+    }, [selectedCourse, formData.date]);
 
     const handleGenerate = async () => {
         if (!formData.title) return alert("Por favor, ingrese un título.");
@@ -342,7 +348,17 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                     <div className="space-y-4">
                                         <div className="flex items-center justify-between px-1">
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calendario de Disponibilidad</label>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                Calendario de Disponibilidad
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRefreshTrigger(prev => prev + 1)}
+                                                    className="p-1 hover:bg-slate-100 rounded-lg transition-all text-slate-300 hover:text-indigo-500"
+                                                    title="Recargar disponibilidad"
+                                                >
+                                                    <RefreshCw size={10} className={isLoadingDayData ? 'animate-spin' : ''} />
+                                                </button>
+                                            </label>
                                             <div className="flex gap-2">
                                                 <div className="flex items-center gap-1">
                                                     <div className="w-2 h-2 rounded-full bg-amber-500" />
@@ -516,8 +532,18 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                 <div className="p-6 bg-rose-50 border-2 border-rose-100 rounded-[1.5rem] flex flex-col gap-4 animate-in zoom-in-95">
                                     <div className="flex items-start gap-4">
                                         <AlertCircle className="text-rose-500 shrink-0 mt-1" size={24} />
-                                        <div>
-                                            <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario Detectado</p>
+                                        <div className="flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <p className="text-rose-700 font-black text-sm uppercase tracking-tight">Conflicto de Horario Detectado</p>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setRefreshTrigger(prev => prev + 1)}
+                                                    className="px-2 py-1 bg-rose-100 text-rose-600 rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-rose-200 transition-all flex items-center gap-1"
+                                                >
+                                                    <RefreshCw size={10} className={isLoadingDayData ? 'animate-spin' : ''} />
+                                                    Recargar
+                                                </button>
+                                            </div>
                                             <p className="text-rose-500 font-bold text-xs mt-1">{conflictWarning}</p>
                                             <p className="text-rose-400 text-[9px] mt-2 font-bold uppercase">Considere reprogramar para evitar sobrecargar a los estudiantes.</p>
                                         </div>
