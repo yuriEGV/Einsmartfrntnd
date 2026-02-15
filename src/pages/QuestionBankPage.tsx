@@ -15,7 +15,9 @@ interface Question {
     difficulty: 'easy' | 'medium' | 'hard';
     subjectId: { _id: string; name: string };
     grade: string;
+    grade: string;
     tags: string[];
+    status: 'pending' | 'approved' | 'rejected';
     options: { text: string; isCorrect: boolean }[];
 }
 
@@ -31,6 +33,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterSubject, setFilterSubject] = useState('');
     const [filterDifficulty, setFilterDifficulty] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -69,6 +72,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
             const params = new URLSearchParams();
             if (filterSubject) params.append('subjectId', filterSubject);
             if (filterDifficulty) params.append('difficulty', filterDifficulty);
+            if (filterStatus) params.append('status', filterStatus);
 
             const res = await api.get(`/questions?${params.toString()}`);
             setQuestions(res.data);
@@ -168,7 +172,7 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
             )}
 
             {/* Filters */}
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
                 <div className="md:col-span-2">
                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Buscador</label>
                     <div className="relative">
@@ -203,6 +207,19 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                         <option value="easy">Fácil</option>
                         <option value="medium">Media</option>
                         <option value="hard">Difícil</option>
+                    </select>
+                </div>
+                <div>
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Estado</label>
+                    <select
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl focus:border-indigo-500 outline-none font-bold"
+                        value={filterStatus}
+                        onChange={e => setFilterStatus(e.target.value)}
+                    >
+                        <option value="">Todos</option>
+                        <option value="approved">Aprobadas</option>
+                        <option value="pending">Pendientes</option>
+                        <option value="rejected">Rechazadas</option>
                     </select>
                 </div>
                 <button
@@ -241,6 +258,12 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                         </span>
                                         <span className="px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-xl font-black text-[10px] uppercase tracking-widest border border-indigo-100">
                                             {q.type.replace('_', ' ')}
+                                        </span>
+                                        <span className={`px-4 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-widest border ${q.status === 'approved' ? 'bg-green-50 text-green-600 border-green-100' :
+                                                q.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                    'bg-yellow-50 text-yellow-600 border-yellow-100'
+                                            }`}>
+                                            {q.status === 'approved' ? 'Aprobada' : q.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
                                         </span>
                                     </div>
                                     <h3 className="text-xl font-black text-slate-800 leading-tight">

@@ -119,7 +119,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
             const fetchData = async () => {
                 try {
                     const [bankRes, matRes, planRes, baseRes] = await Promise.all([
-                        api.get(`/questions?subjectId=${selectedSubject}`),
+                        api.get(`/questions?subjectId=${selectedSubject}&status=approved`),
                         api.get(`/curriculum-materials/subject/${selectedSubject}`),
                         api.get(`/plannings?subjectId=${selectedSubject}&status=approved`),
                         api.get(`/objectives?subjectId=${selectedSubject}`)
@@ -131,7 +131,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                     if (finalQuestions.length === 0) {
                         const targetSubject = subjects.find(s => s._id === selectedSubject);
                         if (targetSubject) {
-                            const nameRes = await api.get(`/questions?subjectId=${targetSubject.name}`);
+                            const nameRes = await api.get(`/questions?subjectId=${targetSubject.name}&status=approved`);
                             finalQuestions = nameRes.data;
                         }
                     }

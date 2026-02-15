@@ -13,7 +13,10 @@ import {
     X,
     MessageSquare,
     AlertCircle,
-    Table
+    AlertCircle,
+    Table,
+    Edit,
+    Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
@@ -120,26 +123,65 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
         }
     };
 
+    const [editingId, setEditingId] = useState<string | null>(null);
+
     const handleCreate = async (e: FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/planning', formData);
-            toast.success('Planificación creada');
+            if (editingId) {
+                await api.put(`/planning/${editingId}`, formData);
+                toast.success('Planificación actualizada');
+            } else {
+                await api.post('/planning', formData);
+                toast.success('Planificación creada');
+            }
             setShowCreateModal(false);
-            setFormData({
-                title: '',
-                type: 'unidad',
-                subjectId: '',
-                description: '',
-                activities: '',
-                strategies: '',
-                objectives: [] as string[],
-                unitNumber: '',
-                rubricId: ''
-            });
+            resetForm();
             fetchPlannings();
         } catch (err: any) {
-            toast.error(err.response?.data?.message || 'Error al crear');
+            toast.error(err.response?.data?.message || 'Error al guardar');
+        }
+    };
+
+    const resetForm = () => {
+        setEditingId(null);
+        setFormData({
+            title: '',
+            type: 'unidad',
+            subjectId: '',
+            description: '',
+            activities: '',
+            strategies: '',
+            objectives: [],
+            unitNumber: '',
+            rubricId: ''
+        });
+    };
+
+    const handleEdit = (planning: Planning) => {
+        setEditingId(planning._id);
+        setFormData({
+            title: planning.title,
+            type: planning.type,
+            subjectId: planning.subjectId?._id || '',
+            description: planning.description,
+            activities: planning.activities,
+            strategies: planning.strategies,
+            objectives: [], // detailed objectives not in interface? assuming simple mapping or empty for now if complex
+            unitNumber: String(planning.unitNumber || ''),
+            rubricId: planning.rubricId?._id || planning.rubricId || ''
+        });
+        setShowCreateModal(true);
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!window.confirm('¿Estás seguro de eliminar esta planificación?')) return;
+        try {
+            await api.delete(`/planning/${id}`);
+            toast.success('Planificación eliminada');
+            fetchPlannings();
+        } catch (error) {
+            toast.error('Error al eliminar');
         }
     };
 
@@ -276,347 +318,375 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                             {p.subjectId?.name || 'Asignatura no especificada'}
                                         </p>
                                     </div>
-                                    <div className="flex gap-1">
-                                        {p.rubricId && (
+                                </div>
+                                <div className="flex gap-1">
+                                    {isTeacher && (
+                                        <>
                                             <button
-                                                onClick={() => setViewingRubric(p.rubricId)}
-                                                className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
-                                                title="Ver Rúbrica"
-                                            >
-                                                <Table size={20} />
-                                            </button>
-                                        )}
-                                        {canApprovePlanning && p.status === 'submitted' && (
-                                            <button
-                                                onClick={() => { setSelectedPlanning(p); setShowReviewModal(true); }}
+                                                onClick={() => handleEdit(p)}
                                                 className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
-                                                title="Evaluar Planificación"
+                                                title="Editar"
                                             >
-                                                <AlertCircle size={20} />
+                                                <Edit size={20} />
                                             </button>
-                                        )}
-                                        {isTeacher && p.status === 'draft' && (
                                             <button
-                                                onClick={() => handleSubmitForReview(p._id)}
-                                                className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all"
-                                                title="Enviar a Revisión"
+                                                onClick={() => handleDelete(p._id)}
+                                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                                                title="Eliminar"
                                             >
-                                                <ChevronRight size={20} />
+                                                <Trash2 size={20} />
                                             </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <p className="text-gray-600 text-sm line-clamp-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
-                                    {p.description || 'Sin descripción detallada.'}
-                                </p>
-
-                                <div className="flex items-center justify-between pt-4 border-t border-gray-50">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-white text-xs font-bold uppercase">
-                                            {p.teacherId?.name?.charAt(0) || 'P'}
-                                        </div>
-                                        <div className="text-xs">
-                                            <p className="font-semibold text-gray-900">{p.teacherId?.name}</p>
-                                            <p className="text-gray-400">Profesor</p>
-                                        </div>
-                                    </div>
-                                    <p className="text-[11px] text-gray-400">
-                                        Actualizado: {new Date(p.updatedAt).toLocaleDateString()}
-                                    </p>
-                                </div>
-
-                                {p.feedback && (
-                                    <div className="mt-4 p-3 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 flex gap-2">
-                                        <MessageSquare size={14} className="shrink-0" />
-                                        <span><strong>Feedback:</strong> {p.feedback}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Create Modal */}
-            {showCreateModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
-                        <div className="p-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-2xl font-bold text-gray-900">Nueva Planificación</h2>
-                                <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 p-2">
-                                    <X size={24} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleCreate} className="space-y-6">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Título</label>
-                                        <input
-                                            required
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={formData.title}
-                                            onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                            placeholder="Título de la unidad o clase"
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Tipo</label>
-                                        <select
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={formData.type}
-                                            onChange={e => setFormData({ ...formData, type: e.target.value })}
-                                        >
-                                            <option value="unidad">Unidad Didáctica</option>
-                                            <option value="clase">Clase Específica</option>
-                                            <option value="anual">Planificación Anual</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Asignatura</label>
-                                        <select
-                                            required
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={formData.subjectId}
-                                            onChange={e => {
-                                                setFormData({ ...formData, subjectId: e.target.value });
-                                            }}
-                                        >
-                                            <option value="">Seleccionar Asignatura</option>
-                                            {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.courseId?.name})</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Unidad N° (Opcional)</label>
-                                        <input
-                                            type="number"
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                                            value={formData.unitNumber}
-                                            onChange={e => setFormData({ ...formData, unitNumber: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-gray-700">Descripción / Resumen</label>
-                                    <textarea
-                                        rows={3}
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                        value={formData.description}
-                                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Actividades</label>
-                                        <textarea
-                                            rows={4}
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                            placeholder="Detalle de actividades a realizar..."
-                                            value={formData.activities}
-                                            onChange={e => setFormData({ ...formData, activities: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <label className="text-sm font-semibold text-gray-700">Estrategias / Metodología</label>
-                                        <textarea
-                                            rows={4}
-                                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                            placeholder="Métodos y recursos didácticos..."
-                                            value={formData.strategies}
-                                            onChange={e => setFormData({ ...formData, strategies: e.target.value })}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-gray-700 flex justify-between">
-                                        Rúbrica de Evaluación (Opcional)
+                                        </>
+                                    )}
+                                    {p.rubricId && (
                                         <button
-                                            type="button"
-                                            onClick={() => setShowRubricBuilder(true)}
-                                            className="text-xs text-blue-600 hover:underline"
+                                            onClick={() => setViewingRubric(p.rubricId)}
+                                            className="p-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-all"
+                                            title="Ver Rúbrica"
                                         >
-                                            + Crear Nueva Rúbrica
+                                            <Table size={20} />
                                         </button>
-                                    </label>
-                                    <select
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
-                                        value={formData.rubricId}
-                                        onChange={e => setFormData({ ...formData, rubricId: e.target.value })}
-                                    >
-                                        <option value="">Seleccionar Rúbrica existente</option>
-                                        {rubrics.map(r => <option key={r._id} value={r._id}>{r.title}</option>)}
-                                    </select>
+                                    )}
+                                    {canApprovePlanning && p.status === 'submitted' && (
+                                        <button
+                                            onClick={() => { setSelectedPlanning(p); setShowReviewModal(true); }}
+                                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                                            title="Evaluar Planificación"
+                                        >
+                                            <AlertCircle size={20} />
+                                        </button>
+                                    )}
+                                    {isTeacher && p.status === 'draft' && (
+                                        <button
+                                            onClick={() => handleSubmitForReview(p._id)}
+                                            className="p-2 text-green-600 hover:bg-green-50 rounded-lg transition-all"
+                                            title="Enviar a Revisión"
+                                        >
+                                            <ChevronRight size={20} />
+                                        </button>
+                                    )}
                                 </div>
-
-                                <div className="flex justify-end gap-3 pt-4 border-t">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowCreateModal(false)}
-                                        className="px-6 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-8 py-2.5 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg shadow-blue-900/10"
-                                    >
-                                        Guardar como Borrador
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {/* Rubric Builder Modal */}
-            {showRubricBuilder && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
-                    <div className="w-full max-w-5xl shadow-2xl animate-in zoom-in-95 duration-200">
-                        <RubricBuilder
-                            onCancel={() => setShowRubricBuilder(false)}
-                            onSave={async (newRubric) => {
-                                try {
-                                    const res = await api.post('/rubrics', newRubric);
-                                    toast.success('Rúbrica guardada');
-                                    fetchRubrics();
-                                    setFormData({ ...formData, rubricId: res.data._id });
-                                    setShowRubricBuilder(false);
-                                } catch (error) {
-                                    toast.error('Error al guardar rúbrica');
-                                }
-                            }}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {/* Rubric Viewer Modal */}
-            {viewingRubric && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl p-8">
-                        <div className="flex justify-between items-center mb-6">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-900">{viewingRubric.title}</h2>
-                                <p className="text-gray-500">{viewingRubric.description}</p>
                             </div>
-                            <button onClick={() => setViewingRubric(null)} className="text-gray-400 hover:text-gray-600">
-                                <X size={24} />
+
+                            <p className="text-gray-600 text-sm line-clamp-3 mb-6 bg-gray-50 p-4 rounded-xl border border-gray-100">
+                                {p.description || 'Sin descripción detallada.'}
+                            </p>
+
+                            <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-white text-xs font-bold uppercase">
+                                        {p.teacherId?.name?.charAt(0) || 'P'}
+                                    </div>
+                                    <div className="text-xs">
+                                        <p className="font-semibold text-gray-900">{p.teacherId?.name}</p>
+                                        <p className="text-gray-400">Profesor</p>
+                                    </div>
+                                </div>
+                                <p className="text-[11px] text-gray-400">
+                                    Actualizado: {new Date(p.updatedAt).toLocaleDateString()}
+                                </p>
+                            </div>
+
+                            {p.feedback && (
+                                <div className="mt-4 p-3 bg-red-50 text-red-700 text-xs rounded-lg border border-red-100 flex gap-2">
+                                    <MessageSquare size={14} className="shrink-0" />
+                                    <span><strong>Feedback:</strong> {p.feedback}</span>
+                                </div>
+                            )}
+                        </div>
+                        </div>
+            ))}
+        </div>
+    )
+}
+
+{/* Create Modal */ }
+{
+    showCreateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in zoom-in-95 duration-200">
+                <div className="p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-2xl font-bold text-gray-900">{editingId ? 'Editar Planificación' : 'Nueva Planificación'}</h2>
+                        <button onClick={() => setShowCreateModal(false)} className="text-gray-400 hover:text-gray-600 p-2">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleCreate} className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Título</label>
+                                <input
+                                    required
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={formData.title}
+                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    placeholder="Título de la unidad o clase"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Tipo</label>
+                                <select
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={formData.type}
+                                    onChange={e => setFormData({ ...formData, type: e.target.value })}
+                                >
+                                    <option value="unidad">Unidad Didáctica</option>
+                                    <option value="clase">Clase Específica</option>
+                                    <option value="anual">Planificación Anual</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Asignatura</label>
+                                <select
+                                    required
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={formData.subjectId}
+                                    onChange={e => {
+                                        setFormData({ ...formData, subjectId: e.target.value });
+                                    }}
+                                >
+                                    <option value="">Seleccionar Asignatura</option>
+                                    {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.courseId?.name})</option>)}
+                                </select>
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Unidad N° (Opcional)</label>
+                                <input
+                                    type="number"
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                    value={formData.unitNumber}
+                                    onChange={e => setFormData({ ...formData, unitNumber: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">Descripción / Resumen</label>
+                            <textarea
+                                rows={3}
+                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                value={formData.description}
+                                onChange={e => setFormData({ ...formData, description: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Actividades</label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Detalle de actividades a realizar..."
+                                    value={formData.activities}
+                                    onChange={e => setFormData({ ...formData, activities: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-sm font-semibold text-gray-700">Estrategias / Metodología</label>
+                                <textarea
+                                    rows={4}
+                                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                    placeholder="Métodos y recursos didácticos..."
+                                    value={formData.strategies}
+                                    onChange={e => setFormData({ ...formData, strategies: e.target.value })}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700 flex justify-between">
+                                Rúbrica de Evaluación (Opcional)
+                                <button
+                                    type="button"
+                                    onClick={() => setShowRubricBuilder(true)}
+                                    className="text-xs text-blue-600 hover:underline"
+                                >
+                                    + Crear Nueva Rúbrica
+                                </button>
+                            </label>
+                            <select
+                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"
+                                value={formData.rubricId}
+                                onChange={e => setFormData({ ...formData, rubricId: e.target.value })}
+                            >
+                                <option value="">Seleccionar Rúbrica existente</option>
+                                {rubrics.map(r => <option key={r._id} value={r._id}>{r.title}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4 border-t">
+                            <button
+                                type="button"
+                                onClick={() => setShowCreateModal(false)}
+                                className="px-6 py-2.5 border border-gray-200 rounded-xl hover:bg-gray-50 font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-8 py-2.5 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg shadow-blue-900/10"
+                            >
+                                {editingId ? 'Actualizar Planificación' : 'Guardar como Borrador'}
                             </button>
                         </div>
-
-                        <div className="overflow-x-auto border border-gray-100 rounded-2xl">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-[#11355a] text-white">
-                                    <tr>
-                                        <th className="p-4 border-b font-semibold min-w-[200px]">Criterio</th>
-                                        {viewingRubric.levels.map((level, i) => (
-                                            <th key={i} className="p-4 border-b font-semibold text-center min-w-[150px]">
-                                                {level.name} ({level.points} pts)
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {viewingRubric.criteria.map((criterion, cIndex) => (
-                                        <tr key={cIndex}>
-                                            <td className="p-4 font-bold text-gray-900 bg-gray-50/50">{criterion.name}</td>
-                                            {criterion.descriptors.map((descriptor, dIndex) => (
-                                                <td key={dIndex} className="p-4 text-sm text-gray-600">{descriptor.text}</td>
-                                            ))}
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    </form>
                 </div>
-            )}
+            </div>
+        </div>
+    )
+}
 
-            {/* Review Modal */}
-            {showReviewModal && selectedPlanning && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
-                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in duration-200">
-                        <div className="p-8">
-                            <div className="flex justify-between items-center mb-6">
-                                <h2 className="text-xl font-bold text-gray-900">Evaluar Planificación</h2>
-                                <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600">
-                                    <X size={24} />
+{/* Rubric Builder Modal */ }
+{
+    showRubricBuilder && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
+            <div className="w-full max-w-5xl shadow-2xl animate-in zoom-in-95 duration-200">
+                <RubricBuilder
+                    onCancel={() => setShowRubricBuilder(false)}
+                    onSave={async (newRubric) => {
+                        try {
+                            const res = await api.post('/rubrics', newRubric);
+                            toast.success('Rúbrica guardada');
+                            fetchRubrics();
+                            setFormData({ ...formData, rubricId: res.data._id });
+                            setShowRubricBuilder(false);
+                        } catch (error) {
+                            toast.error('Error al guardar rúbrica');
+                        }
+                    }}
+                />
+            </div>
+        </div>
+    )
+}
+
+{/* Rubric Viewer Modal */ }
+{
+    viewingRubric && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl p-8">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-2xl font-bold text-gray-900">{viewingRubric.title}</h2>
+                        <p className="text-gray-500">{viewingRubric.description}</p>
+                    </div>
+                    <button onClick={() => setViewingRubric(null)} className="text-gray-400 hover:text-gray-600">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="overflow-x-auto border border-gray-100 rounded-2xl">
+                    <table className="w-full text-left border-collapse">
+                        <thead className="bg-[#11355a] text-white">
+                            <tr>
+                                <th className="p-4 border-b font-semibold min-w-[200px]">Criterio</th>
+                                {viewingRubric.levels.map((level, i) => (
+                                    <th key={i} className="p-4 border-b font-semibold text-center min-w-[150px]">
+                                        {level.name} ({level.points} pts)
+                                    </th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {viewingRubric.criteria.map((criterion, cIndex) => (
+                                <tr key={cIndex}>
+                                    <td className="p-4 font-bold text-gray-900 bg-gray-50/50">{criterion.name}</td>
+                                    {criterion.descriptors.map((descriptor, dIndex) => (
+                                        <td key={dIndex} className="p-4 text-sm text-gray-600">{descriptor.text}</td>
+                                    ))}
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+{/* Review Modal */ }
+{
+    showReviewModal && selectedPlanning && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl animate-in fade-in duration-200">
+                <div className="p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-gray-900">Evaluar Planificación</h2>
+                        <button onClick={() => setShowReviewModal(false)} className="text-gray-400 hover:text-gray-600">
+                            <X size={24} />
+                        </button>
+                    </div>
+
+                    <div className="bg-blue-50 p-4 rounded-2xl mb-6">
+                        <p className="text-sm text-blue-900 font-bold mb-1">{selectedPlanning.title}</p>
+                        <p className="text-xs text-blue-700">Asignatura: {selectedPlanning.subjectId?.name}</p>
+                    </div>
+
+                    <form onSubmit={handleReview} className="space-y-4">
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">Estado de la Revisión</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewData({ ...reviewData, status: 'approved' })}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'approved'
+                                        ? 'border-green-500 bg-green-50 text-green-700 font-bold'
+                                        : 'border-gray-200 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <Check size={18} /> Aprobar
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setReviewData({ ...reviewData, status: 'rejected' })}
+                                    className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'rejected'
+                                        ? 'border-red-500 bg-red-50 text-red-700 font-bold'
+                                        : 'border-gray-200 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    <X size={18} /> Rechazar
                                 </button>
                             </div>
-
-                            <div className="bg-blue-50 p-4 rounded-2xl mb-6">
-                                <p className="text-sm text-blue-900 font-bold mb-1">{selectedPlanning.title}</p>
-                                <p className="text-xs text-blue-700">Asignatura: {selectedPlanning.subjectId?.name}</p>
-                            </div>
-
-                            <form onSubmit={handleReview} className="space-y-4">
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-gray-700">Estado de la Revisión</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={() => setReviewData({ ...reviewData, status: 'approved' })}
-                                            className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'approved'
-                                                ? 'border-green-500 bg-green-50 text-green-700 font-bold'
-                                                : 'border-gray-200 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <Check size={18} /> Aprobar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setReviewData({ ...reviewData, status: 'rejected' })}
-                                            className={`flex items-center justify-center gap-2 p-3 rounded-xl border transition-all ${reviewData.status === 'rejected'
-                                                ? 'border-red-500 bg-red-50 text-red-700 font-bold'
-                                                : 'border-gray-200 hover:bg-gray-50'
-                                                }`}
-                                        >
-                                            <X size={18} /> Rechazar
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <label className="text-sm font-semibold text-gray-700">Retroalimentación / Comentarios</label>
-                                    <textarea
-                                        rows={4}
-                                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                                        placeholder="Escribe tus observaciones para el docente..."
-                                        value={reviewData.feedback}
-                                        onChange={e => setReviewData({ ...reviewData, feedback: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="flex justify-end gap-3 pt-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowReviewModal(false)}
-                                        className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium"
-                                    >
-                                        Cancelar
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="px-6 py-2 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg"
-                                    >
-                                        Finalizar Revisión
-                                    </button>
-                                </div>
-                            </form>
                         </div>
-                    </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-sm font-semibold text-gray-700">Retroalimentación / Comentarios</label>
+                            <textarea
+                                rows={4}
+                                className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                                placeholder="Escribe tus observaciones para el docente..."
+                                value={reviewData.feedback}
+                                onChange={e => setReviewData({ ...reviewData, feedback: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="flex justify-end gap-3 pt-4">
+                            <button
+                                type="button"
+                                onClick={() => setShowReviewModal(false)}
+                                className="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl hover:bg-gray-200 transition-all font-medium"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                type="submit"
+                                className="px-6 py-2 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-bold shadow-lg"
+                            >
+                                Finalizar Revisión
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            )}
+            </div>
         </div>
+    )
+}
+        </div >
     );
 };
 

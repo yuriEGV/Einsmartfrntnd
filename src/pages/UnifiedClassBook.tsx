@@ -35,7 +35,7 @@ const UnifiedClassBook = () => {
 
     const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
-    const [selectedBlock, setSelectedBlock] = useState('Bloque 1 (08:00 - 09:30)');
+    const [selectedBlock, setSelectedBlock] = useState('Bloque 1');
     const [attendanceConfirmed, setAttendanceConfirmed] = useState(false);
 
     const [grades, setGrades] = useState<any[]>([]);
@@ -370,10 +370,10 @@ const UnifiedClassBook = () => {
                                                 onChange={e => setSelectedBlock(e.target.value)}
                                                 className="bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100 font-black text-slate-700 text-xs outline-none focus:border-blue-500"
                                             >
-                                                <option>Bloque 1 (08:00 - 09:30)</option>
-                                                <option>Bloque 2 (09:45 - 11:15)</option>
-                                                <option>Bloque 3 (11:30 - 13:00)</option>
-                                                <option>Bloque 4 (14:00 - 15:30)</option>
+                                                <option>Bloque 1</option>
+                                                <option>Bloque 2</option>
+                                                <option>Bloque 3</option>
+                                                <option>Bloque 4</option>
                                             </select>
                                             <div className="flex items-center gap-4 bg-slate-50 px-6 py-4 rounded-2xl border-2 border-slate-100">
                                                 <Calendar size={18} className="text-slate-300" />
@@ -677,7 +677,8 @@ const UnifiedClassBook = () => {
                                 </div>
                             )}
                         </div>
-            </div>
+                    )}
+                </div>
 
                 {/* MODALS Area (Minimal Placeholders) */}
                 {
@@ -815,8 +816,9 @@ const UnifiedClassBook = () => {
                         </div>
                     )
                 }
-            </div >
-            );
+            </div>
+        </div>
+    );
 };
 
-            export default UnifiedClassBook;
+export default UnifiedClassBook;
