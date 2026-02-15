@@ -200,8 +200,15 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                     if (finalQuestions.length === 0) {
                         const targetSubject = subjects.find(s => s._id === selectedSubject);
                         if (targetSubject) {
+                            // Try exact name and also clean name (no accents)
+                            const cleanName = targetSubject.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                             const nameRes = await api.get(`/questions?subjectId=${targetSubject.name}&status=approved`);
                             finalQuestions = nameRes.data;
+
+                            if (finalQuestions.length === 0 && cleanName !== targetSubject.name) {
+                                const cleanRes = await api.get(`/questions?subjectId=${cleanName}&status=approved`);
+                                finalQuestions = cleanRes.data;
+                            }
                         }
                     }
 
@@ -279,6 +286,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
 
     const handleGenerate = async () => {
         if (!formData.title) return alert("Por favor, ingrese un título.");
+        if (selectedBankQuestions.length === 0) return alert("Por favor, seleccione al menos una pregunta para la evaluación.");
         try {
             setLoading(true);
             const payload = {
@@ -686,7 +694,13 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                 </div>
 
                                 <div className="space-y-4 pt-4 max-h-[400px] overflow-y-auto px-1 custom-scrollbar">
-                                    {bankQuestions
+                                    {bankQuestions.length === 0 ? (
+                                        <div className="text-center py-12 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-100 animate-in fade-in">
+                                            <Search className="mx-auto mb-3 text-slate-200" size={40} />
+                                            <p className="text-slate-400 font-bold text-sm">No se encontraron preguntas aprobadas</p>
+                                            <p className="text-slate-300 text-[10px] mt-1 uppercase font-black tracking-widest">Use el botón "CREAR PREGUNTA" para añadir una nueva</p>
+                                        </div>
+                                    ) : bankQuestions
                                         .filter(q => q.questionText.toLowerCase().includes(questionSearch.toLowerCase()))
                                         .map((q: any) => (
                                             <label key={q._id} className={`group relative p-6 bg-white rounded-3xl border-2 transition-all cursor-pointer flex items-start gap-6 hover:shadow-xl hover:-translate-y-1 ${selectedBankQuestions.includes(q._id) ? 'border-emerald-500 ring-4 ring-emerald-50' : 'border-slate-100 hover:border-indigo-200'}`}>
