@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import {
     ChevronLeft, ChevronRight,
-    AlertCircle, Calendar, Search, ShieldCheck, FileText, Plus, RefreshCw
+    AlertCircle, Calendar, Search, ShieldCheck, FileText, Plus, RefreshCw,
+    CheckCircle2, Printer
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -37,6 +38,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [confirmConflict, setConfirmConflict] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
+    const [createdEvaluationId, setCreatedEvaluationId] = useState<string | null>(null);
+    const [isSuccessStep, setIsSuccessStep] = useState(false);
 
     // MiniCalendar Helper Component
     const MiniCalendar = ({ selectedDate, onDateSelect, evaluations }: { selectedDate: string, onDateSelect: (d: string) => void, evaluations: any[] }) => {
@@ -170,6 +173,23 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [questionSearch, setQuestionSearch] = useState('');
 
     useEffect(() => {
+        if (isOpen) {
+            setFormData(prev => ({
+                ...prev,
+                category: initialCategory || 'planificada',
+                title: '',
+                date: new Date().toISOString().split('T')[0]
+            }));
+            setStep(1);
+            setIsSuccessStep(false);
+            setCreatedEvaluationId(null);
+            setSelectedBankQuestions([]);
+            setSelectedOAs([]);
+            setConfirmConflict(false);
+        }
+    }, [isOpen, initialCategory]);
+
+    useEffect(() => {
         const fetchInitial = async () => {
             try {
                 const [cRes, sRes] = await Promise.all([
@@ -239,6 +259,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
         const fetchDayData = async () => {
             if (!selectedCourse) return;
             setIsLoadingDayData(true);
+            setDayEvaluations([]); // Clear previous data to avoid "stuck" feeling
+            setDaySchedules([]);
             try {
                 const results = [];
 
@@ -299,16 +321,27 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                 date: `${formData.date}T${formData.time}:00.000Z`
             };
 
-            await api.post('/evaluations', payload);
+            const res = await api.post('/evaluations', payload);
             toast.success('¡Prueba Generada! La evaluación ha sido creada exitosamente.');
 
-            if (onSuccess) onSuccess();
-            onClose();
+            if (formData.category === 'sorpresa') {
+                setCreatedEvaluationId(res.data._id);
+                setIsSuccessStep(true);
+            } else {
+                if (onSuccess) onSuccess();
+                onClose();
+            }
         } catch (error: any) {
             alert(error.response?.data?.message || 'Error al generar prueba');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleDownloadPDF = (difficulty: string = 'all') => {
+        if (!createdEvaluationId) return;
+        const url = `${api.defaults.baseURL}/evaluations/${createdEvaluationId}/print?difficulty=${difficulty}`;
+        window.open(url, '_blank');
     };
 
     if (!isOpen) return null;
@@ -734,28 +767,75 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                             </div>
                         </div>
                     )}
+
+                    {isSuccessStep && createdEvaluationId && (
+                        <div className="h-full flex flex-col items-center justify-center space-y-8 animate-in zoom-in-95 duration-500 max-w-2xl mx-auto py-12">
+                            <div className="w-24 h-24 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center shadow-inner relative">
+                                <CheckCircle2 size={48} />
+                                <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-ping"></div>
+                            </div>
+
+                            <div className="text-center space-y-3">
+                                <h3 className="text-3xl font-black text-slate-800 tracking-tight">¡Prueba Generada con Éxito!</h3>
+                                <p className="text-slate-400 font-bold max-w-md mx-auto">
+                                    La prueba sorpresa ya está disponible en el sistema. ¿Deseas imprimirla ahora mismo?
+                                </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full pt-4">
+                                <button
+                                    onClick={() => handleDownloadPDF()}
+                                    className="p-6 bg-emerald-600 text-white rounded-3xl font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-500/30 hover:scale-[1.02] active:scale-95 transition-all flex flex-col items-center gap-3 group"
+                                >
+                                    <div className="p-3 bg-white/20 rounded-2xl group-hover:rotate-12 transition-transform">
+                                        <Printer size={28} />
+                                    </div>
+                                    <span>Imprimir Prueba</span>
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (onSuccess) onSuccess();
+                                        onClose();
+                                    }}
+                                    className="p-6 bg-white border-2 border-slate-100 text-slate-600 rounded-3xl font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition-all flex flex-col items-center gap-3 shadow-sm"
+                                >
+                                    <div className="p-3 bg-slate-100 rounded-2xl">
+                                        <CheckCircle2 size={28} className="text-slate-400" />
+                                    </div>
+                                    <span>Terminar</span>
+                                </button>
+                            </div>
+
+                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em] pt-8">
+                                Maritimo 4.0 • Sistema de Gestión Académica
+                            </p>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer Controls */}
-                <div className="px-8 py-6 bg-slate-50 border-t flex justify-between gap-4">
-                    {step > 1 && (
-                        <button
-                            onClick={() => setStep(step - 1)}
-                            className="bg-white border-2 border-slate-200 text-slate-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
-                        >
-                            <ChevronLeft size={16} /> Volver
-                        </button>
-                    )}
-                    <div className="flex-1" />
-                    {step < 3 && (
-                        <button
-                            onClick={() => setStep(step + 1)}
-                            className="bg-indigo-600 text-white px-10 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/20 hover:scale-[1.05] transition-all flex items-center gap-2"
-                        >
-                            Continuar <ChevronRight size={16} />
-                        </button>
-                    )}
-                </div>
+                {!isSuccessStep && (
+                    <div className="px-8 py-6 bg-slate-50 border-t flex justify-between gap-4">
+                        {step > 1 && (
+                            <button
+                                onClick={() => setStep(step - 1)}
+                                className="bg-white border-2 border-slate-200 text-slate-400 px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2"
+                            >
+                                <ChevronLeft size={16} /> Volver
+                            </button>
+                        )}
+                        <div className="flex-1" />
+                        {step < 3 && (
+                            <button
+                                onClick={() => setStep(step + 1)}
+                                className="bg-indigo-600 text-white px-10 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-900/20 hover:scale-[1.05] transition-all flex items-center gap-2"
+                            >
+                                Continuar <ChevronRight size={16} />
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );
