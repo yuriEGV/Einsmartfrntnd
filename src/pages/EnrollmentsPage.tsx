@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
     UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
-    DollarSign, UserCheck, CreditCard, ChevronRight, Save, Printer
+    DollarSign, UserCheck, CreditCard, ChevronRight, Save, Printer, Trash2
 } from 'lucide-react';
 import { validateRut, formatRut } from '../services/utils';
 
@@ -138,6 +138,21 @@ const EnrollmentsPage = () => {
             setEnrollments(res.data);
         } catch (err) {
             console.error('Error fetching enrollments:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleDeleteEnrollment = async (id: string) => {
+        if (!window.confirm('¿Desea eliminar esta matrícula? Esta acción no se puede deshacer.')) return;
+        setLoading(true);
+        try {
+            await api.delete(`/enrollments/${id}`);
+            alert('Matrícula eliminada correctamente');
+            fetchEnrollments();
+        } catch (err: any) {
+            console.error(err);
+            alert(err.response?.data?.message || 'Error al eliminar matrícula');
         } finally {
             setLoading(false);
         }
@@ -731,9 +746,17 @@ const EnrollmentsPage = () => {
                                                 ${enrollment.fee.toLocaleString()}
                                             </div>
                                         </div>
-                                        <div className="mt-auto flex justify-between text-[9px] text-slate-400 font-extrabold border-t border-slate-50 pt-3 uppercase tracking-tighter">
-                                            <span>PERIODO: {enrollment.period}</span>
-                                            <span>{new Date(enrollment.createdAt).toLocaleDateString()}</span>
+                                        <div className="mt-auto flex justify-between items-center text-[9px] text-slate-400 font-extrabold border-t border-slate-50 pt-3 uppercase tracking-tighter">
+                                            <div className="flex flex-col">
+                                                <span>PERIODO: {enrollment.period}</span>
+                                                <span>{new Date(enrollment.createdAt).toLocaleDateString()}</span>
+                                            </div>
+                                            <button
+                                                onClick={() => handleDeleteEnrollment(enrollment._id)}
+                                                className="p-2 bg-rose-50 text-rose-500 rounded-lg hover:bg-rose-100 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                            </button>
                                         </div>
                                     </div>
                                 ))}
@@ -766,6 +789,7 @@ const EnrollmentsPage = () => {
                                                     <th className="pb-4 pt-2 px-6">Periodo</th>
                                                     <th className="pb-4 pt-2 px-6">Fecha Matrícula</th>
                                                     <th className="pb-4 pt-2 px-6 text-right">Monto Pagado</th>
+                                                    <th className="pb-4 pt-2 px-6 text-right w-10"></th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
@@ -784,6 +808,15 @@ const EnrollmentsPage = () => {
                                                         </td>
                                                         <td className="py-5 px-6 text-right font-black text-emerald-600 font-mono text-sm tracking-tighter">
                                                             ${enrollment.fee.toLocaleString()}
+                                                        </td>
+                                                        <td className="py-5 px-6 text-right">
+                                                            <button
+                                                                onClick={() => handleDeleteEnrollment(enrollment._id)}
+                                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
+                                                                title="Eliminar Matrícula"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
                                                         </td>
                                                     </tr>
                                                 ))}
