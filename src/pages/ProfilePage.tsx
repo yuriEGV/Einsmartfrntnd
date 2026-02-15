@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/authService';
+import api from '../services/api';
 import { User, Lock, Save, ShieldCheck, AlertCircle } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
@@ -11,6 +12,11 @@ const ProfilePage: React.FC = () => {
         email: user?.email || '',
         password: '',
         confirmPassword: ''
+    });
+    const [pinData, setPinData] = useState({
+        currentPin: '',
+        newPin: '',
+        confirmPin: ''
     });
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -43,6 +49,41 @@ const ProfilePage: React.FC = () => {
             setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
         } catch (error: any) {
             setMessage({ type: 'error', text: error.response?.data?.message || 'Error al actualizar perfil' });
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPinData({ ...pinData, [e.target.name]: e.target.value });
+    };
+
+    const handlePinSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setMessage(null);
+
+        if (!pinData.currentPin || !pinData.newPin || !pinData.confirmPin) {
+            setMessage({ type: 'error', text: 'Todos los campos del PIN son obligatorios' });
+            return;
+        }
+
+        if (pinData.newPin !== pinData.confirmPin) {
+            setMessage({ type: 'error', text: 'Los PINs no coinciden' });
+            return;
+        }
+
+        if (!/^\d{4}$/.test(pinData.newPin)) {
+            setMessage({ type: 'error', text: 'El PIN debe ser de 4 dígitos' });
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await api.put('/users/update-pin', pinData);
+            setMessage({ type: 'success', text: 'PIN actualizado correctamente' });
+            setPinData({ currentPin: '', newPin: '', confirmPin: '' });
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Error al actualizar PIN' });
         } finally {
             setLoading(false);
         }
@@ -134,6 +175,71 @@ const ProfilePage: React.FC = () => {
                                         * Ingresa tu nueva contraseña y confírmala para actualizarla.
                                     </p>
                                 </div>
+
+                                {/* PIN Change Section - Only for Teachers */}
+                                {user?.role === 'teacher' && (
+                                    <div className="pt-8 border-t border-slate-100">
+                                        <h3 className="text-sm font-black text-blue-900 uppercase tracking-widest mb-6 flex items-center gap-2">
+                                            <ShieldCheck size={16} className="text-blue-500" />
+                                            Cambiar PIN de Firma Digital
+                                        </h3>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">PIN Actual</label>
+                                                <input
+                                                    type="password"
+                                                    name="currentPin"
+                                                    placeholder="••••"
+                                                    maxLength={4}
+                                                    value={pinData.currentPin}
+                                                    onChange={handlePinChange}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nuevo PIN</label>
+                                                <input
+                                                    type="password"
+                                                    name="newPin"
+                                                    placeholder="••••"
+                                                    maxLength={4}
+                                                    value={pinData.newPin}
+                                                    onChange={handlePinChange}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirmar PIN</label>
+                                                <input
+                                                    type="password"
+                                                    name="confirmPin"
+                                                    placeholder="••••"
+                                                    maxLength={4}
+                                                    value={pinData.confirmPin}
+                                                    onChange={handlePinChange}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
+                                                />
+                                            </div>
+                                        </div>
+                                        <p className="text-[10px] text-slate-400 mt-4 italic font-medium">
+                                            * El PIN de 4 dígitos es necesario para firmar el libro de clases digitalmente. No use PINs secuenciales (1234, 4321, etc.).
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={handlePinSubmit}
+                                            disabled={loading}
+                                            className="mt-6 bg-blue-600 text-white px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                                        >
+                                            {loading ? 'Actualizando...' : (
+                                                <>
+                                                    <ShieldCheck size={16} />
+                                                    Actualizar PIN
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
