@@ -191,6 +191,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                 subjectId: selectedSubject,
                 objectives: selectedOAs,
                 questions: selectedBankQuestions,
+                rubricId: formData.rubricId === '' ? null : formData.rubricId,
                 date: `${formData.date}T${formData.time}:00.000Z`
             };
 
