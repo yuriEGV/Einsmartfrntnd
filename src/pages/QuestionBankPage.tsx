@@ -15,7 +15,6 @@ interface Question {
     difficulty: 'easy' | 'medium' | 'hard';
     subjectId: { _id: string; name: string };
     grade: string;
-    grade: string;
     tags: string[];
     status: 'pending' | 'approved' | 'rejected';
     options: { text: string; isCorrect: boolean }[];
@@ -260,8 +259,8 @@ const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                             {q.type.replace('_', ' ')}
                                         </span>
                                         <span className={`px-4 py-1.5 rounded-xl font-black text-[10px] uppercase tracking-widest border ${q.status === 'approved' ? 'bg-green-50 text-green-600 border-green-100' :
-                                                q.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
-                                                    'bg-yellow-50 text-yellow-600 border-yellow-100'
+                                            q.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-100' :
+                                                'bg-yellow-50 text-yellow-600 border-yellow-100'
                                             }`}>
                                             {q.status === 'approved' ? 'Aprobada' : q.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
                                         </span>
