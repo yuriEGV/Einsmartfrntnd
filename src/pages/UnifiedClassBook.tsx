@@ -14,7 +14,6 @@ const UnifiedClassBook = () => {
 
     // Context & State
     const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones'>('leccionario');
-    const [loading, setLoading] = useState(true);
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -74,14 +73,12 @@ const UnifiedClassBook = () => {
                 setCourses(cRes.data);
                 setSubjects(sRes.data);
             } catch (err) { console.error(err); }
-            finally { setLoading(false); }
         };
         fetchInitial();
     }, []);
 
     const refreshTabContent = async () => {
         if (!selectedCourse) return;
-        setLoading(true);
         try {
             if (activeTab === 'ficha') {
                 const res = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
@@ -117,7 +114,6 @@ const UnifiedClassBook = () => {
                 }
             }
         } catch (err) { console.error('REFRESH ERROR:', err); }
-        finally { setLoading(false); }
     };
 
     useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate, selectedBlock]);
