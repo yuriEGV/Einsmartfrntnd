@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap } from 'lucide-react';
 
 interface Course {
     _id: string;
@@ -14,6 +14,10 @@ interface Course {
         _id: string;
         name: string;
         email: string;
+    };
+    careerId?: {
+        _id: string;
+        name: string;
     };
     createdAt: string;
 }
@@ -43,6 +47,17 @@ const CoursesPage = () => {
     const [showModal, setShowModal] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentCourse, setCurrentCourse] = useState<Partial<Course> | null>(null);
+
+    // Subjects Modal
+    const [showSubjectsModal, setShowSubjectsModal] = useState(false);
+    const [viewingCourseSubjects, setViewingCourseSubjects] = useState<any[]>([]);
+    const [viewingCourseName, setViewingCourseName] = useState('');
+    const [viewingCourseId, setViewingCourseId] = useState('');
+    const [newSubjectData, setNewSubjectData] = useState({
+        name: '',
+        teacherId: '',
+        isComplementary: false
+    });
 
     // Form specific state
     const [formData, setFormData] = useState({
@@ -135,6 +150,36 @@ const CoursesPage = () => {
             });
         }
         setShowModal(true);
+    };
+
+    const handleViewSubjects = async (course: Course) => {
+        try {
+            setViewingCourseId(course._id);
+            setViewingCourseName(course.name);
+            const res = await api.get(`/subjects?courseId=${course._id}`);
+            setViewingCourseSubjects(res.data);
+            setShowSubjectsModal(true);
+        } catch (error) {
+            console.error(error);
+            alert('Error al cargar ramos');
+        }
+    };
+
+    const handleAssignSubject = async () => {
+        try {
+            await api.post('/subjects', {
+                ...newSubjectData,
+                courseId: viewingCourseId
+            });
+            // Refresh list
+            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+            setViewingCourseSubjects(res.data);
+            // Reset form
+            setNewSubjectData({ name: '', teacherId: '', isComplementary: false });
+        } catch (error) {
+            console.error(error);
+            alert('Error al asignar ramo');
+        }
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -244,8 +289,13 @@ const CoursesPage = () => {
                                             <BookOpen size={28} />
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[150px]">
+                                            <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[200px]">
                                                 {course.name}
+                                                {course.careerId?.name && (
+                                                    <span className="block text-[10px] text-blue-500 font-black opacity-80 mt-0.5">
+                                                        {course.careerId.name}
+                                                    </span>
+                                                )}
                                             </h3>
                                             <div className="inline-block px-2 py-0.5 bg-slate-50 border border-slate-100 rounded text-[9px] font-mono font-black text-slate-400 uppercase tracking-tighter mt-1">
                                                 ID: {course.code || course._id.slice(-4)}
@@ -287,29 +337,27 @@ const CoursesPage = () => {
                                         </div>
                                     </div>
 
-                                    {(course as any).careerId && (
-                                        <div className="flex items-center gap-3 p-3 bg-indigo-50/50 rounded-2xl border border-indigo-100">
-                                            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-indigo-500 shadow-sm border border-indigo-100">
-                                                <GraduationCap size={18} />
-                                            </div>
-                                            <div className="min-w-0">
-                                                <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-1">Carrera / Especialidad</div>
-                                                <div className="text-xs font-black text-indigo-900 truncate">
-                                                    {(course as any).careerId?.name || (course as any).careerId}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    {/* Career display moved to header area but keeping this for legacy if needed or removing it to clean up */}
+                                    {/* Removing the redundant career block to make space for the button */}
 
-                                    {!isStudentOrGuardian && (
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => navigate(`/courses/${course._id}/students`)}
-                                            className="w-full py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                            onClick={() => handleViewSubjects(course)}
+                                            className="flex-1 py-3 bg-blue-50 text-blue-700 border border-blue-100 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-100 transition-all flex items-center justify-center gap-2"
                                         >
-                                            <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
-                                            Ver Lista de Alumnos
+                                            <BookOpen size={14} />
+                                            Ramos / Malla
                                         </button>
-                                    )}
+                                        {!isStudentOrGuardian && (
+                                            <button
+                                                onClick={() => navigate(`/courses/${course._id}/students`)}
+                                                className="flex-1 py-3 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-50 hover:text-blue-600 transition-all flex items-center justify-center gap-2 group/btn"
+                                            >
+                                                <Users size={14} className="text-slate-300 group-hover/btn:text-blue-400" />
+                                                Alumnos
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         ))}
@@ -324,46 +372,57 @@ const CoursesPage = () => {
                 )
             }
 
-            {/* Refined Premium Modal */}
+            {/* Full Screen Modal */}
             {
                 showModal && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
-                        <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
-                            <div
-                                className="p-10 text-white relative overflow-hidden"
-                                style={{ backgroundColor: '#11355a' }}
-                            >
-                                <div className="relative z-10">
-                                    <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
-                                        {modalMode === 'create' ? 'Configurar Curso' : 'Actualizar Nivel'}
-                                    </h2>
-                                    <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
-                                        {modalMode === 'create' ? 'ALTA DE NUEVA UNIDAD ACADÉMICA' : 'MODIFICACIÓN DE PARÁMETROS'}
-                                    </p>
-                                </div>
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                    <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+                        {/* Header - Fixed */}
+                        <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-100 bg-white shrink-0">
+                            <div>
+                                <h2 className="text-xl md:text-2xl font-black text-[#11355a] uppercase tracking-tight">
+                                    {modalMode === 'create' ? 'Crear Nuevo Curso' : 'Editar Curso'}
+                                </h2>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">
+                                    {modalMode === 'create' ? 'Configuración de nueva unidad académica' : 'Actualización de parámetros'}
+                                </p>
                             </div>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <Users size={24} className="rotate-45" /> {/* Reuse icon as generic close */}
+                            </button>
+                        </div>
 
-                            <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto bg-slate-50/30">
+                            <form id="course-form" onSubmit={handleSave} className="max-w-4xl mx-auto p-4 md:p-10 space-y-8">
                                 <div className="space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <GraduationCap size={20} />
+                                        </div>
+                                        <h3 className="text-lg font-black text-slate-700 uppercase tracking-tight">Datos del Nivel</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="group">
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Nivel (Grado)</label>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NIVEL (GRADO)</label>
                                             <select
                                                 required
-                                                className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 appearance-none"
                                                 value={formData.level}
                                                 onChange={e => setFormData({ ...formData, level: e.target.value })}
                                             >
-                                                <option value="">Nivel...</option>
-                                                <option value="1°">1°</option>
-                                                <option value="2°">2°</option>
-                                                <option value="3°">3°</option>
-                                                <option value="4°">4°</option>
-                                                <option value="5°">5°</option>
-                                                <option value="6°">6°</option>
-                                                <option value="7°">7°</option>
-                                                <option value="8°">8°</option>
+                                                <option value="">Seleccionar Nivel...</option>
+                                                <option value="1°">1° Básico</option>
+                                                <option value="2°">2° Básico</option>
+                                                <option value="3°">3° Básico</option>
+                                                <option value="4°">4° Básico</option>
+                                                <option value="5°">5° Básico</option>
+                                                <option value="6°">6° Básico</option>
+                                                <option value="7°">7° Básico</option>
+                                                <option value="8°">8° Básico</option>
                                                 <option value="I°">I° Medio</option>
                                                 <option value="II°">II° Medio</option>
                                                 <option value="III°">III° Medio</option>
@@ -371,14 +430,14 @@ const CoursesPage = () => {
                                             </select>
                                         </div>
                                         <div className="group">
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Letra (Paralelo)</label>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">LETRA (PARALELO)</label>
                                             <select
                                                 required
-                                                className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 appearance-none"
                                                 value={formData.letter}
                                                 onChange={e => setFormData({ ...formData, letter: e.target.value })}
                                             >
-                                                <option value="">Letra...</option>
+                                                <option value="">Seleccionar Letra...</option>
                                                 <option value="A">A</option>
                                                 <option value="B">B</option>
                                                 <option value="C">C</option>
@@ -387,70 +446,183 @@ const CoursesPage = () => {
                                             </select>
                                         </div>
                                     </div>
+
                                     <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DESCRIPCIÓN ACADÉMICA</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DESCRIPCIÓN</label>
                                         <textarea
                                             required
                                             rows={3}
                                             maxLength={500}
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-bold text-slate-600 resize-none"
+                                            className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-600 resize-none"
                                             placeholder="Características principales del grupo..."
                                             value={formData.description}
                                             onChange={e => setFormData({ ...formData, description: e.target.value })}
                                         />
                                     </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DOCENTE ENCARGADO (PROFESOR JEFE)</label>
-                                        <select
-                                            required
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none"
-                                            value={formData.teacherId}
-                                            onChange={e => setFormData({ ...formData, teacherId: e.target.value })}
-                                        >
-                                            <option value="">Seleccionar del Registro...</option>
-                                            {teachers.map(t => (
-                                                <option key={t._id} value={t._id}>{t.name}</option>
-                                            ))}
-                                        </select>
-                                        <p className="text-[10px] font-bold text-slate-300 mt-2 ml-1">Solo se muestran usuarios con rol de Profesor.</p>
-                                    </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CARRERA ASOCIADA (OPCIONAL)</label>
-                                        <select
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none"
-                                            value={formData.careerId}
-                                            onChange={e => setFormData({ ...formData, careerId: e.target.value })}
-                                        >
-                                            <option value="">Configuración General (Sin Carrera específica)</option>
-                                            {careers.map(c => (
-                                                <option key={c._id} value={c._id}>{c.name}</option>
-                                            ))}
-                                        </select>
-                                        <p className="text-[10px] font-bold text-slate-300 mt-2 ml-1">Asigne este curso a una especialidad técnica si corresponde.</p>
-                                    </div>
-                                </div>
 
-                                <div className="pt-8 flex flex-col md:flex-row gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                        className="flex-1 py-5 text-slate-400 font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-widest text-xs"
-                                    >
-                                        CANCELAR
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                                    >
-                                        {modalMode === 'create' ? <Plus size={18} /> : <Save size={18} />}
-                                        {modalMode === 'create' ? 'CREAR CURSO' : 'GUARDAR CAMBIOS'}
-                                    </button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">PROFESOR JEFE</label>
+                                            <select
+                                                required
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 appearance-none"
+                                                value={formData.teacherId}
+                                                onChange={e => setFormData({ ...formData, teacherId: e.target.value })}
+                                            >
+                                                <option value="">Asignar Docente...</option>
+                                                {teachers.map(t => (
+                                                    <option key={t._id} value={t._id}>{t.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">ESPECIALIDAD / CARRERA</label>
+                                            <select
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 appearance-none"
+                                                value={formData.careerId}
+                                                onChange={e => setFormData({ ...formData, careerId: e.target.value })}
+                                            >
+                                                <option value="">Sin Especialidad (Plan Común)</option>
+                                                {careers.map(c => (
+                                                    <option key={c._id} value={c._id}>{c.name}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
                             </form>
+                        </div>
+
+                        {/* Footer - Fixed */}
+                        <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50 shrink-0 flex flex-col-reverse md:flex-row gap-3 md:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="px-8 py-3.5 border border-gray-200 rounded-xl hover:bg-white font-black text-slate-500 text-xs uppercase tracking-widest w-full md:w-auto"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="px-10 py-3.5 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-900/20 w-full md:w-auto"
+                            >
+                                {modalMode === 'create' ? 'Crear Curso' : 'Guardar Cambios'}
+                            </button>
                         </div>
                     </div>
                 )
             }
+            {/* Subjects Modal */}
+            {showSubjectsModal && (
+                <div className="fixed inset-0 z-[110] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95">
+                        <div className="p-8 border-b bg-gradient-to-r from-blue-600 to-indigo-600 text-white shrink-0">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h3 className="text-2xl font-black uppercase tracking-tight">Ramos del Curso: {viewingCourseName}</h3>
+                                    <p className="text-xs font-bold text-blue-100 uppercase tracking-widest mt-1">Malla Curricular Vigente</p>
+                                </div>
+                                <button onClick={() => setShowSubjectsModal(false)} className="p-2 hover:bg-white/20 rounded-full transition-colors">
+                                    <Trash2 size={24} className="rotate-45" />
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-slate-50">
+                            {/* Quick Add Form */}
+                            <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-100 shadow-sm space-y-4">
+                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1">Asignar Nuevo Ramo</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <input
+                                        placeholder="Nombre del Ramo (Ej: Ciencias)"
+                                        className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm"
+                                        value={newSubjectData.name}
+                                        onChange={e => setNewSubjectData({ ...newSubjectData, name: e.target.value })}
+                                    />
+                                    <select
+                                        className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm appearance-none"
+                                        value={newSubjectData.teacherId}
+                                        onChange={e => setNewSubjectData({ ...newSubjectData, teacherId: e.target.value })}
+                                    >
+                                        <option value="">Seleccionar Docente...</option>
+                                        {teachers.map((t: any) => (
+                                            <option key={t._id} value={t._id}>{t.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="flex items-center justify-between gap-4">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-2 border-slate-200 text-blue-600"
+                                            checked={newSubjectData.isComplementary}
+                                            onChange={e => setNewSubjectData({ ...newSubjectData, isComplementary: e.target.checked })}
+                                        />
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Es Complementario</span>
+                                    </label>
+                                    <button
+                                        onClick={handleAssignSubject}
+                                        disabled={!newSubjectData.name || !newSubjectData.teacherId}
+                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-200"
+                                    >
+                                        Asignar ramo
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Malla Curricular Vigente</h4>
+                                {viewingCourseSubjects.length > 0 ? viewingCourseSubjects.map((subject: any) => (
+                                    <div key={subject._id} className="p-5 bg-white rounded-3xl border-2 border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all animate-in fade-in slide-in-from-bottom-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner font-black">
+                                                {subject.name.charAt(0)}
+                                            </div>
+                                            <div>
+                                                <div className="font-black text-slate-800 uppercase tracking-tight">{subject.name}</div>
+                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {subject.isComplementary && (
+                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
+                                                    Complementario
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={async () => {
+                                                    if (window.confirm('¿Desvincular este ramo del curso?')) {
+                                                        try {
+                                                            await api.delete(`/subjects/${subject._id}`);
+                                                            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+                                                            setViewingCourseSubjects(res.data);
+                                                        } catch (err) { alert('Error al eliminar'); }
+                                                    }
+                                                }}
+                                                className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )) : (
+                                    <div className="py-20 text-center border-4 border-dashed border-slate-200 rounded-[2.5rem]">
+                                        <BookOpen size={48} className="mx-auto text-slate-200 mb-4" />
+                                        <p className="text-slate-400 font-bold">No hay ramos registrados para este curso.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="p-6 bg-white border-t flex justify-end">
+                            <button
+                                onClick={() => setShowSubjectsModal(false)}
+                                className="px-8 py-3 bg-slate-800 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-slate-900/20 active:scale-95 transition-all"
+                            >
+                                Entendido
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
     );
 };

@@ -18,6 +18,6 @@ export const getCurrentUser = () => {
 };
 
 export const updateProfile = async (data: any) => {
-    const response = await api.put('/auth/profile', data);
+    const response = await api.put('/auth/perfil', data);
     return response.data;
 };

@@ -23,6 +23,7 @@ export interface Permissions {
     isAdmin: boolean;
     isStudent: boolean;
     isApoderado: boolean;
+    canApprovePlanning: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -44,7 +45,7 @@ export const usePermissions = (): Permissions => {
         canEditProfile: true,
         canManageStudents: isStaff && !isStudent && !isApoderado,
         canManageUsers: isAdmin,
-        canManageEnrollments: isStaff && !isStudent && !isApoderado,
+        canManageEnrollments: (isAdmin || isDirector || isSostenedor || isTeacher || isUTP || role === 'secretario' || role === 'asistente_aula' || role === 'inspector') && !isStudent && !isApoderado,
         canEditAnnotations: isStaff && !isStudent && !isApoderado,
         canEditGrades: (isStaff || isUTP) && !isStudent && !isApoderado,
         canViewSensitiveData: isAdmin || isDirector || isUTP,
@@ -61,5 +62,6 @@ export const usePermissions = (): Permissions => {
         isAdmin,
         isStudent,
         isApoderado,
+        canApprovePlanning: isAdmin || isUTP,
     };
 };

@@ -1,3 +1,4 @@
+// Build trigger: 2026-02-08
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -9,7 +10,8 @@ import {
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
-    Bell, BookOpen, Database, CreditCard, User, Clock
+    Bell, BookOpen, CreditCard, User, Clock,
+    Wand2
 } from 'lucide-react';
 
 const Layout = () => {
@@ -20,6 +22,18 @@ const Layout = () => {
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [isAcademicOpen, setIsAcademicOpen] = useState(false);
+
+    // Initial state from localStorage
+    const [isCollapsed, setIsCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebarCollapsed');
+        return saved ? JSON.parse(saved) : false;
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
+    }, [isCollapsed]);
+
     const location = useLocation();
 
     const handleLogout = () => {
@@ -86,7 +100,7 @@ const Layout = () => {
         return (
             <Link
                 to={to}
-                className={`flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 group ${isActive
+                className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} p-3.5 rounded-2xl transition-all duration-300 group ${isActive
                     ? 'bg-white/15 shadow-[0_8px_20px_-10px_rgba(0,0,0,0.3)] border border-white/10 translate-x-1'
                     : 'hover:bg-white/5 border border-transparent'
                     }`}
@@ -121,9 +135,9 @@ const Layout = () => {
                     )}
                     <div className="flex flex-col min-w-0">
                         <h1 className="text-sm font-black tracking-tighter uppercase truncate">
-                            {tenant?.name || 'MARITIMO'}
+                            {tenant?.name || 'EINSMART'}
                         </h1>
-                        <span className="text-[8px] font-black text-blue-300/60 uppercase tracking-widest leading-none">Gestión Digital</span>
+                        {/* <span className="text-[8px] font-black text-blue-300/60 uppercase tracking-widest leading-none">Gestión Digital</span> */}
                     </div>
                 </div>
 
@@ -150,157 +164,194 @@ const Layout = () => {
             {/* Sidebar - Precision Engineered Navigation */}
             <aside
                 className={`
-                    fixed inset-y-0 left-0 z-[65] w-[300px] text-white flex flex-col transition-all duration-500 cubic-bezier(0.4, 0, 0.2, 1)
+                    fixed inset-y-0 left-0 z-[65] text-white flex flex-col transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
                     md:relative md:translate-x-0 border-r border-white/5
-                    ${isMenuOpen ? 'translate-x-0 shadow-[40px_0_80px_-20px_rgba(0,0,0,0.5)]' : '-translate-x-full shadow-none'}
+                    ${isMenuOpen ? 'translate-x-0 shadow-[40px_0_80px_-20px_rgba(0,0,0,0.5)] w-[300px]' : '-translate-x-full md:translate-x-0 shadow-none'}
+                    ${isCollapsed ? 'md:w-[90px]' : 'md:w-[300px]'}
                 `}
                 style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
             >
                 {/* Desktop Header Enhancement */}
-                <div className="p-10 hidden md:block border-b border-white/5 relative overflow-hidden group">
+                <div className={`p-6 hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/5 relative overflow-hidden group h-[88px]`}>
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
 
-                    <h1 className="text-2xl font-black tracking-tighter flex items-center gap-4 uppercase relative z-10">
-                        {tenant?.theme?.logoUrl ? (
-                            <img src={tenant.theme.logoUrl} alt={`${tenant.name} logo`} className="w-12 h-12 rounded-2xl border border-white/15 backdrop-blur-lg shadow-2xl object-contain" />
-                        ) : (
-                            <div className="bg-white/10 p-3 rounded-2xl border border-white/15 backdrop-blur-lg shadow-2xl">
-                                <School size={26} className="text-white" />
+                    {!isCollapsed && (
+                        <h1 className="text-xl font-black tracking-tighter flex items-center gap-3 uppercase relative z-10 truncate">
+                            {tenant?.theme?.logoUrl ? (
+                                <img src={tenant.theme.logoUrl} alt={`${tenant.name} logo`} className="w-10 h-10 rounded-xl border border-white/15 backdrop-blur-lg shadow-2xl object-contain" />
+                            ) : (
+                                <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-lg shadow-2xl">
+                                    <School size={22} className="text-white" />
+                                </div>
+                            )}
+                            <div className="flex flex-col min-w-0">
+                                <span className="leading-none text-white truncate text-sm">{tenant?.name || 'EINSMART'}</span>
                             </div>
-                        )}
-                        <div className="flex flex-col">
-                            <span className="leading-none text-white">{tenant?.name || 'MARITIMO'}</span>
-                            <span className="text-[10px] text-blue-400 font-black tracking-[0.2em] mt-1.5 opacity-60">EINSMART® v4.0</span>
+                        </h1>
+                    )}
+
+                    {isCollapsed && (
+                        <div className="bg-white/10 p-2 rounded-xl border border-white/15 backdrop-blur-lg shadow-2xl relative z-10">
+                            <School size={24} className="text-white" />
                         </div>
-                    </h1>
+                    )}
+
+                    <button
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                        className={`p-2 rounded-xl hover:bg-white/10 text-white/50 hover:text-white transition-all ${isCollapsed ? 'absolute inset-0 w-full h-full opacity-0' : 'relative'}`}
+                        title={isCollapsed ? "Expandir" : "Contraer"}
+                    >
+                        {isCollapsed ? null : <ChevronRight size={18} className="rotate-180" />}
+                    </button>
                 </div>
 
                 {/* Main Navigation Logic */}
-                <nav className="flex-1 px-6 py-8 space-y-2 overflow-y-auto custom-scrollbar relative z-10">
-                    <div className="flex items-center justify-between mb-6 px-2">
-                        <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Principal</span>
-                        <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
+                <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar relative z-10 overflow-x-hidden">
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-6 px-2`}>
+                        {!isCollapsed && <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Principal</span>}
+                        <div className={`h-[1px] bg-white/5 ${isCollapsed ? 'w-4' : 'flex-1 ml-4'}`}></div>
                     </div>
 
-                    <NavLink to="/" icon={Home}>Escritorio</NavLink>
-
-
+                    <NavLink to="/" icon={Home}>{!isCollapsed && "Escritorio"}</NavLink>
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
-                        <NavLink to="/enrollments" icon={UserPlus}>Matrículas</NavLink>
+                        <NavLink to="/enrollments" icon={UserPlus}>{!isCollapsed && "Matrículas"}</NavLink>
                     )}
 
                     {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
-                        <NavLink to="/courses" icon={GraduationCap}>Cursos</NavLink>
+                        <NavLink to="/courses" icon={GraduationCap}>{!isCollapsed && "Cursos"}</NavLink>
+                    )}
+
+                    {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                        <NavLink to="/class-book" icon={BookOpen}>{!isCollapsed && "Libro de Clases"}</NavLink>
+                    )}
+
+                    {/* Centro Académico Submenu */}
+                    {(user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                        <div className="space-y-1">
+                            <button
+                                onClick={() => {
+                                    if (isCollapsed) setIsCollapsed(false);
+                                    setIsAcademicOpen(!isAcademicOpen);
+                                }}
+                                className={`w-full flex items-center ${isCollapsed ? 'justify-center px-0' : 'justify-between'} p-3.5 rounded-2xl transition-all duration-300 group ${isAcademicOpen
+                                    ? 'bg-white/10'
+                                    : 'hover:bg-white/5'
+                                    }`}
+                                title={isCollapsed ? "Centro Académico" : ""}
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-xl transition-colors ${isAcademicOpen ? 'bg-white/10' : 'bg-transparent group-hover:bg-white/5'}`}>
+                                        <Wand2 size={18} className={isAcademicOpen ? 'text-white' : 'text-blue-300 group-hover:text-white'} />
+                                    </div>
+                                    {!isCollapsed && (
+                                        <span className={`font-black text-[11px] uppercase tracking-widest ${isAcademicOpen ? 'text-white' : 'text-blue-200/80 group-hover:text-white'}`}>
+                                            Centro Académico
+                                        </span>
+                                    )}
+                                </div>
+                                {!isCollapsed && <ChevronRight size={14} className={`text-white/40 transition-transform duration-300 ${isAcademicOpen ? 'rotate-90' : ''}`} />}
+                            </button>
+
+                            {/* Submenu Items */}
+                            <div className={`pl-4 space-y-1 overflow-hidden transition-all duration-300 ${isAcademicOpen && !isCollapsed ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
+                                    <NavLink to="/academic" icon={Wand2}>{!isCollapsed && "Gestionar Currículum"}</NavLink>
+                                )}
+                            </div>
+                        </div>
                     )}
 
                     {/* Redundant links hidden for teachers to favor unified dashboard */}
                     {(user?.role !== 'teacher') && (
                         <>
-                            <NavLink to="/grades" icon={ClipboardList}>Notas Globales</NavLink>
-                            <NavLink to="/attendance" icon={CheckCircle2}>Asistencia Global</NavLink>
+                            <NavLink to="/grades" icon={ClipboardList}>{!isCollapsed && "Notas Globales"}</NavLink>
+                            <NavLink to="/attendance" icon={CheckCircle2}>{!isCollapsed && "Asistencia Global"}</NavLink>
                         </>
-                    )}
-
-                    {(permissions.canEditGrades || user?.role === 'admin' || user?.role === 'teacher') && (
-                        <NavLink to="/evaluations" icon={ClipboardList}>Evaluaciones (Pruebas)</NavLink>
                     )}
 
                     {/* Redefine messages visibility: Only staff */}
                     {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'sostenedor' || user?.role === 'director') && (
-                        <NavLink to="/messages" icon={FileText}>Mensajes</NavLink>
+                        <NavLink to="/messages" icon={FileText}>{!isCollapsed && "Mensajes"}</NavLink>
                     )}
 
-                    <NavLink to="/events" icon={Calendar}>Eventos</NavLink>
+                    <NavLink to="/events" icon={Calendar}>{!isCollapsed && "Eventos"}</NavLink>
 
-                    <div className="pt-10 mb-4 px-2">
-                        <div className="flex items-center justify-between mb-4">
-                            <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Gestión</span>
-                            <div className="h-[1px] flex-1 bg-white/5 ml-4"></div>
+                    <div className="pt-6 mb-4 px-2">
+                        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
+                            {!isCollapsed && <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Gestión</span>}
+                            <div className={`h-[1px] bg-white/5 ${isCollapsed ? 'w-4' : 'flex-1 ml-4'}`}></div>
                         </div>
 
-                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/class-book" icon={BookOpen}>Libro de Clases</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
-                            <NavLink to="/subjects" icon={ClipboardList}>Asignaturas</NavLink>
-                        )}
-
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
-                            <NavLink to="/students" icon={Users}>Comunidad Escolar</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                            <NavLink to="/question-bank" icon={Database}>Banco de Preguntas</NavLink>
-                        )}
-
-                        {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                            <NavLink to="/curriculum-material" icon={FileText}>Planificación</NavLink>
+                            <NavLink to="/students" icon={Users}>{!isCollapsed && "Comunidad Escolar"}</NavLink>
                         )}
 
                         {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (
-                            <NavLink to="/admin-days" icon={Clock}>Días Administrativos</NavLink>
+                            <NavLink to="/admin-days" icon={Clock}>{!isCollapsed && "Días Administrativos"}</NavLink>
                         )}
 
                         {permissions.isAdmin && (
                             <>
-                                <NavLink to="/users" icon={Users}>Gestión de Usuarios</NavLink>
-                                <NavLink to="/settings" icon={Settings}>Institución</NavLink>
+                                <NavLink to="/users" icon={Users}>{!isCollapsed && "Gestión de Usuarios"}</NavLink>
+                                <NavLink to="/settings" icon={Settings}>{!isCollapsed && "Institución"}</NavLink>
                             </>
                         )}
 
                         {permissions.canViewSensitiveData && (
-                            <NavLink to="/analytics" icon={TrendingUp}>Reportes</NavLink>
+                            <NavLink to="/analytics" icon={TrendingUp}>{!isCollapsed && "Reportes"}</NavLink>
                         )}
 
                         {permissions.isSuperAdmin && (
-                            <NavLink to="/tenants" icon={School}>Clientes</NavLink>
+                            <NavLink to="/tenants" icon={School}>{!isCollapsed && "Clientes"}</NavLink>
                         )}
 
                         {(permissions.isAdmin || permissions.isSuperAdmin) && (
-                            <NavLink to="/careers" icon={GraduationCap}>Gestión de Carreras</NavLink>
+                            <NavLink to="/careers" icon={GraduationCap}>{!isCollapsed && "Gestión de Carreras"}</NavLink>
                         )}
 
                         {(permissions.canManagePayments || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
-                            <NavLink to="/payments" icon={DollarSign}>Pagos</NavLink>
+                            <NavLink to="/payments" icon={DollarSign}>{!isCollapsed && "Pagos"}</NavLink>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
-                            <NavLink to="/finance-dashboard" icon={TrendingUp}>Finanzas Sostenedor</NavLink>
+                            <NavLink to="/finance-dashboard" icon={TrendingUp}>{!isCollapsed && "Finanzas Sostenedor"}</NavLink>
                         )}
 
                         {/* Nuevo enlace para Nóminas */}
                         {(permissions.isSuperAdmin || user?.role === 'sostenedor') && (
-                            <NavLink to="/payroll" icon={DollarSign}>Nóminas</NavLink>
+                            <NavLink to="/payroll" icon={DollarSign}>{!isCollapsed && "Nóminas"}</NavLink>
                         )}
 
                         {(permissions.isSostenedor || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
-                            <NavLink to="/tariffs" icon={CreditCard}>Configuración de Tarifas</NavLink>
+                            <NavLink to="/tariffs" icon={CreditCard}>{!isCollapsed && "Configuración de Tarifas"}</NavLink>
                         )}
                     </div>
                 </nav>
 
                 {/* Premium Profile Section */}
-                <div className="p-8 border-t border-white/5 bg-black/20 relative z-20">
-                    <div className="flex items-center gap-4 mb-6">
-                        <Link to="/profile" className="relative group">
-                            <div className="w-12 h-12 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
-                                {user?.name?.substring(0, 1) || <User size={20} />}
+                <div className={`p-6 border-t border-white/5 bg-black/20 relative z-20 ${isCollapsed ? 'flex flex-col items-center gap-4' : ''}`}>
+                    <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-4 mb-6'}`}>
+                        <Link to="/" className="relative group shrink-0">
+                            <div className="w-10 h-10 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
+                                {user?.name?.substring(0, 1) || <User size={18} />}
                             </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-[#11355a] shadow-lg"></div>
+                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#11355a] shadow-lg"></div>
                         </Link>
-                        <div className="min-w-0">
-                            <Link to="/profile" className="text-sm font-black text-white truncate leading-tight hover:text-blue-200 block transition-colors">{user?.name || 'Invitado'}</Link>
-                            <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block">{user?.role}</div>
-                        </div>
+                        {!isCollapsed && (
+                            <div className="min-w-0 overflow-hidden">
+                                <span className="text-sm font-black text-white truncate leading-tight block">{user?.name || 'Invitado'}</span>
+                                <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block truncate max-w-full">{user?.role}</div>
+                            </div>
+                        )}
                     </div>
                     <button
                         onClick={handleLogout}
-                        className="flex items-center justify-center gap-3 text-white/70 hover:text-white hover:bg-rose-500/20 w-full py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 hover:border-rose-500/20 shadow-xl"
+                        className={`flex items-center justify-center gap-3 text-white/70 hover:text-white hover:bg-rose-500/20 py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 hover:border-rose-500/20 shadow-xl ${isCollapsed ? 'w-10 h-10 p-0' : 'w-full'}`}
+                        title="Salir del Sistema"
                     >
                         <LogOut size={16} className="text-rose-400" />
-                        <span>Salir del Sistema</span>
+                        {!isCollapsed && <span>Salir del Sistema</span>}
                     </button>
                 </div>
             </aside>

@@ -13,6 +13,7 @@ interface Course {
     name: string;
     code?: string;
     teacherId?: { name: string };
+    careerId?: { name: string };
 }
 
 interface Enrollment {
@@ -520,7 +521,14 @@ const EnrollmentsPage = () => {
                                             onClick={() => setFormData({ ...formData, courseId: course._id })}
                                             className={`p-4 text-[10px] md:text-xs font-bold rounded-2xl border-2 transition-all flex flex-col items-center justify-center leading-tight min-h-[80px] ${formData.courseId === course._id ? 'bg-blue-600 border-blue-600 text-white shadow-lg scale-105' : 'bg-white border-slate-100 text-slate-600 hover:border-blue-300'}`}
                                         >
-                                            <span className="uppercase text-[10px] md:text-sm font-black">{course.name}</span>
+                                            <span className="uppercase text-[10px] md:text-sm font-black">
+                                                {course.name}
+                                                {course.careerId?.name && (
+                                                    <span className="ml-2 text-blue-500 opacity-80 text-[8px] md:text-xs">
+                                                        ({course.careerId.name})
+                                                    </span>
+                                                )}
+                                            </span>
                                             <span className={`text-[9px] font-black mt-1.5 px-2 py-0.5 rounded-lg uppercase tracking-tighter ${formData.courseId === course._id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
                                                 {course.teacherId?.name || 'S/ Profesor'}
                                             </span>

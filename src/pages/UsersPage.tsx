@@ -8,7 +8,7 @@ interface UserData {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'sostenedor' | 'director' | 'teacher' | 'student' | 'apoderado';
+    role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado';
     rut?: string;
     password?: string;
     profileId?: string;
@@ -91,6 +91,7 @@ const UsersPage = () => {
             case 'admin': return <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-bold">Admin</span>;
             case 'sostenedor': return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-bold">Sostenedor</span>;
             case 'director': return <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded-full text-xs font-bold">Director</span>;
+            case 'utp': return <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-bold">UTP</span>;
             case 'teacher': return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">Profesor</span>;
             case 'student': return <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-bold">Estudiante</span>;
             case 'psicologo': return <span className="bg-teal-100 text-teal-800 px-2 py-1 rounded-full text-xs font-bold">Psicólogo</span>;
@@ -333,6 +334,7 @@ const UsersPage = () => {
                                             <option value="admin">Administrador del Sistema</option>
                                             <option value="sostenedor">Sostenedor / Dueño</option>
                                             <option value="director">Director / Académico</option>
+                                            <option value="utp">Jefe UTP</option>
                                             <option value="teacher">Profesor / Docente</option>
                                             <option value="psicologo">Psicólogo</option>
                                             <option value="orientador">Orientador</option>

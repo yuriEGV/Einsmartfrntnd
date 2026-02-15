@@ -5,7 +5,7 @@ import { updateProfile } from '../services/authService';
 import { User, Lock, Save, ShieldCheck, AlertCircle } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
-    const { user, setUser } = useAuth();
+    const { user } = useAuth();
     const [formData, setFormData] = useState({
         name: user?.name || '',
         email: user?.email || '',
@@ -30,21 +30,16 @@ const ProfilePage: React.FC = () => {
 
         setLoading(true);
         try {
-            const dataToUpdate: any = { name: formData.name };
-            if (formData.password) {
-                dataToUpdate.password = formData.password;
+            if (!formData.password) {
+                setMessage({ type: 'error', text: 'Debes ingresar una nueva contraseña para actualizar' });
+                setLoading(false);
+                return;
             }
 
+            const dataToUpdate: any = { password: formData.password };
             await updateProfile(dataToUpdate);
 
-            // Update context
-            if (setUser) {
-                const updatedUser = { ...user, name: formData.name };
-                setUser(updatedUser);
-                localStorage.setItem('user', JSON.stringify(updatedUser));
-            }
-
-            setMessage({ type: 'success', text: 'Perfil actualizado correctamente' });
+            setMessage({ type: 'success', text: 'Contraseña actualizada correctamente' });
             setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
         } catch (error: any) {
             setMessage({ type: 'error', text: error.response?.data?.message || 'Error al actualizar perfil' });
@@ -61,7 +56,7 @@ const ProfilePage: React.FC = () => {
                         <User size={32} />
                         Mi Perfil
                     </h1>
-                    <p className="text-gray-500 font-medium">Gestiona tu información personal y seguridad.</p>
+                    <p className="text-gray-500 font-medium">Gestiona la seguridad de tu cuenta.</p>
                 </div>
             </div>
 
@@ -88,12 +83,11 @@ const ProfilePage: React.FC = () => {
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
                                         <input
                                             type="text"
-                                            name="name"
                                             value={formData.name}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner"
+                                            disabled
+                                            className="w-full px-6 py-4 bg-slate-100 border-2 border-transparent rounded-2xl outline-none font-bold text-slate-400 cursor-not-allowed"
                                         />
+                                        <p className="text-[9px] text-slate-400 ml-1 italic">El nombre solo puede ser modificado por un administrador</p>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
@@ -137,7 +131,7 @@ const ProfilePage: React.FC = () => {
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-4 italic font-medium">
-                                        * Deja en blanco si no deseas cambiar tu contraseña.
+                                        * Ingresa tu nueva contraseña y confírmala para actualizarla.
                                     </p>
                                 </div>
                             </div>

@@ -21,6 +21,7 @@ interface Grade {
     score: number;
     tenantId: string;
     comments?: string;
+    subjectId?: string; // Cache subjectId if possible
 }
 
 interface Student {
@@ -33,10 +34,12 @@ interface Student {
 interface Evaluation {
     _id: string;
     title: string;
-    subject: string;
+    subjectId: string;
+    courseId: string; // Added to resolve lint errors
+    subject?: string;
 }
 
-const GradesPage = () => {
+const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const canManageGrades = permissions.canEditGrades;
 
@@ -133,8 +136,9 @@ const GradesPage = () => {
             setShowModal(false);
             setStudentSearch('');
             fetchInitialData();
-        } catch (error) {
-            alert('Error al guardar nota');
+        } catch (error: any) {
+            console.error('Error saving grade:', error);
+            alert(error.response?.data?.message || 'Error al guardar nota. Verifique que el estudiante tenga matrícula confirmada.');
         }
     };
 
@@ -159,20 +163,22 @@ const GradesPage = () => {
     const displayedGrades = filteredGrades.filter(g => {
         if (!selectedCourse && !selectedSubject) return true;
 
-        // Find subject for this grade's evaluation
+        // Find evaluation for this grade
         const evalItem = evaluations.find(e => e._id === g.evaluationId?._id);
         if (!evalItem) return false;
 
-        // Find subject record to check courseId
-        const subjectRecord = subjects.find(s => s.name === evalItem.subject &&
-            (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse);
-
-        if (selectedCourse && !selectedSubject) {
-            return subjectRecord !== undefined;
+        // Match by subjectId if subject selected
+        if (selectedSubject) {
+            if (!evalItem.subjectId) return false;
+            const evalSubjectId = typeof evalItem.subjectId === 'object' ? (evalItem.subjectId as any)._id : evalItem.subjectId;
+            return evalSubjectId === selectedSubject;
         }
 
-        if (selectedSubject) {
-            return subjectRecord?._id === selectedSubject;
+        // Match by courseId if course selected
+        if (selectedCourse) {
+            if (!evalItem.courseId) return false;
+            const evalCourseId = typeof evalItem.courseId === 'object' ? (evalItem.courseId as any)._id : evalItem.courseId;
+            return evalCourseId === selectedCourse;
         }
 
         return true;
@@ -183,17 +189,20 @@ const GradesPage = () => {
     );
 
     return (
-        <div className="p-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                <div>
-                    <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
-                        <ClipboardList size={32} />
-                        Libro de Clases: Notas
-                    </h1>
-                    <p className="text-gray-500 font-medium">Registro académico oficial del establecimiento.</p>
-                </div>
+        <div className={`${hideHeader ? 'p-0' : 'p-6'}`}>
+            {/* Filters & Search - Always visible but styled differently if in Hub */}
+            <div className={`flex flex-wrap items-center gap-4 mb-8 ${hideHeader ? 'mt-4' : ''}`}>
+                {!hideHeader && (
+                    <div className="mr-auto">
+                        <h1 className="text-3xl font-black text-[#11355a] flex items-center gap-3">
+                            <ClipboardList size={32} />
+                            Libro de Clases: Notas
+                        </h1>
+                        <p className="text-gray-500 font-medium text-sm">Registro académico oficial del establecimiento.</p>
+                    </div>
+                )}
 
-                <div className="flex flex-wrap w-full md:w-auto gap-3">
+                <div className={`flex flex-wrap w-full ${hideHeader ? '' : 'md:w-auto'} gap-3 items-center`}>
                     {!permissions.isStudent && !permissions.isApoderado && (
                         <select
                             className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm outline-none font-bold text-sm"
@@ -214,23 +223,29 @@ const GradesPage = () => {
                         <option value="">Asignatura: Todas</option>
                         {subjects
                             .filter(s => {
-                                if (permissions.isStudent || permissions.isApoderado) return true; // Subjects should already be filtered by backend or context if needed
-                                return (typeof s.courseId === 'object' ? s.courseId._id : s.courseId) === selectedCourse;
+                                if (permissions.isStudent || permissions.isApoderado) return true;
+                                if (!selectedCourse) return true;
+                                if (!s.courseId) return false;
+                                const sCourseId = typeof s.courseId === 'object' ? (s.courseId as any)._id : s.courseId;
+                                return sCourseId === selectedCourse;
                             })
                             .map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                     </select>
 
-                    <div className="relative flex-1 md:w-64">
-                        <Search className="absolute left-3 top-3 text-gray-400" size={18} />
-                        <input
-                            placeholder="Buscar alumno..."
-                            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
-                            value={searchTerm}
-                            onChange={e => setSearchTerm(e.target.value)}
-                        />
-                    </div>
+                    {/* Student Search - Hidden for guardians */}
+                    {permissions.user?.role !== 'apoderado' && (
+                        <div className="relative flex-1 md:w-64 min-w-[200px]">
+                            <Search className="absolute left-3 top-3 text-gray-400" size={18} />
+                            <input
+                                placeholder="Buscar alumno..."
+                                className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-blue-100 outline-none transition-all"
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                            />
+                        </div>
+                    )}
 
-                    {permissions.isStaff && (
+                    {!hideHeader && permissions.isStaff && (
                         <button
                             onClick={() => window.location.href = '/evaluations'}
                             className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
@@ -239,6 +254,7 @@ const GradesPage = () => {
                             CREAR PRUEBA
                         </button>
                     )}
+
                     {canManageGrades && (
                         <button
                             onClick={() => {
@@ -253,13 +269,16 @@ const GradesPage = () => {
                             Ingresar Nota
                         </button>
                     )}
-                    <button
-                        onClick={handlePrint}
-                        className="bg-white text-gray-600 px-6 py-2.5 rounded-xl font-bold border border-gray-200 flex items-center gap-2 hover:bg-gray-50 transition-all"
-                    >
-                        <Printer size={20} />
-                        Imprimir
-                    </button>
+
+                    {!hideHeader && (
+                        <button
+                            onClick={handlePrint}
+                            className="bg-white text-gray-600 px-6 py-2.5 rounded-xl font-bold border border-gray-200 flex items-center gap-2 hover:bg-gray-50 transition-all"
+                        >
+                            <Printer size={20} />
+                            Imprimir
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -288,9 +307,11 @@ const GradesPage = () => {
                             <div key={grade._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
                                 <div className="flex justify-between items-start mb-4">
                                     <div className="min-w-0">
-                                        <div className="text-sm font-black text-slate-800 leading-tight truncate">
-                                            {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
-                                        </div>
+                                        {!permissions.isStudent && !permissions.isApoderado && (
+                                            <div className="text-sm font-black text-slate-800 leading-tight truncate">
+                                                {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
+                                            </div>
+                                        )}
                                         <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mt-1 opacity-70 truncate">
                                             {(grade.evaluationId as any)?.subject || 'Gral'} • {grade.evaluationId?.title}
                                         </div>
@@ -324,60 +345,119 @@ const GradesPage = () => {
                         ))}
                     </div>
 
-                    {/* Desktop Table */}
+                    {/* Desktop Table - Optimized for Staff (Grouped by Student) */}
                     <div className="hidden md:block overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50/50">
-                                <tr>
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Estudiante</th>
-                                    <th className="px-6 py-4 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Evaluación / Asignatura</th>
-                                    <th className="px-6 py-4 text-center text-[10px] font-black text-gray-400 uppercase tracking-widest">Nota</th>
-                                    {canManageGrades && <th className="px-6 py-4 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Acciones</th>}
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-gray-100">
-                                {displayedGrades.map((grade) => (
-                                    <tr key={grade._id} className="hover:bg-blue-50/30 transition-colors group">
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-bold text-gray-800">
-                                                {grade.estudianteId?.nombres} {grade.estudianteId?.apellidos}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="text-sm font-bold text-gray-700">{grade.evaluationId?.title}</div>
-                                            <div className="text-[10px] font-black text-blue-500 uppercase tracking-tighter">
-                                                {(grade.evaluationId as any)?.subject}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className={`inline-block px-4 py-1.5 rounded-lg font-black text-lg ${grade.score >= 4 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                                {grade.score.toFixed(1)}
-                                            </span>
-                                        </td>
-                                        {canManageGrades && (
-                                            <td className="px-6 py-4 text-right">
-                                                <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => {
-                                                        const stud = students.find(s => s._id === grade.estudianteId?._id);
-                                                        setModalMode('edit');
-                                                        setFormData({
-                                                            _id: grade._id,
-                                                            estudianteId: grade.estudianteId?._id,
-                                                            evaluationId: grade.evaluationId?._id,
-                                                            score: grade.score,
-                                                            comments: grade.comments || ''
-                                                        });
-                                                        setStudentSearch(stud ? `${stud.nombres} ${stud.apellidos}` : '');
-                                                        setShowModal(true);
-                                                    }} className="p-2 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors"><Edit size={18} /></button>
-                                                    <button onClick={() => handleDelete(grade._id)} className="p-2 text-red-600 hover:bg-red-100 rounded-lg transition-colors"><Trash2 size={18} /></button>
+                        {(permissions.isStudent || permissions.isApoderado) ? (
+                            <div className="p-8 space-y-8">
+                                {Array.from(new Set(grades.map(g => (g.evaluationId as any)?.subject || 'General'))).map(subjectName => {
+                                    const subjectGrades = grades.filter(g => ((g.evaluationId as any)?.subject || 'General') === subjectName);
+                                    const average = subjectGrades.reduce((acc, curr) => acc + curr.score, 0) / subjectGrades.length;
+
+                                    return (
+                                        <div key={subjectName} className="bg-slate-50/50 rounded-3xl border border-slate-100 overflow-hidden">
+                                            <div className="px-8 py-5 bg-white border-b border-slate-100 flex justify-between items-center">
+                                                <h3 className="font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
+                                                    <div className="w-2 h-6 bg-blue-600 rounded-full"></div>
+                                                    {subjectName}
+                                                </h3>
+                                                <div className="flex items-center gap-4">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio:</span>
+                                                    <span className={`text-xl font-black ${average >= 4 ? 'text-emerald-600' : 'text-rose-600'}`}>{average.toFixed(1)}</span>
                                                 </div>
-                                            </td>
-                                        )}
-                                    </tr>
+                                            </div>
+                                            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                {subjectGrades.map(g => (
+                                                    <div key={g._id} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex flex-col gap-2">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider truncate">{g.evaluationId?.title}</span>
+                                                        <span className={`text-2xl font-black text-center py-2 rounded-xl ${g.score >= 4 ? 'text-emerald-600 bg-emerald-50/50' : 'text-rose-600 bg-rose-50/50'}`}>
+                                                            {g.score.toFixed(1)}
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="min-w-full divide-y divide-gray-200">
+                                {/* Group by Student for Staff View */}
+                                {Object.values(displayedGrades.reduce((acc: any, grade) => {
+                                    const studentId = grade.estudianteId?._id;
+                                    if (!studentId) return acc;
+                                    if (!acc[studentId]) {
+                                        acc[studentId] = {
+                                            student: grade.estudianteId,
+                                            grades: []
+                                        };
+                                    }
+                                    acc[studentId].grades.push(grade);
+                                    return acc;
+                                }, {})).map((entry: any) => (
+                                    <div key={entry.student._id} className="bg-white border-b border-gray-100 hover:bg-slate-50 transition-colors">
+                                        <div className="flex flex-col md:flex-row">
+                                            {/* Student Column - Fixed width */}
+                                            <div className="w-full md:w-64 p-6 border-b md:border-b-0 md:border-r border-gray-100 bg-gray-50/30 flex items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-black text-sm">
+                                                        {entry.student.nombres.charAt(0)}{entry.student.apellidos.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-bold text-gray-800 leading-tight">
+                                                            {entry.student.apellidos}, {entry.student.nombres}
+                                                        </div>
+                                                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">
+                                                            {entry.grades.length} Calificaciones
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Grades Grid - Fluid width */}
+                                            <div className="flex-1 p-4">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                                                    {entry.grades.map((grade: Grade) => (
+                                                        <div key={grade._id} className="relative group bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-all hover:border-blue-200">
+                                                            <div className="flex justify-between items-start mb-2">
+                                                                <div className="text-[10px] font-black text-gray-400 uppercase tracking-tighter truncate w-full pr-2" title={(grade.evaluationId as any)?.subject}>
+                                                                    {(grade.evaluationId as any)?.subject}
+                                                                </div>
+                                                                {canManageGrades && (
+                                                                    <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 bg-white shadow-sm rounded-lg p-0.5 border border-gray-100">
+                                                                        <button onClick={() => {
+                                                                            const stud = students.find(s => s._id === grade.estudianteId?._id);
+                                                                            setModalMode('edit');
+                                                                            setFormData({
+                                                                                _id: grade._id,
+                                                                                estudianteId: grade.estudianteId?._id,
+                                                                                evaluationId: grade.evaluationId?._id,
+                                                                                score: grade.score,
+                                                                                comments: grade.comments || ''
+                                                                            });
+                                                                            setStudentSearch(stud ? `${stud.nombres} ${stud.apellidos}` : '');
+                                                                            setShowModal(true);
+                                                                        }} className="p-1 text-blue-600 hover:bg-blue-50 rounded"><Edit size={12} /></button>
+                                                                        <button onClick={() => handleDelete(grade._id)} className="p-1 text-rose-500 hover:bg-rose-50 rounded"><Trash2 size={12} /></button>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex items-end justify-between gap-2">
+                                                                <div className="text-xs font-bold text-gray-700 leading-tight line-clamp-2 w-full" title={grade.evaluationId?.title}>
+                                                                    {grade.evaluationId?.title}
+                                                                </div>
+                                                                <div className={`text-lg font-black px-2 py-0.5 rounded-lg ${grade.score >= 4 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                                                                    {grade.score.toFixed(1)}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 ))}
-                            </tbody>
-                        </table>
+                            </div>
+                        )}
                     </div>
                     {displayedGrades.length === 0 && <div className="p-12 text-center text-gray-400 font-medium">No se encontraron calificaciones registradas.</div>}
                 </div>
@@ -448,7 +528,11 @@ const GradesPage = () => {
                                         required
                                     >
                                         <option value="">Seleccione...</option>
-                                        {evaluations.map(ev => <option key={ev._id} value={ev._id}>{ev.title} ({ev.subject})</option>)}
+                                        {evaluations.map(ev => (
+                                            <option key={ev._id} value={ev._id}>
+                                                {ev.title} ({ev.subject || subjects.find(s => s._id === (ev as any).subjectId)?.name || 'Gral'})
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div>

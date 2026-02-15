@@ -19,6 +19,7 @@ interface Tenant {
     logo?: string;
     annualFee?: number;
     academicYear?: string;
+    rbd?: string;
 }
 
 interface TenantContextType {

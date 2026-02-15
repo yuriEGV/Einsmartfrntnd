@@ -19,7 +19,7 @@ interface Question {
     options: { text: string; isCorrect: boolean }[];
 }
 
-const QuestionBankPage = () => {
+const QuestionBankPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const [questions, setQuestions] = useState<Question[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
@@ -119,51 +119,53 @@ const QuestionBankPage = () => {
         });
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-[#11355a] tracking-tight flex items-center gap-4">
-                        <div className="p-4 bg-indigo-50 rounded-3xl border border-indigo-100">
-                            <Database size={40} className="text-indigo-600" />
-                        </div>
-                        Banco de Preguntas
-                    </h1>
-                    <p className="text-gray-500 mt-2 text-lg font-medium">Repositorio institucional de evaluaciones formativas y sumativas.</p>
-                </div>
-                {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowWizard(true)}
-                            className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20"
-                        >
-                            <Sparkles size={24} /> CREAR EVALUACIÓN
-                        </button>
-                        <button
-                            onClick={() => {
-                                setFormData({
-                                    _id: '',
-                                    questionText: '',
-                                    subjectId: '',
-                                    grade: '',
-                                    type: 'multiple_choice' as any,
-                                    difficulty: 'medium' as any,
-                                    options: [
-                                        { text: '', isCorrect: false },
-                                        { text: '', isCorrect: false },
-                                        { text: '', isCorrect: false },
-                                        { text: '', isCorrect: false }
-                                    ],
-                                    tags: []
-                                });
-                                setShowModal(true);
-                            }}
-                            className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
-                        >
-                            <Plus size={24} /> NUEVA PREGUNTA
-                        </button>
+        <div className={`${hideHeader ? 'p-0' : 'p-8 max-w-7xl mx-auto space-y-8'} animate-in fade-in duration-500`}>
+            {!hideHeader && (
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <h1 className="text-4xl font-black text-[#11355a] tracking-tight flex items-center gap-4">
+                            <div className="p-4 bg-indigo-50 rounded-3xl border border-indigo-100">
+                                <Database size={40} className="text-indigo-600" />
+                            </div>
+                            Banco de Preguntas
+                        </h1>
+                        <p className="text-gray-500 mt-2 text-lg font-medium">Repositorio institucional de evaluaciones formativas y sumativas.</p>
                     </div>
-                )}
-            </div>
+                    {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor) && (
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setShowWizard(true)}
+                                className="bg-emerald-600 text-white px-6 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-500/20"
+                            >
+                                <Sparkles size={24} /> CREAR EVALUACIÓN
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setFormData({
+                                        _id: '',
+                                        questionText: '',
+                                        subjectId: '',
+                                        grade: '',
+                                        type: 'multiple_choice' as any,
+                                        difficulty: 'medium' as any,
+                                        options: [
+                                            { text: '', isCorrect: false },
+                                            { text: '', isCorrect: false },
+                                            { text: '', isCorrect: false },
+                                            { text: '', isCorrect: false }
+                                        ],
+                                        tags: []
+                                    });
+                                    setShowModal(true);
+                                }}
+                                className="bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+                            >
+                                <Plus size={24} /> NUEVA PREGUNTA
+                            </button>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Filters */}
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">

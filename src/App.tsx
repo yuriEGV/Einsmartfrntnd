@@ -19,12 +19,9 @@ import AnalyticsPage from './pages/AnalyticsPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import CoursesPage from './pages/CoursesPage';
 import CourseStudentsPage from './pages/CourseStudentsPage';
-import SubjectsPage from './pages/SubjectsPage';
-import EvaluationsPage from './pages/EvaluationsPage';
 import AttendancePage from './pages/AttendancePage';
 import TariffsPage from './pages/TariffsPage';
 import MessagesPage from './pages/MessagesPage';
-import CurriculumMaterialPage from './pages/CurriculumMaterialPage';
 import PayrollPage from './pages/PayrollPage'; // Importar la nueva página de Nóminas
 import PayrollForm from './components/PayrollForm'; // Importar el formulario de Nóminas
 import SostenedorDashboard from './pages/SostenedorDashboard';
@@ -37,6 +34,8 @@ import EventRequestsPage from './pages/EventRequestsPage';
 import UnifiedClassBook from './pages/UnifiedClassBook';
 import ForcePasswordReset from './pages/ForcePasswordReset';
 import CareersPage from './pages/CareersPage';
+import AcademicCenter from './pages/AcademicCenter';
+import ScheduleManagementPage from './pages/ScheduleManagementPage';
 
 function App() {
   return (
@@ -64,12 +63,11 @@ function App() {
             <Route path="/my-payments" element={<GuardianPaymentsPage />} />
             <Route path="/courses" element={<CoursesPage />} />
             <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
-            <Route path="/subjects" element={<SubjectsPage />} />
-            <Route path="/evaluations" element={<EvaluationsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
             <Route path="/messages" element={<MessagesPage />} />
-            <Route path="/curriculum-material" element={<CurriculumMaterialPage />} />
+            <Route path="/academic" element={<AcademicCenter />} />
+            <Route path="/schedules" element={<ScheduleManagementPage />} />
 
             {/* Rutas para Gestión de Nóminas */}
             <Route path="/payroll" element={<PayrollPage />} />

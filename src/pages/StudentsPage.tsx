@@ -2,8 +2,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Search, Plus, School, Mail, Printer, Trash2 } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2, Users } from 'lucide-react';
 import { validateRut } from '../services/utils';
+import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 
 interface Student {
     _id: string;
@@ -26,7 +27,7 @@ interface Student {
 }
 
 const StudentsPage = () => {
-    const { canManageStudents } = usePermissions();
+    const { canManageStudents, user } = usePermissions();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -282,6 +283,12 @@ const StudentsPage = () => {
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-1">
+                                                    {/* Certificate button for secretaries */}
+                                                    {(user?.role === 'secretario' || user?.role === 'admin' || user?.role === 'director') && (
+                                                        <div className="mr-1">
+                                                            <CertificadoAlumnoRegular estudiante={student} />
+                                                        </div>
+                                                    )}
                                                     <button
                                                         onClick={() => handlePrint(student._id)}
                                                         className="p-2.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
@@ -354,55 +361,69 @@ const StudentsPage = () => {
             )
             }
 
-            {/* Refined Premium Modal */}
+            {/* Full Screen Modal */}
             {
                 showModal && (
-                    <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px] animate-in fade-in duration-300">
-                        <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white animate-in zoom-in-95 duration-500 max-h-[95vh] overflow-y-auto custom-scrollbar">
-                            <div
-                                className="p-10 text-white relative overflow-hidden"
-                                style={{ backgroundColor: '#11355a' }}
-                            >
-                                <div className="relative z-10">
-                                    <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">
-                                        Actualizar Ficha
-                                    </h2>
-                                    <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">
-                                        MODIFICACIÓN DE EXPEDIENTE
-                                    </p>
-                                </div>
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl"></div>
+                    <div className="fixed inset-0 z-[100] bg-white flex flex-col animate-in fade-in duration-200">
+                        {/* Header - Fixed */}
+                        <div className="flex justify-between items-center p-4 md:p-6 border-b border-gray-100 bg-white shrink-0">
+                            <div>
+                                <h2 className="text-xl md:text-2xl font-black text-[#11355a] uppercase tracking-tight">
+                                    {modalMode === 'create' ? 'Nueva Ficha' : 'Editar Ficha'}
+                                </h2>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest hidden md:block">
+                                    {modalMode === 'create' ? 'Ingreso de nuevo estudiante' : 'Modificación de expediente'}
+                                </p>
                             </div>
+                            <button
+                                onClick={() => setShowModal(false)}
+                                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <Users size={24} className="rotate-45" /> {/* Close icon using Users for now or replace with X if imported, reusing logic */}
+                            </button>
+                        </div>
 
-                            <form onSubmit={handleSave} className="p-10 space-y-6 bg-slate-50/30">
+                        {/* Scrollable Content */}
+                        <div className="flex-1 overflow-y-auto bg-slate-50/30">
+                            <form id="student-form" onSubmit={handleSave} className="max-w-5xl mx-auto p-4 md:p-10 space-y-8">
                                 <div className="space-y-6">
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRES DEL ESTUDIANTE</label>
-                                        <input
-                                            required
-                                            maxLength={50}
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
-                                            placeholder="Ej: Juan Antonio"
-                                            value={currentStudent.nombres || ''}
-                                            onChange={e => setCurrentStudent({ ...currentStudent, nombres: e.target.value })}
-                                        />
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600">
+                                            <School size={20} />
+                                        </div>
+                                        <h3 className="text-lg font-black text-slate-700 uppercase tracking-tight">Información del Estudiante</h3>
                                     </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">APELLIDOS DEL ESTUDIANTE</label>
-                                        <input
-                                            required
-                                            maxLength={50}
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:shadow-xl focus:shadow-blue-500/5 transition-all outline-none font-black text-slate-700"
-                                            placeholder="Ej: Pérez González"
-                                            value={currentStudent.apellidos || ''}
-                                            onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
-                                        />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRES</label>
+                                            <input
+                                                required
+                                                maxLength={50}
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                placeholder="Ej: Juan Antonio"
+                                                value={currentStudent.nombres || ''}
+                                                onChange={e => setCurrentStudent({ ...currentStudent, nombres: e.target.value })}
+                                            />
+                                        </div>
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">APELLIDOS</label>
+                                            <input
+                                                required
+                                                maxLength={50}
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                placeholder="Ej: Pérez González"
+                                                value={currentStudent.apellidos || ''}
+                                                onChange={e => setCurrentStudent({ ...currentStudent, apellidos: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="group">
                                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">RUT / DNI</label>
                                             <input
-                                                className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 font-mono"
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700 font-mono"
                                                 maxLength={12}
                                                 placeholder="12.345.678-9"
                                                 value={currentStudent.rut || ''}
@@ -412,77 +433,108 @@ const StudentsPage = () => {
                                         <div className="group">
                                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1"># MATRÍCULA</label>
                                             <input
-                                                className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
                                                 placeholder="2024-001"
                                                 value={currentStudent.matricula || ''}
                                                 onChange={e => setCurrentStudent({ ...currentStudent, matricula: e.target.value })}
                                             />
                                         </div>
                                     </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EMAIL INSTITUCIONAL</label>
-                                        <input
-                                            required
-                                            type="email"
-                                            maxLength={100}
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-400 transition-all outline-none font-black text-blue-600"
-                                            placeholder="alumno@colegio.cl"
-                                            value={currentStudent.email || ''}
-                                            onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value.trim().toLowerCase() })}
-                                        />
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EMAIL INSTITUCIONAL</label>
+                                            <input
+                                                required
+                                                type="email"
+                                                maxLength={100}
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                placeholder="alumno@colegio.cl"
+                                                value={currentStudent.email || ''}
+                                                onChange={e => setCurrentStudent({ ...currentStudent, email: e.target.value.trim().toLowerCase() })}
+                                            />
+                                        </div>
+                                        <div className="group">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">GRADO / CURSO</label>
+                                            <input
+                                                className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                placeholder="Ej: 1° Medio A"
+                                                value={currentStudent.grado || ''}
+                                                onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
+                                            />
+                                        </div>
                                     </div>
+
                                     <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">GRADO / NIVEL ACADÉMICO</label>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DIRECCIÓN</label>
                                         <input
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
-                                            placeholder="Ej: 1° Medio A"
-                                            value={currentStudent.grado || ''}
-                                            onChange={e => setCurrentStudent({ ...currentStudent, grado: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DIRECCIÓN DEL ESTUDIANTE</label>
-                                        <input
-                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
                                             placeholder="Ej: Av. Libertad 123"
                                             value={currentStudent.direccion || ''}
                                             onChange={e => setCurrentStudent({ ...currentStudent, direccion: e.target.value })}
                                         />
                                     </div>
 
-                                    {/* GUARDIAN SECTION (FUSION) */}
-                                    <div className="pt-6 border-t border-slate-100">
-                                        <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest mb-4">Información del Apoderado</h3>
-                                        <div className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="group">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Nombre</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        value={currentStudent.guardian?.nombre || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), nombre: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
-                                                <div className="group">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Apellidos</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        value={currentStudent.guardian?.apellidos || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), apellidos: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
+                                    {/* GUARDIAN SECTION */}
+                                    <div className="pt-8 border-t border-slate-200">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            <div className="w-10 h-10 rounded-xl bg-indigo-100 flex items-center justify-center text-indigo-600">
+                                                <Users size={20} />
+                                            </div>
+                                            <h3 className="text-lg font-black text-slate-700 uppercase tracking-tight">Apoderado Responsable</h3>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="group">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRES</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    value={currentStudent.guardian?.nombre || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), nombre: e.target.value }
+                                                    })}
+                                                />
                                             </div>
                                             <div className="group">
-                                                <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Correo Electrónico</label>
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">APELLIDOS</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    value={currentStudent.guardian?.apellidos || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), apellidos: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="group">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">RUT APODERADO</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    value={currentStudent.guardian?.rut || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), rut: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="group">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">PARENTESCO</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    placeholder="Padre, Madre, Abuelo/a"
+                                                    value={(currentStudent.guardian as any)?.parentesco || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), parentesco: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="group">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">EMAIL CONTACTO</label>
                                                 <input
                                                     type="email"
-                                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
                                                     value={currentStudent.guardian?.correo || ''}
                                                     onChange={e => setCurrentStudent({
                                                         ...currentStudent,
@@ -490,76 +542,49 @@ const StudentsPage = () => {
                                                     })}
                                                 />
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="group col-span-2">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Dirección</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        placeholder="Ej: Av. Libertad 123"
-                                                        value={currentStudent.guardian?.direccion || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), direccion: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
-                                                <div className="group col-span-2">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">RUT</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        placeholder="12.345.678-9"
-                                                        value={currentStudent.guardian?.rut || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), rut: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
-                                                <div className="group">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Teléfono</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        value={currentStudent.guardian?.telefono || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), telefono: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
-                                                <div className="group">
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Parentesco</label>
-                                                    <input
-                                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-sm"
-                                                        placeholder="Padre, Madre, etc."
-                                                        value={(currentStudent.guardian as any)?.parentesco || ''}
-                                                        onChange={e => setCurrentStudent({
-                                                            ...currentStudent,
-                                                            guardian: { ...(currentStudent.guardian as any), parentesco: e.target.value }
-                                                        })}
-                                                    />
-                                                </div>
+                                            <div className="group">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">TELÉFONO</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    value={currentStudent.guardian?.telefono || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), telefono: e.target.value }
+                                                    })}
+                                                />
+                                            </div>
+                                            <div className="group md:col-span-2">
+                                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DIRECCIÓN APODERADO</label>
+                                                <input
+                                                    className="w-full px-5 py-3.5 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 transition-all outline-none font-bold text-slate-700"
+                                                    value={currentStudent.guardian?.direccion || ''}
+                                                    onChange={e => setCurrentStudent({
+                                                        ...currentStudent,
+                                                        guardian: { ...(currentStudent.guardian as any), direccion: e.target.value }
+                                                    })}
+                                                />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div className="pt-8 flex flex-col md:flex-row gap-4">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowModal(false)}
-                                        className="flex-1 py-5 text-slate-400 font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-widest text-xs"
-                                    >
-                                        DESCARTAR
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        className="flex-[2] py-5 bg-[#11355a] text-white rounded-2xl font-black hover:bg-blue-900 shadow-2xl shadow-blue-900/20 transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2"
-                                    >
-                                        <Plus size={18} />
-                                        GUARDAR CAMBIOS
-                                    </button>
-                                </div>
                             </form>
+                        </div>
+
+                        {/* Footer - Fixed */}
+                        <div className="p-4 md:p-6 border-t border-gray-100 bg-gray-50 shrink-0 flex flex-col-reverse md:flex-row gap-3 md:justify-end">
+                            <button
+                                type="button"
+                                onClick={() => setShowModal(false)}
+                                className="px-8 py-3.5 border border-gray-200 rounded-xl hover:bg-white font-black text-slate-500 text-xs uppercase tracking-widest w-full md:w-auto"
+                            >
+                                Cancelar
+                            </button>
+                            <button
+                                onClick={handleSave}
+                                className="px-10 py-3.5 bg-[#11355a] text-white rounded-xl hover:bg-[#1a4a7c] transition-all font-black text-xs uppercase tracking-widest shadow-lg shadow-blue-900/20 w-full md:w-auto"
+                            >
+                                {modalMode === 'create' ? 'Registrar Estudiante' : 'Guardar Cambios'}
+                            </button>
                         </div>
                     </div>
                 )
