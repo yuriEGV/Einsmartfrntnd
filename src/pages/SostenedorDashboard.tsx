@@ -336,13 +336,60 @@ const SostenedorDashboard = () => {
                     )}
                 </div>
             </div>
-        </div>
+            {/* Modal */}
+            {modalOpen && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95">
+                        <h2 className="text-2xl font-black text-[#11355a] mb-6">Nuevo Gasto</h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Descripción</label>
+                                <input required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
+                                    value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-black text-slate-400 uppercase mb-1">Monto</label>
+                                    <input type="number" required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
+                                        value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-black text-slate-400 uppercase mb-1">Fecha</label>
+                                    <input type="date" required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
+                                        value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Categoría</label>
+                                <select className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
+                                    value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                                    <option value="Mantenimiento">Mantenimiento</option>
+                                    <option value="Recursos Humanos">Recursos Humanos</option>
+                                    <option value="Servicios Básicos">Servicios Básicos</option>
+                                    <option value="PME">PME</option>
+                                    <option value="ADECO">ADECO</option>
+                                    <option value="Otros">Otros</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Tipo de Fondo</label>
+                                <select className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
+                                    value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
+                                    <option value="Normal">Normal</option>
+                                    <option value="PME">PME</option>
+                                    <option value="ADECO">ADECO</option>
+                                </select>
+                            </div>
 
-                    </form >
-                </div >
-            </div >
-        )}
-    </div >
+                            <div className="flex gap-4 pt-4">
+                                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-50">Cancelar</button>
+                                <button type="submit" className="flex-1 py-3 bg-[#11355a] text-white rounded-xl font-bold shadow-lg hover:bg-blue-900">Guardar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
