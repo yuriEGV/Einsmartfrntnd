@@ -55,6 +55,7 @@ const UnifiedClassBook = () => {
     // Student Detail Modal
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
     const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<any>(null);
+    const [studentPerformance, setStudentPerformance] = useState<any>(null);
 
     // Citacion Modal
     const [showCitacionModal, setShowCitacionModal] = useState(false);
@@ -274,6 +275,18 @@ const UnifiedClassBook = () => {
         }
     };
 
+    const handleShowStudentDetail = async (student: any) => {
+        setSelectedStudentForDetail(student);
+        setShowStudentDetailModal(true);
+        setStudentPerformance(null);
+        try {
+            const res = await api.get(`/analytics/student/${student._id}`);
+            setStudentPerformance(res.data);
+        } catch (err) {
+            console.error("Error fetching performance", err);
+        }
+    };
+
     const handlePrintStudent = async (studentId: string, printImmediately: boolean = false) => {
         try {
             const response = await api.get(`/reports/student/${studentId}`);
@@ -290,10 +303,11 @@ const UnifiedClassBook = () => {
                                 .header { border-bottom: 2px solid #11355a; margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; }
                                 h1 { color: #11355a; margin: 0; }
                                 .section { margin-bottom: 30px; }
+                                h2 { font-size: 1.2rem; color: #1e40af; border-left: 4px solid #1e40af; padding-left: 10px; margin-bottom: 15px; }
                                 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                                th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
-                                th { background: #f8fafc; }
-                                .tag { padding: 4px 8px; border-radius: 999px; font-size: 0.8em; font-weight: bold; }
+                                th, td { border: 1px solid #eee; padding: 10px; text-align: left; font-size: 0.9rem; }
+                                th { background: #f8fafc; font-weight: bold; color: #475569; }
+                                .tag { padding: 4px 8px; border-radius: 999px; font-size: 0.7em; font-weight: bold; }
                                 .tag.positiva { background: #d1fae5; color: #065f46; }
                                 .tag.negativa { background: #ffe4e6; color: #9f1239; }
                                 @media print { .no-print { display: none; } }
@@ -303,41 +317,57 @@ const UnifiedClassBook = () => {
                             <div class="header">
                                 <div>
                                     <h1>Ficha Estudiantil</h1>
-                                    <p>${data.student.nombres} ${data.student.apellidos}</p>
+                                    <p style="font-size: 1.2rem; font-weight: bold; margin: 5px 0;">${data.student.nombres} ${data.student.apellidos}</p>
                                 </div>
-                                <div style="text-align: right">
+                                <div style="text-align: right; font-size: 0.9rem; color: #666;">
                                     <p>RUT: ${data.student.rut || 'N/A'}</p>
-                                    <p>Curso: ${data.student.grado || 'Indefinido'}</p>
+                                    <p>Curso: ${data.student.grado || 'Generado por Sistema'}</p>
+                                    <p>Fecha Emisión: ${new Date().toLocaleDateString()}</p>
                                 </div>
                             </div>
 
                             <div class="section">
-                                <h2>Resumen Académico</h2>
+                                <h2>Historial Académico (Calificaciones)</h2>
                                 <table>
-                                    <thead><tr><th>Asignatura/Evaluación</th><th>Nota</th><th>Fecha</th></tr></thead>
+                                    <thead>
+                                        <tr>
+                                            <th>Asignatura</th>
+                                            <th>Evaluación</th>
+                                            <th>Nota</th>
+                                            <th>Fecha</th>
+                                        </tr>
+                                    </thead>
                                     <tbody>
                                         ${data.grades.length ? data.grades.map((g: any) => `
-                                            <tr><td>${g.title}</td><td>${g.score}</td><td>${new Date(g.date).toLocaleDateString()}</td></tr>
-                                        `).join('') : '<tr><td colspan="3">Sin registros recientes</td></tr>'}
+                                            <tr>
+                                                <td style="font-weight: bold; color: #1e40af;">${g.subjectName}</td>
+                                                <td>${g.title}</td>
+                                                <td style="font-weight: bold;">${g.score.toFixed(1)}</td>
+                                                <td>${new Date(g.date).toLocaleDateString()}</td>
+                                            </tr>
+                                        `).join('') : '<tr><td colspan="4" style="text-align:center; padding: 20px;">Sin registros de calificaciones</td></tr>'}
                                     </tbody>
                                 </table>
                             </div>
 
                             <div class="section">
-                                <h2>Anotaciones</h2>
+                                <h2>Registro de Anotaciones</h2>
                                 ${data.annotations.length ? data.annotations.map((a: any) => `
-                                    <div style="margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+                                    <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
                                         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                            <strong>${a.titulo}</strong>
+                                            <strong style="color: #11355a;">${a.titulo}</strong>
                                             <span class="tag ${a.tipo}">${a.tipo.toUpperCase()}</span>
                                         </div>
-                                        <p style="margin:0; color:#555;">${a.descripcion}</p>
-                                        <small style="color:#888;">${new Date(a.fecha).toLocaleDateString()} - ${a.autor || 'Sistema'}</small>
+                                        <p style="margin:5px 0; color:#475569; font-size: 0.9rem;">${a.descripcion}</p>
+                                        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e1; margin-top: 10px; pt: 5px;">
+                                            <small style="color:#94a3b8;">Fecha: ${new Date(a.fecha).toLocaleDateString()}</small>
+                                            <small style="color:#94a3b8;">Autor: ${a.autor || 'Sistema'}</small>
+                                        </div>
                                     </div>
-                                `).join('') : '<p>Sin anotaciones.</p>'}
+                                `).join('') : '<p style="color: #94a3b8; font-style: italic;">No registra anotaciones a la fecha.</p>'}
                             </div>
 
-                            ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>` : `<button class="no-print" onclick="window.print()" style="padding:10px 20px; background:#11355a; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:20px;">Imprimir Ficha</button>`}
+                            ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>` : `<button class="no-print" onclick="window.print()" style="padding:10px 20px; background:#11355a; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:20px;">Imprimir Documento Oficial</button>`}
                         </body>
                     </html>
                 `);
@@ -488,7 +518,7 @@ const UnifiedClassBook = () => {
                                                 </div>
                                                 <div className="mt-4 pt-4 border-t border-slate-50 flex gap-2">
                                                     <button
-                                                        onClick={() => { setSelectedStudentForDetail(s); setShowStudentDetailModal(true); }}
+                                                        onClick={() => handleShowStudentDetail(s)}
                                                         className="flex-1 py-2 bg-blue-50 text-blue-600 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-blue-100 transition-all"
                                                     >
                                                         HOJA DE VIDA
@@ -1087,15 +1117,21 @@ const UnifiedClassBook = () => {
                                     {/* Quick Stats Placeholder */}
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="p-4 bg-emerald-50 rounded-2xl text-center border border-emerald-100">
-                                            <div className="text-2xl font-black text-emerald-600">95%</div>
-                                            <div className="text-[8px] font-bold text-emerald-400 uppercase">Asistencia</div>
+                                            <div className="text-2xl font-black text-emerald-600">
+                                                {studentPerformance ? `${studentPerformance.passingStatus === 'Aprueba' ? '95%' : '70%'}` : '...'}
+                                            </div>
+                                            <div className="text-[8px] font-bold text-emerald-400 uppercase">Asistencia Est.</div>
                                         </div>
                                         <div className="p-4 bg-blue-50 rounded-2xl text-center border border-blue-100">
-                                            <div className="text-2xl font-black text-blue-600">6.2</div>
-                                            <div className="text-[8px] font-bold text-blue-400 uppercase">Promedio</div>
+                                            <div className="text-2xl font-black text-blue-600">
+                                                {studentPerformance?.overallAverage?.toFixed(1) || '--'}
+                                            </div>
+                                            <div className="text-[8px] font-bold text-blue-400 uppercase">Promedio Gral</div>
                                         </div>
                                         <div className="p-4 bg-amber-50 rounded-2xl text-center border border-amber-100">
-                                            <div className="text-2xl font-black text-amber-600">2</div>
+                                            <div className="text-2xl font-black text-amber-600">
+                                                {studentPerformance?.annotations ? (studentPerformance.annotations.positiva + studentPerformance.annotations.negativa) : '--'}
+                                            </div>
                                             <div className="text-[8px] font-bold text-amber-400 uppercase">Anotaciones</div>
                                         </div>
                                     </div>

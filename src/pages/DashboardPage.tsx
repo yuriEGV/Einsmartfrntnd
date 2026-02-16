@@ -11,7 +11,7 @@ const DashboardPage = () => {
     const { tenant } = useTenant();
     const { isSuperAdmin, canManageStudents } = usePermissions();
 
-    const [stats, setStats] = useState({ studentCount: 0, courseCount: 0 });
+    const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
     const [recentGrades, setRecentGrades] = useState([]);
     const [notifications, setNotifications] = useState([]); // [NEW] For Admin/Sostenedor
     // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
@@ -144,46 +144,69 @@ const DashboardPage = () => {
 
             {/* Stats Cards - Grid optimized for adaptability */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {(canManageStudents || user?.role === 'teacher') && (
-                    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                {user?.role === 'teacher' ? 'Mis Estudiantes' : 'Estudiantes'}
-                            </span>
+                {stats.isPlatformView ? (
+                    <>
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><School size={24} /></div>
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Instituciones</span>
+                            </div>
+                            <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.tenantCount}</p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Colegios en la Plataforma</p>
                         </div>
-                        <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
-                            {user?.role === 'teacher' ? 'Alumnos a cargo' : 'Matrículas Vigentes'}
-                        </p>
-                    </div>
-                )}
+                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
+                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Matrícula Global</span>
+                            </div>
+                            <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Estudiantes Sincronizados</p>
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        {(canManageStudents || user?.role === 'teacher') && (
+                            <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
+                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                        {user?.role === 'teacher' ? 'Mis Estudiantes' : 'Estudiantes'}
+                                    </span>
+                                </div>
+                                <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                                    {user?.role === 'teacher' ? 'Alumnos a cargo' : 'Matrículas Vigentes'}
+                                </p>
+                            </div>
+                        )}
 
-                {(isSuperAdmin || user?.role === 'teacher') && (
-                    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                {user?.role === 'teacher' ? 'Mis Cursos' : 'Cursos'}
-                            </span>
-                        </div>
-                        <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
-                            {user?.role === 'teacher' ? 'Cursos Asignados' : 'Niveles Académicos'}
-                        </p>
-                    </div>
+                        {(isSuperAdmin || user?.role === 'teacher') && (
+                            <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
+                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                        {user?.role === 'teacher' ? 'Mis Cursos' : 'Cursos'}
+                                    </span>
+                                </div>
+                                <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                                    {user?.role === 'teacher' ? 'Cursos Asignados' : 'Niveles Académicos'}
+                                </p>
+                            </div>
+                        )}
+                    </>
                 )}
 
                 <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group flex flex-col justify-center">
                     <div className="flex items-center justify-between mb-4">
                         <div className="p-3 bg-amber-50 rounded-2xl text-amber-600 group-hover:bg-amber-600 group-hover:text-white transition-all"><School size={24} /></div>
-                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Estado</span>
+                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{stats.isPlatformView ? 'Plataforma' : 'Estado'}</span>
                     </div>
-                    <p className="text-lg font-black text-emerald-600 uppercase italic tracking-tight">Institución Activa</p>
-                    <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Periodo {new Date().getFullYear()}</p>
+                    <p className="text-lg font-black text-emerald-600 uppercase italic tracking-tight">{stats.isPlatformView ? 'Sistema Operativo' : 'Institución Activa'}</p>
+                    <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">{stats.isPlatformView ? 'Todos los Nodos OK' : `Periodo ${new Date().getFullYear()}`}</p>
                 </div>
 
-                {classBookMetrics && (
+                {classBookMetrics && !stats.isPlatformView && (
                     <div className="bg-[#11355a] p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-100/10 hover:shadow-blue-900/40 transition-all group lg:col-span-3">
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div className="space-y-2">
