@@ -36,11 +36,13 @@ const SostenedorDashboard = () => {
         type: 'Normal'
     });
     const [authorityStats, setAuthorityStats] = useState<any>(null);
+    const [classBookMetrics, setClassBookMetrics] = useState<any>(null);
 
     useEffect(() => {
         fetchData();
         fetchCourses();
         fetchAuthorityStats();
+        fetchClassBookMetrics();
     }, []);
 
     useEffect(() => {
@@ -82,6 +84,15 @@ const SostenedorDashboard = () => {
             setAuthorityStats(res.data);
         } catch (error) {
             console.error('Error fetching authority stats:', error);
+        }
+    };
+
+    const fetchClassBookMetrics = async () => {
+        try {
+            const res = await api.get('/analytics/class-book');
+            setClassBookMetrics(res.data);
+        } catch (error) {
+            console.error('Error fetching class book metrics:', error);
         }
     };
 
@@ -263,6 +274,81 @@ const SostenedorDashboard = () => {
                     </div>
                 </div>
             </div>
+            {/* Eficiencia de Aula (Aula Efectiva) */}
+            {classBookMetrics && (
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 space-y-8">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                            <Calendar size={20} className="text-blue-500" />
+                            Eficiencia de Aula (Aula Efectiva) - Vista Mensual
+                        </h3>
+                        <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest">
+                            Cobertura Global: {classBookMetrics.globalCoverage}%
+                        </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b-2 border-slate-50">
+                                    <th className="pb-6 pr-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Asignatura / Bloque</th>
+                                    <th className="pb-6 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Bloque 1</th>
+                                    <th className="pb-6 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Bloque 2</th>
+                                    <th className="pb-6 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Bloque 3</th>
+                                    <th className="pb-6 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Bloque 4</th>
+                                    <th className="pb-6 px-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Efectivo</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-50">
+                                {Array.from(new Set(classBookMetrics.classTimeMetrics.map((m: any) => m.subjectName))).map((subject: any) => {
+                                    const subjectData = classBookMetrics.classTimeMetrics.filter((m: any) => m.subjectName === subject);
+                                    const totalSubjectDuration = subjectData.reduce((acc: number, curr: any) => acc + curr.totalDuration, 0);
+
+                                    return (
+                                        <tr key={subject} className="hover:bg-slate-50/50 transition-all">
+                                            <td className="py-6 pr-4 font-black text-[#11355a] text-sm uppercase">{subject}</td>
+                                            {[1, 2, 3, 4].map(blockNum => {
+                                                const blockKey = `Bloque ${blockNum}`;
+                                                const blockData = subjectData.filter((m: any) => m.bloqueHorario === blockKey);
+                                                const duration = blockData.reduce((acc: number, curr: any) => acc + curr.totalDuration, 0);
+
+                                                return (
+                                                    <td key={blockNum} className="py-6 px-4 text-center">
+                                                        {duration > 0 ? (
+                                                            <div className="flex flex-col items-center gap-1">
+                                                                <span className="text-sm font-black text-blue-600">{duration}m</span>
+                                                                <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+                                                                    <div
+                                                                        className="h-full bg-blue-500"
+                                                                        style={{ width: `${Math.min(100, (duration / 45) * 100)}%` }}
+                                                                    ></div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-200 text-xs font-bold">-</span>
+                                                        )}
+                                                    </td>
+                                                );
+                                            })}
+                                            <td className="py-6 px-4 text-center">
+                                                <div className="text-lg font-black text-[#11355a]">{totalSubjectDuration}m</div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="flex flex-wrap gap-4 pt-4 border-t border-slate-100">
+                        <div className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tiempo Efectivo Registrado</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Debt Analysis */}
             <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
                 <div className="flex justify-between items-center mb-6">

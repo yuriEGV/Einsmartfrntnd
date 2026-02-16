@@ -202,7 +202,12 @@ const UnifiedClassBook = () => {
         e.preventDefault();
         if (!attendanceConfirmed) { alert('Debe confirmar el pase de lista antes de firmar.'); return; }
         try {
-            const res = await api.post('/class-logs', { ...logFormData, courseId: selectedCourse, subjectId: selectedSubject });
+            const res = await api.post('/class-logs', {
+                ...logFormData,
+                courseId: selectedCourse,
+                subjectId: selectedSubject,
+                bloqueHorario: selectedBlock
+            });
             // Automatic prompt to sign or just refresh
             alert('Registro guardado. Ahora proceda a firmar digitalmente.');
             setShowLogForm(false);
@@ -218,7 +223,8 @@ const UnifiedClassBook = () => {
         try {
             await api.post(`/class-logs/${signingLogId}/sign`, {
                 pin,
-                effectiveDuration // Send the tracked duration
+                effectiveDuration, // Send the tracked duration
+                bloqueHorario: selectedBlock
             });
             alert('Registro firmado exitosamente con firma digital legal.');
             setShowSignatureModal(false);
