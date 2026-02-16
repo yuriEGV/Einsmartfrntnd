@@ -224,7 +224,12 @@ const DashboardPage = () => {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-[9px] font-black text-blue-400/50 uppercase tracking-widest">Horas Efectivas</p>
-                                    <p className="text-xl font-black text-blue-300">{Math.round(classBookMetrics.classTimeMetrics.reduce((acc: any, curr: any) => acc + curr.totalDuration, 0) / 60)}h</p>
+                                    <p className="text-xl font-black text-blue-300">
+                                        {(() => {
+                                            const totalMin = classBookMetrics.classTimeMetrics.reduce((acc: any, curr: any) => acc + curr.totalDuration, 0);
+                                            return totalMin < 60 ? `${totalMin}m` : `${(totalMin / 60).toFixed(1)}h`;
+                                        })()}
+                                    </p>
                                 </div>
                                 <a href="/schedules" className="flex flex-col items-center justify-center p-3 border border-white/10 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
                                     <Clock className="text-blue-400" size={20} />

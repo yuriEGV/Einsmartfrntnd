@@ -1,8 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { useLocation } from 'react-router-dom';
+import { useTenant } from '../context/TenantContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { Search, Plus, School, Mail, Printer, Trash2, Users } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2, Users, AlertCircle } from 'lucide-react';
 import { validateRut } from '../services/utils';
 import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 
@@ -28,6 +30,7 @@ interface Student {
 
 const StudentsPage = () => {
     const { canManageStudents, user } = usePermissions();
+    const { tenant } = useTenant();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -38,13 +41,16 @@ const StudentsPage = () => {
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentStudent, setCurrentStudent] = useState<Partial<Student>>({});
 
+    const location = useLocation();
+
     useEffect(() => {
         fetchStudents();
-    }, []);
+    }, [location.search]);
 
     const fetchStudents = async () => {
         try {
-            const response = await api.get('/estudiantes');
+            setLoading(true);
+            const response = await api.get('/estudiantes' + location.search);
             setStudents(response.data);
         } catch (error) {
             console.error('Error fetching students:', error);
@@ -192,9 +198,17 @@ const StudentsPage = () => {
                         Comunidad Escolar
                     </h1>
                     <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 ml-1">
-                        Gestión Unificada de Alumnos y Apoderados
+                        Portal: {tenant?.name || 'Einsmart'}
                     </p>
                 </div>
+
+                {location.search.includes('filter=at-risk') && (
+                    <div className="bg-rose-50 border-2 border-rose-100 px-6 py-3 rounded-2xl flex items-center gap-3 animate-in slide-in-from-left duration-500">
+                        <AlertCircle className="text-rose-600" size={20} />
+                        <span className="text-xs font-black text-rose-900 uppercase tracking-tighter">Vista Filtrada: Alumnos en Riesgo</span>
+                        <a href="/students" className="ml-4 text-[10px] font-black text-rose-400 hover:text-rose-600 underline uppercase italic">Limpiar Filtros</a>
+                    </div>
+                )}
 
                 {canManageStudents && (
                     <button
