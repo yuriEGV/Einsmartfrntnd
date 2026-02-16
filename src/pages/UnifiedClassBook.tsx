@@ -659,8 +659,19 @@ const UnifiedClassBook = () => {
                                 <div className="space-y-8">
                                     <div className="flex justify-between items-center px-4">
                                         <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Leccionario Digital (Firmado)</h2>
-                                        <button onClick={() => setShowLogForm(true)} disabled={!selectedSubject}
-                                            className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-50">NUEVA FIRMA DE CLASE</button>
+                                        <div className="flex items-center gap-6">
+                                            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl border-2 transition-all ${isTimerRunning ? 'bg-blue-50 border-blue-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
+                                                <div className={`w-3 h-3 rounded-full ${isTimerRunning ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'bg-slate-300'}`}></div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Aula Efectiva</span>
+                                                    <span className={`text-xl font-black tabular-nums transition-colors ${isTimerRunning ? 'text-blue-600' : 'text-slate-400'}`}>
+                                                        {effectiveDuration}m
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <button onClick={() => setShowLogForm(true)} disabled={!selectedSubject}
+                                                className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-50">NUEVA FIRMA DE CLASE</button>
+                                        </div>
                                     </div>
 
                                     {showLogForm && (
