@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, Users, FileText, ClipboardList, Calendar, BookOpen, Clock, AlertCircle, CheckCircle, X, Search, Filter, Download, Upload, Plus, Trash2, Edit, Save, MoreVertical, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { useReactToPrint } from 'react-to-print';
@@ -11,7 +11,7 @@ const UnifiedClassBook = () => {
     const printRef = useRef<HTMLDivElement>(null);
 
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
-    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones'>('ficha');
+    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones'>('ficha');
     const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
 
     const [courses, setCourses] = useState<any[]>([]);
@@ -21,6 +21,7 @@ const UnifiedClassBook = () => {
     const [evaluations, setEvaluations] = useState<any[]>([]);
     const [grades, setGrades] = useState<any[]>([]);
     const [citaciones, setCitaciones] = useState<any[]>([]);
+    const [annotations, setAnnotations] = useState<any[]>([]);
 
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -65,6 +66,16 @@ const UnifiedClassBook = () => {
         motivo: '',
         modalidad: 'presencial',
         lugar: ''
+    });
+
+    // Annotations State
+    const [showAnnotationModal, setShowAnnotationModal] = useState(false);
+    const [annotationFormData, setAnnotationFormData] = useState({
+        estudianteId: '', // if empty, it's a general course annotation
+        tipo: 'positiva',
+        titulo: '',
+        descripcion: '',
+        fecha: new Date().toISOString().split('T')[0]
     });
 
     useEffect(() => {
@@ -132,9 +143,15 @@ const UnifiedClassBook = () => {
                 const amap: Record<string, string> = {};
                 studRes.data.forEach((s: any) => {
                     const rec = attRes.data.find((r: any) => (r.estudianteId?._id || r.estudianteId) === s._id);
-                    amap[s._id] = rec ? rec.estado : 'presente';
+                    if (rec) amap[s._id] = rec.estado;
                 });
                 setAttendanceMap(amap);
+            } else if (activeTab === 'anotaciones') {
+                const res = await api.get(`/anotaciones?cursoId=${selectedCourse}`);
+                setAnnotations(res.data);
+            } else if (activeTab === 'citaciones') {
+                const res = await api.get(`/citaciones?cursoId=${selectedCourse}`);
+                setCitaciones(res.data);
             } else if (selectedSubject) {
                 if (activeTab === 'leccionario') {
                     const res = await api.get(`/class-logs?courseId=${selectedCourse}&subjectId=${selectedSubject}`);
@@ -233,6 +250,22 @@ const UnifiedClassBook = () => {
             refreshTabContent();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al programar la citación.');
+        }
+    };
+
+    const handleSaveAnnotation = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/anotaciones', {
+                ...annotationFormData,
+                cursoId: selectedCourse
+            });
+            alert('Anotación registrada exitosamente.');
+            setShowAnnotationModal(false);
+            setAnnotationFormData({ ...annotationFormData, estudianteId: '', titulo: '', descripcion: '' });
+            refreshTabContent();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al registrar la anotación.');
         }
     };
 
@@ -368,7 +401,8 @@ const UnifiedClassBook = () => {
                         { id: 'asistencia', label: 'Lista Digital', icon: UserCheck },
                         { id: 'leccionario', label: 'Leccionario', icon: List },
                         { id: 'notas', label: 'Calificaciones', icon: ClipboardList },
-                        { id: 'citaciones', label: 'Citaciones', icon: Calendar }
+                        { id: 'citaciones', label: 'Citaciones', icon: Calendar },
+                        { id: 'anotaciones', label: 'Anotaciones', icon: FileText }
                     ].map((tab: any) => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                             title={tab.label}
@@ -797,6 +831,93 @@ const UnifiedClassBook = () => {
                                                         <textarea required value={citacionFormData.motivo} onChange={e => setCitacionFormData({ ...citacionFormData, motivo: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold resize-none" rows={3} placeholder="Describa el objetivo de la entrevista..."></textarea>
                                                     </div>
                                                     <button type="submit" className="w-full py-6 bg-amber-500 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-500/20 hover:scale-[1.02] transition-all">PROGRAMAR CITACIÓN Y NOTIFICAR</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'anotaciones' && (
+                                <div className="space-y-8">
+                                    <div className="flex justify-between items-center px-4">
+                                        <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Anotaciones del Curso</h2>
+                                        <button onClick={() => setShowAnnotationModal(true)} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all">NUEVA ANOTACIÓN</button>
+                                    </div>
+
+                                    <div className="grid gap-6">
+                                        {annotations.map((a: any) => (
+                                            <div key={a._id} className={`bg-white p-8 rounded-[2.5rem] shadow-xl border-l-[12px] flex flex-col md:flex-row gap-8 items-center group transition-all
+                                                ${a.tipo === 'positiva' ? 'border-emerald-500' : a.tipo === 'negativa' ? 'border-rose-500' : 'border-blue-500'}`}>
+                                                <div className={`w-20 h-20 rounded-full flex items-center justify-center
+                                                    ${a.tipo === 'positiva' ? 'bg-emerald-50 text-emerald-500' : a.tipo === 'negativa' ? 'bg-rose-50 text-rose-500' : 'bg-blue-50 text-blue-500'}`}>
+                                                    <FileText size={32} />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border
+                                                            ${a.tipo === 'positiva' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                                a.tipo === 'negativa' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                                    'bg-blue-50 text-blue-600 border-blue-100'}`}>
+                                                            {a.tipo}
+                                                        </span>
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase">
+                                                            {a.estudianteId ? `${a.estudianteId.apellidos}, ${a.estudianteId.nombres}` : 'CURSO GENERAL'}
+                                                        </span>
+                                                    </div>
+                                                    <h4 className="text-lg font-black text-[#11355a] uppercase">{a.titulo}</h4>
+                                                    <p className="text-xs font-bold text-slate-500 italic mt-1">{a.descripcion}</p>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-xl font-black text-[#11355a]">{new Date(a.fechaOcurrencia || a.createdAt).toLocaleDateString()}</div>
+                                                    <div className="text-xs font-bold text-slate-400">Por: {a.creadoPor?.name || 'Sistema'}</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {annotations.length === 0 && (
+                                            <div className="bg-white p-20 rounded-[4rem] border-4 border-dashed border-slate-100 text-center">
+                                                <FileText size={60} className="mx-auto text-slate-100 mb-8" />
+                                                <h3 className="text-2xl font-black text-slate-300 uppercase tracking-tighter">Hoja de Vida Digital</h3>
+                                                <p className="text-slate-300 font-bold uppercase tracking-[0.3em] text-[10px] mt-4">No hay anotaciones registradas para este curso.</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {showAnnotationModal && (
+                                        <div className="fixed inset-0 bg-[#11355a]/90 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+                                            <div className="bg-white rounded-[4rem] w-full max-w-2xl shadow-2xl overflow-hidden animate-in zoom-in-95 p-12 border-b-[16px] border-blue-500">
+                                                <div className="flex justify-between items-center mb-10">
+                                                    <h2 className="text-3xl font-black text-[#11355a] uppercase tracking-tighter">Nueva Anotación</h2>
+                                                    <button onClick={() => setShowAnnotationModal(false)} className="text-slate-300 hover:text-rose-500 transition-colors"><X size={40} /></button>
+                                                </div>
+
+                                                <form onSubmit={handleSaveAnnotation} className="space-y-8">
+                                                    <div className="grid grid-cols-2 gap-6">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante (Opcional)</label>
+                                                            <select value={annotationFormData.estudianteId} onChange={e => setAnnotationFormData({ ...annotationFormData, estudianteId: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold">
+                                                                <option value="">-- TODO EL CURSO --</option>
+                                                                {students.map(s => <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
+                                                            <select required value={annotationFormData.tipo} onChange={e => setAnnotationFormData({ ...annotationFormData, tipo: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold">
+                                                                <option value="positiva">Positiva</option>
+                                                                <option value="negativa">Negativa</option>
+                                                                <option value="general">Mensaje / General</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-2 col-span-2">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Título / Asunto</label>
+                                                            <input required type="text" value={annotationFormData.titulo} onChange={e => setAnnotationFormData({ ...annotationFormData, titulo: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold" placeholder="Ej: Excelente participación en clase" />
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Descripción</label>
+                                                        <textarea required value={annotationFormData.descripcion} onChange={e => setAnnotationFormData({ ...annotationFormData, descripcion: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold resize-none" rows={3} placeholder="Detalle la observación..."></textarea>
+                                                    </div>
+                                                    <button type="submit" className="w-full py-6 bg-blue-600 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20 hover:scale-[1.02] transition-all">REGISTRAR EN HOJA DE VIDA</button>
                                                 </form>
                                             </div>
                                         </div>
