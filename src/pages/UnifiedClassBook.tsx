@@ -41,6 +41,12 @@ const UnifiedClassBook = () => {
     const [grades, setGrades] = useState<any[]>([]);
     const [evaluations, setEvaluations] = useState<any[]>([]);
     const [showGradeModal, setShowGradeModal] = useState(false);
+    const [gradeFormData, setGradeFormData] = useState({
+        estudianteId: '',
+        evaluationId: '',
+        score: 4.0,
+        comments: ''
+    });
 
     // View Mode & Details
     const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
@@ -200,8 +206,22 @@ const UnifiedClassBook = () => {
             setPin('');
             setIsTimerRunning(false); // Stop timer
             refreshTabContent();
-        } catch (err) { alert('PIN Incorrecto o Error de Validación de Firma.'); }
+        } catch (err) { alert('Error al firmar documento.'); }
     };
+
+    const handleSaveGrade = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/grades', gradeFormData);
+            alert('Calificación ingresada correctamente.');
+            setShowGradeModal(false);
+            setGradeFormData({ ...gradeFormData, estudianteId: '', evaluationId: '', score: 4.0 });
+            refreshTabContent();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al guardar calificación.');
+        }
+    };
+
 
     const handleSaveCitacion = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -723,10 +743,47 @@ const UnifiedClassBook = () => {
                                     <h2 className="text-xl font-bold flex items-center gap-3"><GraduationCap size={24} /> Ingresar Calificación</h2>
                                     <button onClick={() => setShowGradeModal(false)} className="text-white/40 hover:text-white transition-colors"><X size={32} /></button>
                                 </div>
-                                <div className="p-10 space-y-8">
-                                    <p className="text-sm font-bold text-slate-500 italic">Módulo de ingreso rápido en proceso de optimización para tablets.</p>
-                                    <button onClick={() => setShowGradeModal(false)} className="w-full py-6 bg-slate-100 text-slate-400 rounded-3xl font-black uppercase text-xs tracking-widest transition-all">Cerrar Ventana</button>
-                                </div>
+                                <form onSubmit={handleSaveGrade} className="p-10 space-y-6">
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Estudiante</label>
+                                        <select required
+                                            value={gradeFormData.estudianteId}
+                                            onChange={e => setGradeFormData({ ...gradeFormData, estudianteId: e.target.value })}
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
+                                        >
+                                            <option value="">Seleccionar Estudiante</option>
+                                            {students.map((s: any) => (
+                                                <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Evaluación</label>
+                                        <select required
+                                            value={gradeFormData.evaluationId}
+                                            onChange={e => setGradeFormData({ ...gradeFormData, evaluationId: e.target.value })}
+                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
+                                        >
+                                            <option value="">Seleccionar Evaluación</option>
+                                            {evaluations.map((ev: any) => (
+                                                <option key={ev._id} value={ev._id}>{ev.title}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Nota</label>
+                                            <input required type="number" step="0.1" min="1" max="7"
+                                                value={gradeFormData.score}
+                                                onChange={e => setGradeFormData({ ...gradeFormData, score: parseFloat(e.target.value) })}
+                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-2xl text-center text-[#11355a] outline-none focus:border-blue-500 transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <button type="submit" className="w-full py-6 bg-[#11355a] text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-900/20 hover:scale-[1.02] transition-all">
+                                        GUARDAR CALIFICACIÓN
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     )
