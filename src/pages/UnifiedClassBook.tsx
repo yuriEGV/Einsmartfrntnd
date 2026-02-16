@@ -147,8 +147,12 @@ const UnifiedClassBook = () => {
                 });
                 setAttendanceMap(amap);
             } else if (activeTab === 'anotaciones') {
-                const res = await api.get(`/anotaciones?cursoId=${selectedCourse}`);
-                setAnnotations(res.data);
+                const [annRes, studRes] = await Promise.all([
+                    api.get(`/anotaciones?cursoId=${selectedCourse}`),
+                    api.get(`/estudiantes?cursoId=${selectedCourse}`)
+                ]);
+                setAnnotations(annRes.data);
+                setStudents(studRes.data);
             } else if (activeTab === 'citaciones') {
                 const res = await api.get(`/citaciones?cursoId=${selectedCourse}`);
                 setCitaciones(res.data);
@@ -258,7 +262,8 @@ const UnifiedClassBook = () => {
         try {
             await api.post('/anotaciones', {
                 ...annotationFormData,
-                cursoId: selectedCourse
+                cursoId: selectedCourse,
+                estudianteId: annotationFormData.estudianteId || null
             });
             alert('Anotación registrada exitosamente.');
             setShowAnnotationModal(false);
