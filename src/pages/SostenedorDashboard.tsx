@@ -210,12 +210,12 @@ const SostenedorDashboard = () => {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col h-[400px]">
                     <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-2">
                         <TrendingUp size={20} className="text-blue-500" />
                         Evolución de Asistencia
                     </h3>
-                    <div className="h-64">
+                    <div className="flex-1 w-full min-h-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={[
                                 { name: 'Mar', valor: 85 }, { name: 'Abr', valor: 88 }, { name: 'May', valor: 87 },
@@ -241,12 +241,12 @@ const SostenedorDashboard = () => {
                     </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col h-[400px]">
                     <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-2">
                         <Award size={20} className="text-amber-500" />
                         Distribución de Rendimiento
                     </h3>
-                    <div className="h-64">
+                    <div className="flex-1 w-full min-h-0">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={[
                                 { range: '1.0 - 3.9', count: 15, fill: '#f43f5e' },
