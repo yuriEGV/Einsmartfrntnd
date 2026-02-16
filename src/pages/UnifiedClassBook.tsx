@@ -1,45 +1,48 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import {
-    BookOpen, GraduationCap, X,
-    Calendar, List, ShieldCheck,
-    UserCheck, ClipboardList, Printer, LayoutGrid, UserPlus, AlertCircle,
-    ChevronLeft, ChevronRight, Search
-} from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, Users, FileText, ClipboardList, Calendar, BookOpen, Clock, AlertCircle, CheckCircle, X, Search, Filter, Download, Upload, Plus, Trash2, Edit, Save, MoreVertical, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
+import { useAuth } from '../context/AuthContext';
 import { useReactToPrint } from 'react-to-print';
 
 const UnifiedClassBook = () => {
     const { tenant } = useTenant();
+    const { user } = useAuth();
     const printRef = useRef<HTMLDivElement>(null);
 
-    // Context & State
-    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones'>('leccionario');
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
+    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones'>('ficha');
+    const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
+
     const [courses, setCourses] = useState<any[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [logs, setLogs] = useState<any[]>([]);
+    const [evaluations, setEvaluations] = useState<any[]>([]);
+    const [grades, setGrades] = useState<any[]>([]);
+    const [citaciones, setCitaciones] = useState<any[]>([]);
+
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
-    const [students, setStudents] = useState<any[]>([]);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sidebarExpanded, setSidebarExpanded] = useState(true);
-
-    // Sub-states
-    const [logs, setLogs] = useState<any[]>([]);
-    const [showLogForm, setShowLogForm] = useState(false);
-    const [logFormData, setLogFormData] = useState({
-        date: new Date().toISOString().split('T')[0],
-        topic: '',
-        activities: '',
-        objectives: [] as string[]
-    });
-
-    const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
     const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedBlock, setSelectedBlock] = useState('Bloque 1');
+    const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const [showLogForm, setShowLogForm] = useState(false);
+    const [logFormData, setLogFormData] = useState({ date: new Date().toISOString().split('T')[0], topic: '', activities: '', objectives: [] as string[] });
     const [attendanceConfirmed, setAttendanceConfirmed] = useState(false);
 
-    const [grades, setGrades] = useState<any[]>([]);
-    const [evaluations, setEvaluations] = useState<any[]>([]);
+    const [showSignatureModal, setShowSignatureModal] = useState(false);
+    const [signingLogId, setSigningLogId] = useState<string | null>(null);
+    const [pin, setPin] = useState('');
+
+    // Aula Efectiva (Timer)
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [effectiveDuration, setEffectiveDuration] = useState(0); // in minutes
+    const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+
+    // Grade Entry Modal
     const [showGradeModal, setShowGradeModal] = useState(false);
     const [gradeFormData, setGradeFormData] = useState({
         estudianteId: '',
@@ -48,15 +51,21 @@ const UnifiedClassBook = () => {
         comments: ''
     });
 
-    // View Mode & Details
-    const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
+    // Student Detail Modal
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
     const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<any>(null);
 
-    // Invisible Timer State
-    const [isTimerRunning, setIsTimerRunning] = useState(false);
-    const [effectiveDuration, setEffectiveDuration] = useState(0);
-    const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+    // Citacion Modal
+    const [showCitacionModal, setShowCitacionModal] = useState(false);
+    const [citacionFormData, setCitacionFormData] = useState({
+        estudianteId: '',
+        apoderadoId: '',
+        fecha: new Date().toISOString().split('T')[0],
+        hora: '10:00',
+        motivo: '',
+        modalidad: 'presencial',
+        lugar: ''
+    });
 
     useEffect(() => {
         let interval: any;
@@ -81,23 +90,7 @@ const UnifiedClassBook = () => {
     }, [selectedBlock]);
 
 
-    // Signature State
-    const [showSignatureModal, setShowSignatureModal] = useState(false);
-    const [signingLogId, setSigningLogId] = useState<string | null>(null);
-    const [pin, setPin] = useState('');
 
-    // Citaciones State
-    const [citaciones, setCitaciones] = useState<any[]>([]);
-    const [showCitacionModal, setShowCitacionModal] = useState(false);
-    const [citacionFormData, setCitacionFormData] = useState({
-        estudianteId: '',
-        apoderadoId: '',
-        fecha: new Date().toISOString().split('T')[0],
-        hora: '10:00',
-        motivo: '',
-        modalidad: 'presencial',
-        lugar: ''
-    });
 
     const handlePrint = useReactToPrint({
         contentRef: printRef,
@@ -111,13 +104,18 @@ const UnifiedClassBook = () => {
     useEffect(() => {
         const fetchInitial = async () => {
             try {
-                const [cRes, sRes] = await Promise.all([api.get('/courses'), api.get('/subjects')]);
+                // [FIX] Directors and specialized roles should see ALL courses
+                const endpoint = (user?.role === 'director' || user?.role === 'utp' || user?.role === 'admin' || user?.role === 'sostenedor')
+                    ? '/courses?all=true'
+                    : '/courses';
+
+                const [cRes, sRes] = await Promise.all([api.get(endpoint), api.get('/subjects')]);
                 setCourses(cRes.data);
                 setSubjects(sRes.data);
             } catch (err) { console.error(err); }
         };
         fetchInitial();
-    }, []);
+    }, [user]);
 
     const refreshTabContent = async () => {
         if (!selectedCourse) return;
@@ -235,6 +233,81 @@ const UnifiedClassBook = () => {
             refreshTabContent();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al programar la citación.');
+        }
+    };
+
+    const handlePrintStudent = async (studentId: string, printImmediately: boolean = false) => {
+        try {
+            const response = await api.get(`/reports/student/${studentId}`);
+            const data = response.data;
+
+            const printWindow = window.open('', '_blank');
+            if (printWindow) {
+                printWindow.document.write(`
+                    <html>
+                        <head>
+                            <title>Ficha - ${data.student.nombres}</title>
+                            <style>
+                                body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
+                                .header { border-bottom: 2px solid #11355a; margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; }
+                                h1 { color: #11355a; margin: 0; }
+                                .section { margin-bottom: 30px; }
+                                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                                th, td { border: 1px solid #eee; padding: 10px; text-align: left; }
+                                th { background: #f8fafc; }
+                                .tag { padding: 4px 8px; border-radius: 999px; font-size: 0.8em; font-weight: bold; }
+                                .tag.positiva { background: #d1fae5; color: #065f46; }
+                                .tag.negativa { background: #ffe4e6; color: #9f1239; }
+                                @media print { .no-print { display: none; } }
+                            </style>
+                        </head>
+                        <body>
+                            <div class="header">
+                                <div>
+                                    <h1>Ficha Estudiantil</h1>
+                                    <p>${data.student.nombres} ${data.student.apellidos}</p>
+                                </div>
+                                <div style="text-align: right">
+                                    <p>RUT: ${data.student.rut || 'N/A'}</p>
+                                    <p>Curso: ${data.student.grado || 'Indefinido'}</p>
+                                </div>
+                            </div>
+
+                            <div class="section">
+                                <h2>Resumen Académico</h2>
+                                <table>
+                                    <thead><tr><th>Asignatura/Evaluación</th><th>Nota</th><th>Fecha</th></tr></thead>
+                                    <tbody>
+                                        ${data.grades.length ? data.grades.map((g: any) => `
+                                            <tr><td>${g.title}</td><td>${g.score}</td><td>${new Date(g.date).toLocaleDateString()}</td></tr>
+                                        `).join('') : '<tr><td colspan="3">Sin registros recientes</td></tr>'}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="section">
+                                <h2>Anotaciones</h2>
+                                ${data.annotations.length ? data.annotations.map((a: any) => `
+                                    <div style="margin-bottom: 15px; padding: 15px; background: #f9f9f9; border-radius: 8px;">
+                                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                            <strong>${a.titulo}</strong>
+                                            <span class="tag ${a.tipo}">${a.tipo.toUpperCase()}</span>
+                                        </div>
+                                        <p style="margin:0; color:#555;">${a.descripcion}</p>
+                                        <small style="color:#888;">${new Date(a.fecha).toLocaleDateString()} - ${a.autor || 'Sistema'}</small>
+                                    </div>
+                                `).join('') : '<p>Sin anotaciones.</p>'}
+                            </div>
+
+                            ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>` : `<button class="no-print" onclick="window.print()" style="padding:10px 20px; background:#11355a; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:20px;">Imprimir Ficha</button>`}
+                        </body>
+                    </html>
+                `);
+                printWindow.document.close();
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Error al generar la ficha.');
         }
     };
 
@@ -901,7 +974,17 @@ const UnifiedClassBook = () => {
                                         </div>
                                     </div>
 
-                                    <button onClick={() => setShowStudentDetailModal(false)} className="w-full py-4 bg-[#11355a] text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg">Cerrar Ficha</button>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+                                        <button onClick={() => handlePrintStudent(selectedStudentForDetail._id, true)} className="py-4 bg-slate-100 text-slate-500 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-200 transition-all flex items-center justify-center gap-2">
+                                            <Printer size={18} /> Imprimir Ficha
+                                        </button>
+                                        <button onClick={() => handlePrintStudent(selectedStudentForDetail._id, false)} className="py-4 bg-blue-50 text-blue-600 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-blue-100 transition-all flex items-center justify-center gap-2">
+                                            <ExternalLink size={18} /> Ver Detalles Completos
+                                        </button>
+                                        <button onClick={() => setShowStudentDetailModal(false)} className="md:col-span-2 py-4 bg-[#11355a] text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-lg hover:scale-[1.01] transition-all">
+                                            Cerrar Ficha
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

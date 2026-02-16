@@ -144,14 +144,18 @@ const DashboardPage = () => {
 
             {/* Stats Cards - Grid optimized for adaptability */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {canManageStudents && (
+                {(canManageStudents || user?.role === 'teacher') && (
                     <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Estudiantes</span>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                {user?.role === 'teacher' ? 'Mis Estudiantes' : 'Estudiantes'}
+                            </span>
                         </div>
                         <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Matrículas Vigentes</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                            {user?.role === 'teacher' ? 'Alumnos a cargo' : 'Matrículas Vigentes'}
+                        </p>
                     </div>
                 )}
 
@@ -159,10 +163,14 @@ const DashboardPage = () => {
                     <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
                         <div className="flex items-center justify-between mb-4">
                             <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
-                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Cursos</span>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                                {user?.role === 'teacher' ? 'Mis Cursos' : 'Cursos'}
+                            </span>
                         </div>
                         <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Niveles Académicos</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                            {user?.role === 'teacher' ? 'Cursos Asignados' : 'Niveles Académicos'}
+                        </p>
                     </div>
                 )}
 
