@@ -279,6 +279,16 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                             Imprimir
                         </button>
                     )}
+
+                    {(permissions.isStudent || permissions.isApoderado) && (
+                        <button
+                            onClick={() => window.location.href = '/hoja-de-vida'}
+                            className="bg-rose-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/20"
+                        >
+                            <ClipboardList size={20} />
+                            Hoja de Vida
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -349,8 +359,8 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     <div className="hidden md:block overflow-x-auto">
                         {(permissions.isStudent || permissions.isApoderado) ? (
                             <div className="p-8 space-y-8">
-                                {Array.from(new Set(grades.map(g => (g.evaluationId as any)?.subject || 'General'))).map(subjectName => {
-                                    const subjectGrades = grades.filter(g => ((g.evaluationId as any)?.subject || 'General') === subjectName);
+                                {Array.from(new Set(displayedGrades.map(g => (g.evaluationId as any)?.subject || 'General'))).map(subjectName => {
+                                    const subjectGrades = displayedGrades.filter(g => ((g.evaluationId as any)?.subject || 'General') === subjectName);
                                     const average = subjectGrades.reduce((acc, curr) => acc + curr.score, 0) / subjectGrades.length;
 
                                     return (
@@ -458,8 +468,8 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                             <div className="w-24 md:w-32 p-6 border-l border-slate-100 flex flex-col justify-center items-center bg-slate-50/50">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Promedio</p>
                                                 <div className={`text-2xl font-black ${(entry.grades.reduce((acc: number, g: any) => acc + g.score, 0) / entry.grades.length) >= 4
-                                                        ? 'text-emerald-600'
-                                                        : 'text-rose-600'
+                                                    ? 'text-emerald-600'
+                                                    : 'text-rose-600'
                                                     }`}>
                                                     {(entry.grades.reduce((acc: number, g: any) => acc + g.score, 0) / entry.grades.length).toFixed(1)}
                                                 </div>

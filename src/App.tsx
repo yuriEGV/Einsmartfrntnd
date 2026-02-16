@@ -36,6 +36,7 @@ import ForcePasswordReset from './pages/ForcePasswordReset';
 import CareersPage from './pages/CareersPage';
 import AcademicCenter from './pages/AcademicCenter';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
+import HojaDeVidaPage from './pages/HojaDeVidaPage';
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
             <Route path="/messages" element={<MessagesPage />} />
             <Route path="/academic" element={<AcademicCenter />} />
             <Route path="/schedules" element={<ScheduleManagementPage />} />
+            <Route path="/hoja-de-vida" element={<HojaDeVidaPage />} />
 
             {/* Rutas para Gestión de Nóminas */}
             <Route path="/payroll" element={<PayrollPage />} />

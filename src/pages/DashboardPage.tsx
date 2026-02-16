@@ -14,11 +14,12 @@ const DashboardPage = () => {
     const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
     const [recentGrades, setRecentGrades] = useState([]);
     const [notifications, setNotifications] = useState([]); // [NEW] For Admin/Sostenedor
-    // const [recentAnotaciones, setRecentAnotaciones] = useState([]); // Unused
-    const [upcomingEvents, setUpcomingEvents] = useState([]);
-    const [pendingSignatures, setPendingSignatures] = useState([]);
     const [adminRanking, setAdminRanking] = useState([]);
     const [classBookMetrics, setClassBookMetrics] = useState<any>(null);
+    const [recentAnotaciones, setRecentAnotaciones] = useState([]);
+    const [pendingCitations, setPendingCitations] = useState([]);
+    const [upcomingEvents, setUpcomingEvents] = useState([]);
+    const [pendingSignatures, setPendingSignatures] = useState([]);
 
     useEffect(() => {
         if (user) {
@@ -40,16 +41,15 @@ const DashboardPage = () => {
             if (signaturesRes.data) setPendingSignatures(signaturesRes.data);
 
             if (user?.role === 'student' || user?.role === 'apoderado') {
-                const gradesRes = await api.get('/grades');
+                const [gradesRes, anotRes, citRes] = await Promise.all([
+                    api.get('/grades'),
+                    api.get('/anotaciones'),
+                    api.get('/citaciones')
+                ]);
                 setRecentGrades(gradesRes.data.slice(0, 5));
-
-                // const anotRes = await api.get('/anotaciones');
-                // setRecentAnotaciones(anotRes.data.slice(0, 5));
+                setRecentAnotaciones(anotRes.data.slice(0, 5));
+                setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
             } else {
-                // [NEW] Fetch notifications for Admin/Sostenedor/Director
-                const notifRes = await api.get('/user-notifications');
-                setNotifications(notifRes.data.slice(0, 5));
-
                 // [NEW] Fetch Admin Day Ranking for Director/Sostenedor
                 if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin) {
                     const rankingRes = await api.get('/admin-days/ranking');
@@ -60,6 +60,10 @@ const DashboardPage = () => {
                     setClassBookMetrics(metricsRes.data);
                 }
             }
+
+            // Fetch notifications for ALL roles
+            const notifRes = await api.get('/user-notifications');
+            setNotifications(notifRes.data.slice(0, 5));
         } catch (error) {
             console.error('Error loading dashboard data', error);
         }
@@ -85,6 +89,28 @@ const DashboardPage = () => {
                     >
                         Ir al Libro de Clases <ChevronRight size={18} />
                     </a>
+                </div>
+            )}
+
+            {/* Citaciones Pendientes para Apoderados */}
+            {pendingCitations.length > 0 && (
+                <div className="bg-blue-50 border-2 border-blue-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500 shadow-xl shadow-blue-900/5">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-200">
+                            <Calendar size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-blue-900 uppercase tracking-tighter">CITACIÓN PENDIENTE</h3>
+                            <p className="text-sm font-bold text-blue-700/70">Tienes {pendingCitations.length} citaciones agendadas para entrevista.</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        {pendingCitations.map((cit: any) => (
+                            <div key={cit._id} className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-white/50 px-4 py-1.5 rounded-full border border-blue-100">
+                                {new Date(cit.fecha).toLocaleDateString()} • {cit.hora} • {cit.motivo}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 
@@ -281,31 +307,42 @@ const DashboardPage = () => {
                     </div>
                 </div>
 
-                {/* Academic Notifications */}
+                {/* Academic Notifications (Grades & Annotations) */}
                 {(user?.role === 'student' || user?.role === 'apoderado') && (
                     <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden">
                         <div
-                            className="px-8 py-6"
+                            className="px-8 py-6 flex justify-between items-center"
                             style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
                         >
                             <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
                                 <AlertCircle size={18} className="text-rose-300" /> ACTIVIDAD ACADÉMICA
                             </h2>
+                            <a href="/hoja-de-vida" className="text-xs font-black text-blue-200 hover:text-white transition-colors">Ver Completa →</a>
                         </div>
                         <div className="p-6 md:p-8 space-y-4">
-                            {recentGrades.map((grade: any) => (
-                                <div key={grade._id} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-[1.5rem] transition-all border-2 border-transparent hover:border-slate-100 group">
-                                    <div className="bg-emerald-50 p-2.5 rounded-xl group-hover:scale-110 transition-transform">
-                                        <FileText className="text-emerald-500" size={20} />
+                            {/* Mix of grades and annotations */}
+                            {[...recentGrades.map((g: any) => ({ ...(g as any), itemType: 'grade' })), ...recentAnotaciones.map((a: any) => ({ ...(a as any), itemType: 'annotation' }))]
+                                .sort((a, b) => new Date(b.createdAt || b.fechaOcurrencia).getTime() - new Date(a.createdAt || a.fechaOcurrencia).getTime())
+                                .slice(0, 6)
+                                .map((item: any) => (
+                                    <div key={item._id} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-[1.5rem] transition-all border-2 border-transparent hover:border-slate-100 group">
+                                        <div className={`${item.itemType === 'grade' ? 'bg-emerald-50' : (item.tipo === 'positiva' ? 'bg-emerald-50' : 'bg-rose-50')} p-2.5 rounded-xl group-hover:scale-110 transition-transform`}>
+                                            {item.itemType === 'grade' ? <FileText className="text-emerald-500" size={20} /> : <AlertCircle className={item.tipo === 'positiva' ? 'text-emerald-500' : 'text-rose-500'} size={20} />}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">
+                                                {item.itemType === 'grade' ? 'Calificación Nueva' : `Anotación ${item.tipo}`}
+                                            </p>
+                                            <p className="text-sm font-black text-slate-700 truncate">{item.evaluationId?.title || item.titulo || 'Registro'}</p>
+                                        </div>
+                                        {item.itemType === 'grade' ? (
+                                            <span className="text-2xl font-black text-emerald-600 tracking-tighter">{item.score}</span>
+                                        ) : (
+                                            <span className="text-[10px] font-black text-slate-400 italic">{new Date(item.fechaOcurrencia).toLocaleDateString()}</span>
+                                        )}
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Calificación Nueva</p>
-                                        <p className="text-sm font-black text-slate-700 truncate">{grade.evaluationId?.title || 'Evaluación'}</p>
-                                    </div>
-                                    <span className="text-2xl font-black text-emerald-600 tracking-tighter">{grade.score}</span>
-                                </div>
-                            ))}
-                            {recentGrades.length === 0 && (
+                                ))}
+                            {recentGrades.length === 0 && recentAnotaciones.length === 0 && (
                                 <div className="py-12 text-center">
                                     <AlertCircle size={48} className="mx-auto text-gray-100 mb-4" />
                                     <p className="text-gray-300 font-black uppercase tracking-widest text-[10px]">Sin novedades</p>
