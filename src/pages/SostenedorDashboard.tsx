@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import expenseService from '../services/expenseService';
 import {
-    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-    LineChart, Line, AreaChart, Area
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    AreaChart, Area
 } from 'recharts';
 import {
     DollarSign,

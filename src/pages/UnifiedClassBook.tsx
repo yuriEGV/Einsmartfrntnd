@@ -190,11 +190,15 @@ const UnifiedClassBook = () => {
     const handleSignLog = async () => {
         if (!signingLogId || pin.length < 4) return;
         try {
-            await api.post(`/class-logs/${signingLogId}/sign`, { pin });
+            await api.post(`/class-logs/${signingLogId}/sign`, {
+                pin,
+                effectiveDuration // Send the tracked duration
+            });
             alert('Registro firmado exitosamente con firma digital legal.');
             setShowSignatureModal(false);
             setSigningLogId(null);
             setPin('');
+            setIsTimerRunning(false); // Stop timer
             refreshTabContent();
         } catch (err) { alert('PIN Incorrecto o Error de Validación de Firma.'); }
     };
