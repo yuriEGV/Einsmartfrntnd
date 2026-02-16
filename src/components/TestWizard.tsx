@@ -163,12 +163,21 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
     const [formData, setFormData] = useState({
         title: '',
         date: new Date().toISOString().split('T')[0],
-        time: '08:00',
+        time: '08:00', // Default to Block 1 start
+        block: 'Block 1', // New field for block selection
         type: 'sumativa' as 'formativa' | 'sumativa' | 'diagnostica',
         maxScore: 7.0,
         category: initialCategory || 'planificada' as 'planificada' | 'sorpresa',
         rubricId: ''
     });
+
+    const BLOCK_TIMES: Record<string, string> = {
+        'Bloque 1': '08:00',
+        'Bloque 2': '09:45',
+        'Bloque 3': '11:30',
+        'Bloque 4': '14:00',
+        'Bloque 5': '15:45'
+    };
 
     const [questionSearch, setQuestionSearch] = useState('');
 
@@ -443,13 +452,19 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
 
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Hora inicio</label>
-                                                <input
-                                                    type="time"
-                                                    value={formData.time}
-                                                    onChange={e => setFormData({ ...formData, time: e.target.value })}
-                                                    className="w-full px-5 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-600"
-                                                />
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bloque Horario</label>
+                                                <select
+                                                    value={Object.keys(BLOCK_TIMES).find(key => BLOCK_TIMES[key] === formData.time) || 'Bloque 1'}
+                                                    onChange={e => {
+                                                        const selectedBlock = e.target.value;
+                                                        setFormData({ ...formData, time: BLOCK_TIMES[selectedBlock] });
+                                                    }}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl outline-none font-bold text-slate-700 focus:border-indigo-500 transition-all text-xs"
+                                                >
+                                                    {Object.keys(BLOCK_TIMES).map(block => (
+                                                        <option key={block} value={block}>{block} ({BLOCK_TIMES[block]} hrs)</option>
+                                                    ))}
+                                                </select>
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Calificación Máx.</label>

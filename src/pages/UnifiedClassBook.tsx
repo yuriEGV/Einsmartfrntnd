@@ -47,6 +47,34 @@ const UnifiedClassBook = () => {
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
     const [selectedStudentForDetail, setSelectedStudentForDetail] = useState<any>(null);
 
+    // Invisible Timer State
+    const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [effectiveDuration, setEffectiveDuration] = useState(0);
+    const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+
+    useEffect(() => {
+        let interval: any;
+        if (isTimerRunning && timerStartTime) {
+            interval = setInterval(() => {
+                const now = Date.now();
+                const elapsed = Math.floor((now - timerStartTime) / 60000); // Minutes
+                setEffectiveDuration(elapsed);
+            }, 60000);
+        }
+        return () => clearInterval(interval);
+    }, [isTimerRunning, timerStartTime]);
+
+    // Start timer when selecting a block that is currently active or about to start
+    useEffect(() => {
+        if (selectedBlock && !isTimerRunning) {
+            // In a real app, check if current time matches block time
+            // For now, auto-start when opening the book/selecting block
+            setTimerStartTime(Date.now());
+            setIsTimerRunning(true);
+        }
+    }, [selectedBlock]);
+
+
     // Signature State
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [signingLogId, setSigningLogId] = useState<string | null>(null);
@@ -181,7 +209,9 @@ const UnifiedClassBook = () => {
             alert('Citación programada y notificada al apoderado.');
             setShowCitacionModal(false);
             refreshTabContent();
-        } catch (err) { alert('Error al programar la citación.'); }
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al programar la citación.');
+        }
     };
 
     const filteredSubjects = selectedCourse ? subjects.filter(s => (s.courseId?._id || s.courseId) === selectedCourse) : [];

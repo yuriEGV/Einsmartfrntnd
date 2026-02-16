@@ -453,6 +453,17 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                                     ))}
                                                 </div>
                                             </div>
+
+                                            {/* Final Average Column */}
+                                            <div className="w-24 md:w-32 p-6 border-l border-slate-100 flex flex-col justify-center items-center bg-slate-50/50">
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Promedio</p>
+                                                <div className={`text-2xl font-black ${(entry.grades.reduce((acc: number, g: any) => acc + g.score, 0) / entry.grades.length) >= 4
+                                                        ? 'text-emerald-600'
+                                                        : 'text-rose-600'
+                                                    }`}>
+                                                    {(entry.grades.reduce((acc: number, g: any) => acc + g.score, 0) / entry.grades.length).toFixed(1)}
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 ))}

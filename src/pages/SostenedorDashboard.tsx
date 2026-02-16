@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import expenseService from '../services/expenseService';
 import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    LineChart, Line, AreaChart, Area
+} from 'recharts';
+import {
     DollarSign,
     TrendingUp,
     TrendingDown,
@@ -206,135 +210,139 @@ const SostenedorDashboard = () => {
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Debt Analysis */}
                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
-                    <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
-                            <AlertCircle size={20} className="text-amber-500" />
-                            Deuda por Curso
-                        </h3>
-                        <select
-                            className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs font-bold text-slate-600 outline-none focus:border-blue-500"
-                            value={selectedCourse}
-                            onChange={e => setSelectedCourse(e.target.value)}
-                        >
-                            <option value="">Vista General</option>
-                            {courses.map(c => (
-                                <option key={c._id} value={c._id}>{c.name}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="space-y-4">
-                        {debtStats.map((stat, idx) => (
-                            <div key={idx} className="bg-slate-50 p-4 rounded-2xl flex justify-between items-center group hover:bg-slate-100 transition-colors">
-                                <div>
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Moneda</p>
-                                    <p className="font-black text-lg text-slate-700">{stat._id}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Monto Pendiente</p>
-                                    <p className="font-black text-lg text-rose-500">${stat.totalDebt.toLocaleString()}</p>
-                                </div>
-                                <div className="bg-rose-100 px-3 py-1 rounded-lg">
-                                    <span className="text-xs font-black text-rose-600">{stat.overdueCount} vencidos</span>
-                                </div>
-                            </div>
-                        ))}
-                        {debtStats.length === 0 && (
-                            <p className="text-center text-slate-400 font-bold text-sm py-10">No hay deuda registrada para el filtro seleccionado.</p>
-                        )}
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-2">
+                        <TrendingUp size={20} className="text-blue-500" />
+                        Evolución de Asistencia
+                    </h3>
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={[
+                                { name: 'Mar', valor: 85 }, { name: 'Abr', valor: 88 }, { name: 'May', valor: 87 },
+                                { name: 'Jun', valor: 90 }, { name: 'Jul', valor: 82 }, { name: 'Ago', valor: 91 },
+                                { name: 'Sep', valor: 93 }
+                            ]}>
+                                <defs>
+                                    <linearGradient id="colorAsistencia" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#11355a" stopOpacity={0.1} />
+                                        <stop offset="95%" stopColor="#11355a" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} dy={10} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} domain={[0, 100]} />
+                                <Tooltip
+                                    contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                    itemStyle={{ fontSize: '12px', fontWeight: 'bold', color: '#11355a' }}
+                                />
+                                <Area type="monotone" dataKey="valor" stroke="#11355a" strokeWidth={3} fillOpacity={1} fill="url(#colorAsistencia)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
-                {/* Expenses List */}
                 <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
                     <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-2">
-                        <FileText size={20} className="text-slate-400" />
-                        Registro de Gastos
+                        <Award size={20} className="text-amber-500" />
+                        Distribución de Rendimiento
                     </h3>
-
-                    <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                        {expenses.map(expense => (
-                            <div key={expense._id} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white
-                                        ${expense.category === 'PME' ? 'bg-indigo-500' :
-                                            expense.category === 'ADECO' ? 'bg-purple-500' : 'bg-slate-400'}`}>
-                                        <DollarSign size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-700 leading-tight">{expense.description}</p>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{expense.category} • {new Date(expense.date).toLocaleDateString()}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-black text-slate-800">${expense.amount.toLocaleString()}</p>
-                                    <button onClick={() => handleDelete(expense._id)} className="text-xs text-rose-400 hover:text-rose-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Eliminar</button>
-                                </div>
-                            </div>
-                        ))}
-                        {expenses.length === 0 && (
-                            <p className="text-center text-slate-400 font-bold text-sm py-10">No hay gastos registrados.</p>
-                        )}
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={[
+                                { range: '1.0 - 3.9', count: 15, fill: '#f43f5e' },
+                                { range: '4.0 - 4.9', count: 45, fill: '#f59e0b' },
+                                { range: '5.0 - 5.9', count: 120, fill: '#10b981' },
+                                { range: '6.0 - 7.0', count: 80, fill: '#3b82f6' },
+                            ]}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="range" axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 900, fill: '#94a3b8' }} dy={10} />
+                                <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ borderRadius: '16px' }} />
+                                <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>
-
-            {/* Modal */}
-            {modalOpen && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-[2rem] p-8 w-full max-w-md shadow-2xl animate-in zoom-in-95">
-                        <h2 className="text-2xl font-black text-[#11355a] mb-6">Nuevo Gasto</h2>
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Descripción</label>
-                                <input required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
-                                    value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase mb-1">Monto</label>
-                                    <input type="number" required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
-                                        value={formData.amount} onChange={e => setFormData({ ...formData, amount: e.target.value })} />
-                                </div>
-                                <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase mb-1">Fecha</label>
-                                    <input type="date" required className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
-                                        value={formData.date} onChange={e => setFormData({ ...formData, date: e.target.value })} />
-                                </div>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Categoría</label>
-                                <select className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
-                                    value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value })}>
-                                    <option value="Mantenimiento">Mantenimiento</option>
-                                    <option value="Recursos Humanos">Recursos Humanos</option>
-                                    <option value="Servicios Básicos">Servicios Básicos</option>
-                                    <option value="PME">PME</option>
-                                    <option value="ADECO">ADECO</option>
-                                    <option value="Otros">Otros</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-black text-slate-400 uppercase mb-1">Tipo de Fondo</label>
-                                <select className="w-full p-3 bg-slate-50 rounded-xl font-bold text-slate-700 outline-none focus:ring-2 ring-blue-500"
-                                    value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })}>
-                                    <option value="Normal">Normal</option>
-                                    <option value="PME">PME</option>
-                                    <option value="ADECO">ADECO</option>
-                                </select>
-                            </div>
-
-                            <div className="flex gap-4 pt-4">
-                                <button type="button" onClick={() => setModalOpen(false)} className="flex-1 py-3 rounded-xl font-bold text-slate-400 hover:bg-slate-50">Cancelar</button>
-                                <button type="submit" className="flex-1 py-3 bg-[#11355a] text-white rounded-xl font-bold shadow-lg hover:bg-blue-900">Guardar</button>
-                            </div>
-                        </form>
-                    </div>
+            {/* Debt Analysis */}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-2">
+                        <AlertCircle size={20} className="text-amber-500" />
+                        Deuda por Curso
+                    </h3>
+                    <select
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1 text-xs font-bold text-slate-600 outline-none focus:border-blue-500"
+                        value={selectedCourse}
+                        onChange={e => setSelectedCourse(e.target.value)}
+                    >
+                        <option value="">Vista General</option>
+                        {courses.map(c => (
+                            <option key={c._id} value={c._id}>{c.name}</option>
+                        ))}
+                    </select>
                 </div>
-            )}
+
+                <div className="space-y-4">
+                    {debtStats.map((stat, idx) => (
+                        <div key={idx} className="bg-slate-50 p-4 rounded-2xl flex justify-between items-center group hover:bg-slate-100 transition-colors">
+                            <div>
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Moneda</p>
+                                <p className="font-black text-lg text-slate-700">{stat._id}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Monto Pendiente</p>
+                                <p className="font-black text-lg text-rose-500">${stat.totalDebt.toLocaleString()}</p>
+                            </div>
+                            <div className="bg-rose-100 px-3 py-1 rounded-lg">
+                                <span className="text-xs font-black text-rose-600">{stat.overdueCount} vencidos</span>
+                            </div>
+                        </div>
+                    ))}
+                    {debtStats.length === 0 && (
+                        <p className="text-center text-slate-400 font-bold text-sm py-10">No hay deuda registrada para el filtro seleccionado.</p>
+                    )}
+                </div>
+            </div>
+
+            {/* Expenses List */}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+                <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6 flex items-center gap-2">
+                    <FileText size={20} className="text-slate-400" />
+                    Registro de Gastos
+                </h3>
+
+                <div className="space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                    {expenses.map(expense => (
+                        <div key={expense._id} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:shadow-md transition-all group">
+                            <div className="flex items-center gap-4">
+                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white
+                                        ${expense.category === 'PME' ? 'bg-indigo-500' :
+                                        expense.category === 'ADECO' ? 'bg-purple-500' : 'bg-slate-400'}`}>
+                                    <DollarSign size={18} />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-slate-700 leading-tight">{expense.description}</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{expense.category} • {new Date(expense.date).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-black text-slate-800">${expense.amount.toLocaleString()}</p>
+                                <button onClick={() => handleDelete(expense._id)} className="text-xs text-rose-400 hover:text-rose-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Eliminar</button>
+                            </div>
+                        </div>
+                    ))}
+                    {expenses.length === 0 && (
+                        <p className="text-center text-slate-400 font-bold text-sm py-10">No hay gastos registrados.</p>
+                    )}
+                </div>
+            </div>
         </div>
+
+                    </form >
+                </div >
+            </div >
+        )}
+    </div >
     );
 };
 
