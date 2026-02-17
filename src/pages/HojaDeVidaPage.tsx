@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import {
     ClipboardList,
@@ -21,6 +22,7 @@ const HojaDeVidaPage = () => {
     const [stats, setStats] = useState({ positivas: 0, negativas: 0, total: 0 });
     const [loading, setLoading] = useState(true);
     const permissions = usePermissions();
+    const { tenant } = useTenant();
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -117,13 +119,19 @@ const HojaDeVidaPage = () => {
                 {/* Print Only Header */}
                 <div className="hidden print:block p-10 text-center border-b-4 border-slate-900 mb-10">
                     <div className="flex justify-between items-center mb-6">
-                        <div className="text-left">
-                            <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">HOJA DE VIDA INSTITUCIONAL</h1>
-                            <p className="text-blue-600 font-extrabold text-sm uppercase tracking-widest">EinSmart Academic Management System</p>
+                        <div className="flex items-center gap-6">
+                            {tenant?.theme?.logoUrl && (
+                                <img src={tenant.theme.logoUrl} alt="Logo" className="w-24 h-24 object-contain" />
+                            )}
+                            <div className="text-left">
+                                <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">HOJA DE VIDA INSTITUCIONAL</h1>
+                                <p className="text-blue-600 font-extrabold text-sm uppercase tracking-widest">SISTEMA DE GESTIÓN EDUCATIVA EINSMART</p>
+                            </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-lg font-black uppercase text-slate-800">EXPEDIENTE DEL ALUMNO</div>
-                            <div className="text-slate-500 font-bold">FECHA REPORTE: {new Date().toLocaleDateString()}</div>
+                            <div className="text-lg font-black uppercase text-slate-800">{tenant?.name || 'ESTABLECIMIENTO'}</div>
+                            <div className="text-slate-500 font-bold uppercase text-xs">AÑO ESCOLAR {new Date().getFullYear()}</div>
+                            <div className="text-slate-500 font-bold uppercase">FECHA REPORTE: {new Date().toLocaleDateString()}</div>
                         </div>
                     </div>
                     {/* Student Info in Print */}
@@ -133,7 +141,7 @@ const HojaDeVidaPage = () => {
                             <p className="text-lg font-black text-slate-800">{permissions.user?.name}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Perfil</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Perfil Académico</p>
                             <p className="text-lg font-black text-slate-800 uppercase tracking-tighter">{permissions.user?.role}</p>
                         </div>
                     </div>

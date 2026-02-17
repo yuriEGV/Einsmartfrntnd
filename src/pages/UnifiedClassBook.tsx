@@ -859,7 +859,7 @@ const UnifiedClassBook = () => {
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-2 mb-1">
                                                             <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${c.estado === 'confirmada' ? 'bg-emerald-50 text-emerald-600' :
-                                                                    c.estado === 'realizada' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
+                                                                c.estado === 'realizada' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
                                                                 }`}>{c.estado}</span>
                                                             <span className="px-3 py-1 bg-blue-50 text-blue-400 rounded-full text-[8px] font-black uppercase tracking-widest">{c.modalidad}</span>
                                                         </div>
@@ -1002,9 +1002,14 @@ const UnifiedClassBook = () => {
                                                 <div className="hidden">
                                                     <div ref={actaPrintRef} className="p-20 text-slate-900 bg-white min-h-[1000px]">
                                                         <div className="flex justify-between items-start border-b-4 border-[#11355a] pb-10 mb-10">
-                                                            <div>
-                                                                <h1 className="text-4xl font-black uppercase tracking-tighter text-[#11355a]">ACTA DE REUNIÓN</h1>
-                                                                <p className="text-lg font-bold text-slate-500 uppercase tracking-widest">SISTEMA ELECTRÓNICO EINSMART</p>
+                                                            <div className="flex items-center gap-6">
+                                                                {tenant?.theme?.logoUrl && (
+                                                                    <img src={tenant.theme.logoUrl} alt="Logo" className="w-24 h-24 object-contain" />
+                                                                )}
+                                                                <div>
+                                                                    <h1 className="text-4xl font-black uppercase tracking-tighter text-[#11355a]">ACTA DE REUNIÓN</h1>
+                                                                    <p className="text-lg font-bold text-slate-500 uppercase tracking-widest">SISTEMA ELECTRÓNICO EINSMART</p>
+                                                                </div>
                                                             </div>
                                                             <div className="text-right">
                                                                 <div className="text-2xl font-black uppercase">{tenant?.name || 'ESTABLECIMIENTO'}</div>

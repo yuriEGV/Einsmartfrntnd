@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import {
     ClipboardList,
@@ -41,6 +42,7 @@ interface Evaluation {
 
 const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
+    const { tenant } = useTenant();
     const canManageGrades = permissions.canEditGrades;
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -301,12 +303,18 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     {/* Print Only Header */}
                     <div className="hidden print:block p-10 text-center border-b-4 border-slate-900 mb-10">
                         <div className="flex justify-between items-center mb-6">
-                            <div className="text-left">
-                                <h1 className="text-3xl font-black uppercase tracking-tighter">REGISTRO DE CALIFICACIONES</h1>
-                                <p className="text-blue-600 font-black text-sm">SISTEMA DE GESTIÓN EDUCATIVA EINSMART</p>
+                            <div className="flex items-center gap-6">
+                                {tenant?.theme?.logoUrl && (
+                                    <img src={tenant.theme.logoUrl} alt="Logo" className="w-24 h-24 object-contain" />
+                                )}
+                                <div className="text-left">
+                                    <h1 className="text-3xl font-black uppercase tracking-tighter">REGISTRO DE CALIFICACIONES</h1>
+                                    <p className="text-blue-600 font-black text-sm">SISTEMA DE GESTIÓN EDUCATIVA EINSMART</p>
+                                </div>
                             </div>
                             <div className="text-right">
-                                <div className="text-lg font-black uppercase">Reporte Académico</div>
+                                <div className="text-lg font-black uppercase">{tenant?.name || 'Reporte Académico'}</div>
+                                <div className="text-slate-500 font-bold uppercase text-xs">AÑO ESCOLAR {new Date().getFullYear()}</div>
                                 <div className="text-slate-500 font-bold">FECHA: {new Date().toLocaleDateString()}</div>
                             </div>
                         </div>

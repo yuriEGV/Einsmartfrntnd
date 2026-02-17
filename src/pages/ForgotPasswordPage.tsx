@@ -9,41 +9,48 @@ const ForgotPasswordPage: React.FC = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Here you would normally call the API
-        // await authService.forgotPassword(email);
-        setSubmitted(true);
+        try {
+            const api = (await import('../services/api')).default;
+            await api.post('/auth/recover-password', { email });
+            setSubmitted(true);
+        } catch (error) {
+            console.error('Error in recovery request:', error);
+            // Even if it fails, we usually show the same "submitted" state for security
+            // unless we want to handle "user not found" explicitly.
+            setSubmitted(true);
+        }
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
             <div className="sm:mx-auto sm:w-full sm:max-w-md">
-                <h2 className="mt-6 text-center text-3xl font-extrabold text-[#11355a]">
+                <h2 className="mt-6 text-center text-3xl font-black text-[#11355a] uppercase tracking-tighter">
                     Recuperar Contraseña
                 </h2>
-                <p className="mt-2 text-center text-sm text-gray-600">
+                <p className="mt-2 text-center text-sm font-bold text-slate-500 italic">
                     Ingresa tu correo o RUT para recibir instrucciones
                 </p>
             </div>
 
             <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-                <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                <div className="bg-white py-8 px-4 shadow-2xl sm:rounded-[2rem] sm:px-10 border border-slate-100">
                     {!submitted ? (
                         <form className="space-y-6" onSubmit={handleSubmit}>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                                    Correo Electrónico
+                                <label htmlFor="email" className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                                    Identificación (Correo o RUT)
                                 </label>
-                                <div className="mt-1 relative rounded-md shadow-sm">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <Mail className="h-5 w-5 text-gray-400" />
+                                <div className="mt-1 relative rounded-xl shadow-sm">
+                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                        <Mail className="h-5 w-5 text-blue-300" />
                                     </div>
                                     <input
                                         id="email"
                                         name="email"
-                                        type="email"
+                                        type="text"
                                         required
-                                        className="pl-10 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-[#11355a] focus:border-[#11355a] sm:text-sm"
-                                        placeholder="usuario@ejemplo.com"
+                                        className="pl-12 block w-full border-2 border-slate-100 rounded-xl shadow-sm py-4 px-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all font-bold placeholder-slate-300"
+                                        placeholder="correo@ejemplo.com o 12.345.678-9"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                     />
@@ -53,21 +60,21 @@ const ForgotPasswordPage: React.FC = () => {
                             <div>
                                 <button
                                     type="submit"
-                                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#11355a] hover:bg-[#0d2a46] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#11355a]"
+                                    className="w-full flex justify-center py-4 px-4 border border-transparent rounded-[1.2rem] shadow-xl text-xs font-black text-white bg-[#11355a] hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#11355a] transition-all uppercase tracking-widest"
                                 >
                                     Enviar Instrucciones
                                 </button>
                             </div>
                         </form>
                     ) : (
-                        <div className="text-center">
-                            <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900">Solicitud enviada</h3>
-                            <p className="mt-1 text-sm text-gray-500">
-                                Si el correo existe en nuestro sistema, recibirás un enlace de recuperación pronto.
-                            </p>
-                            <p className="mt-6 text-sm text-red-500">
-                                Nota: Como el sistema de correos aún no está configurado en el backend, contacta al administrador.
+                        <div className="text-center animate-in zoom-in-95 duration-500">
+                            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-6">
+                                <CheckCircle size={40} />
+                            </div>
+                            <h3 className="mt-2 text-xl font-black text-slate-900 uppercase tracking-tighter">Solicitud enviada</h3>
+                            <p className="mt-4 text-sm font-bold text-slate-500 leading-relaxed">
+                                Si el usuario existe en nuestro sistema, recibirás un enlace de recuperación pronto. <br />
+                                <span className="text-blue-500 italic">Revisa también tu carpeta de correo no deseado.</span>
                             </p>
                         </div>
                     )}
