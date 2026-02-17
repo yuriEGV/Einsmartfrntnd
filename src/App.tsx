@@ -37,6 +37,7 @@ import CareersPage from './pages/CareersPage';
 import AcademicCenter from './pages/AcademicCenter';
 import ScheduleManagementPage from './pages/ScheduleManagementPage';
 import HojaDeVidaPage from './pages/HojaDeVidaPage';
+import SecretariaPage from './pages/SecretariaPage';
 
 function App() {
   return (
@@ -81,6 +82,7 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/admin-days" element={<AdminDaysPage />} />
             <Route path="/event-requests" element={<EventRequestsPage />} />
+            <Route path="/secretaria" element={<SecretariaPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

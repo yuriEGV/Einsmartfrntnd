@@ -53,6 +53,7 @@ const PaymentsPage = () => {
     const [payments, setPayments] = useState<Payment[]>([]); // History
     const [students, setStudents] = useState<Student[]>([]);
     const [tariffs, setTariffs] = useState<Tariff[]>([]);
+    const [stats, setStats] = useState({ totalCollected: 0, totalPending: 0 });
 
     const [searchTerm, setSearchTerm] = useState('');
     const [tempSearch, setTempSearch] = useState('');
@@ -60,6 +61,10 @@ const PaymentsPage = () => {
 
     // Create Payment (Assign Debt)
     const [showModal, setShowModal] = useState(false);
+    const [showDebtCalculator, setShowDebtCalculator] = useState(false);
+    const [selectedStudentForDebt, setSelectedStudentForDebt] = useState('');
+    const [studentDebtData, setStudentDebtData] = useState<any>(null);
+
     const [formData, setFormData] = useState({
         estudianteId: '',
         tariffId: '',
@@ -76,13 +81,36 @@ const PaymentsPage = () => {
                 api.get('/estudiantes'),
                 api.get('/tariffs')
             ]);
-            setPayments(payRes.data);
+            setPayments(payRes.data.payments || []);
+            setStats(payRes.data.stats || { totalCollected: 0, totalPending: 0 });
             setStudents(studRes.data);
             setTariffs(tarRes.data);
         } catch (error) {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleCalculateDebt = async (studentId: string) => {
+        if (!studentId) return;
+        try {
+            const res = await api.get(`/payments/student/${studentId}/debt`);
+            setStudentDebtData(res.data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const handleProcessOfficePayment = async (paymentId: string) => {
+        if (!window.confirm('¿Confirmar recepción de pago en efectivo en oficina?')) return;
+        try {
+            await api.post(`/payments/${paymentId}/pay-cash`);
+            alert('Pago registrado correctamente');
+            fetchData();
+            if (selectedStudentForDebt) handleCalculateDebt(selectedStudentForDebt);
+        } catch (error) {
+            alert('Error al procesar pago');
         }
     };
 
@@ -138,18 +166,51 @@ const PaymentsPage = () => {
                     </h1>
                     <p className="text-gray-500 font-medium">Registro de pagos y deudas estudiantiles.</p>
                 </div>
-                {permissions.user?.role !== 'student' && (
+                <div className="flex gap-4">
                     <button
-                        onClick={() => {
-                            setFormData({ estudianteId: '', tariffId: '' });
-                            setShowModal(true);
-                        }}
-                        className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                        onClick={() => setShowDebtCalculator(true)}
+                        className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
                     >
-                        <CreditCard size={20} />
-                        Asignar Cobro
+                        <AlertCircle size={20} />
+                        Calculadora de Deuda
                     </button>
-                )}
+                    {permissions.user?.role !== 'student' && (
+                        <button
+                            onClick={() => {
+                                setFormData({ estudianteId: '', tariffId: '' });
+                                setShowModal(true);
+                            }}
+                            className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                        >
+                            <CreditCard size={20} />
+                            Asignar Cobro
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div className="bg-gradient-to-br from-emerald-500 to-green-700 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <CheckCircle size={100} />
+                    </div>
+                    <div>
+                        <p className="text-green-100 text-xs font-black uppercase tracking-widest mb-1">Total Recaudado (Pagado)</p>
+                        <h3 className="text-5xl font-black font-mono tracking-tighter">${stats.totalCollected.toLocaleString()}</h3>
+                        <p className="text-green-200 text-[10px] font-bold mt-4 uppercase tracking-widest leading-none">Caudal de ingresos netos registrados</p>
+                    </div>
+                </div>
+
+                <div className="bg-gradient-to-br from-rose-500 to-red-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
+                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                        <Clock size={100} />
+                    </div>
+                    <div>
+                        <p className="text-rose-100 text-xs font-black uppercase tracking-widest mb-1">Total Pendiente (Deuda)</p>
+                        <h3 className="text-5xl font-black font-mono tracking-tighter">${stats.totalPending.toLocaleString()}</h3>
+                        <p className="text-rose-200 text-[10px] font-bold mt-4 uppercase tracking-widest leading-none">Saldo por cobrar en carteras vencidas y pendientes</p>
+                    </div>
+                </div>
             </div>
 
             {/* Institutional Fee Reference Card */}
@@ -297,6 +358,75 @@ const PaymentsPage = () => {
                                 GENERAR COBRO ELECTRÓNICO
                             </button>
                         </form>
+                    </div>
+                </div>
+            )}
+            {/* Debt Calculator Modal */}
+            {showDebtCalculator && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 md:pl-[300px] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3rem] w-full max-w-2xl shadow-[0_0_80px_rgba(0,0,0,0.3)] border-8 border-white overflow-hidden animate-in zoom-in-95 duration-500">
+                        <div className="bg-emerald-600 p-10 text-white relative overflow-hidden">
+                            <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">Calculadora de Deuda</h2>
+                            <p className="text-green-200 font-extrabold uppercase text-[10px] tracking-[0.3em]">MÓDULO DE SECRETARÍA Y CAJA</p>
+                            <button onClick={() => { setShowDebtCalculator(false); setStudentDebtData(null); }} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
+                        </div>
+                        <div className="p-10 space-y-6 bg-slate-50/30 max-h-[70vh] overflow-y-auto">
+                            <div className="group">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">SELECCIONAR ESTUDIANTE</label>
+                                <select
+                                    className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-emerald-500 transition-all outline-none font-black text-slate-700 appearance-none bg-no-repeat"
+                                    value={selectedStudentForDebt}
+                                    onChange={e => {
+                                        setSelectedStudentForDebt(e.target.value);
+                                        handleCalculateDebt(e.target.value);
+                                    }}
+                                >
+                                    <option value="">-- Buscar Estudiante --</option>
+                                    {students.map(s => (
+                                        <option key={s._id} value={s._id}>{s.nombres} {s.apellidos} ({s.rut})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {studentDebtData ? (
+                                <div className="space-y-4">
+                                    <div className="bg-white p-6 rounded-3xl border-2 border-slate-100 shadow-sm">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Deuda Total Consolidada</p>
+                                        <h3 className="text-4xl font-black text-rose-600 font-mono tracking-tighter">${studentDebtData.totalDebt.toLocaleString()}</h3>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DETALLE DE ITEMS PENDIENTES</p>
+                                        {studentDebtData.details.map((item: any) => (
+                                            <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-slate-100 group hover:border-emerald-200 transition-all">
+                                                <div>
+                                                    <div className="font-bold text-slate-800">{item.concepto}</div>
+                                                    <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Vence: {new Date(item.fechaVencimiento).toLocaleDateString()}</div>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="text-lg font-black text-[#11355a] font-mono">${item.amount.toLocaleString()}</div>
+                                                    <button
+                                                        onClick={() => handleProcessOfficePayment(item.id)}
+                                                        className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all"
+                                                    >
+                                                        Cobrar en Caja
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {studentDebtData.details.length === 0 && (
+                                            <div className="py-10 text-center text-slate-400 font-bold bg-white rounded-3xl border-2 border-dashed border-slate-100">
+                                                Este alumno no presenta deudas pendientes.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="py-20 text-center border-4 border-dashed border-slate-100 rounded-[3rem] text-slate-300">
+                                    Seleccione un alumno para calcular su saldo.
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             )}

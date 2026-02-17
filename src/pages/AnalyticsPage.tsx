@@ -44,7 +44,7 @@ const AnalyticsPage = () => {
                 api.get(`/analytics/top-students?limit=10${params ? `&${params.slice(1)}` : ''}`),
                 api.get(`/analytics/annotations-ranking${params}`),
                 api.get(`/analytics/students${params}`),
-                api.get(`/analytics/debtors`),
+                api.get(`/analytics/debtors${params}`),
                 api.get(`/analytics/performance-trends${params}`)
             ]);
             setTopStudents(topRes.data);

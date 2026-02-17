@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2
+    Wand2, Building
 } from 'lucide-react';
 
 const Layout = () => {
@@ -310,8 +310,11 @@ const Layout = () => {
                             <NavLink to="/careers" icon={GraduationCap}>{!isCollapsed && "Gestión de Carreras"}</NavLink>
                         )}
 
-                        {(permissions.canManagePayments || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
-                            <NavLink to="/payments" icon={DollarSign}>{!isCollapsed && "Pagos"}</NavLink>
+                        {(permissions.canManagePayments || permissions.isSuperAdmin || user?.role === 'secretario') && tenant?.paymentType === 'paid' && (
+                            <>
+                                <NavLink to="/payments" icon={DollarSign}>{!isCollapsed && "Pagos"}</NavLink>
+                                <NavLink to="/secretaria" icon={Building}>{!isCollapsed && "Oficina de Secretaría"}</NavLink>
+                            </>
                         )}
 
                         {(user?.role === 'sostenedor' || permissions.isSuperAdmin) && (
