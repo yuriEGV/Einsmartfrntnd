@@ -9,6 +9,7 @@ const UnifiedClassBook = () => {
     const { tenant } = useTenant();
     const { user } = useAuth();
     const printRef = useRef<HTMLDivElement>(null);
+    const actaPrintRef = useRef<HTMLDivElement>(null);
 
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
     const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones'>('ficha');
@@ -68,6 +69,15 @@ const UnifiedClassBook = () => {
         modalidad: 'presencial',
         lugar: ''
     });
+    const [showActaModal, setShowActaModal] = useState(false);
+    const [selectedCitacion, setSelectedCitacion] = useState<any>(null);
+    const [actaFormData, setActaFormData] = useState({
+        estado: 'realizada',
+        actaReunion: '',
+        acuerdo: '',
+        resultado: '',
+        asistioApoderado: true
+    });
 
     // Annotations State
     const [showAnnotationModal, setShowAnnotationModal] = useState(false);
@@ -108,6 +118,35 @@ const UnifiedClassBook = () => {
         contentRef: printRef,
         documentTitle: `Libro de Clases - ${selectedCourse || 'Curso'}`,
     });
+
+    const handlePrintActa = useReactToPrint({
+        contentRef: actaPrintRef,
+        documentTitle: `Acta de Reunión - ${selectedCitacion?.estudianteId?.apellidos || 'Documento'}`,
+    });
+
+    const openActaModal = (citacion: any) => {
+        setSelectedCitacion(citacion);
+        setActaFormData({
+            estado: citacion.estado || 'realizada',
+            actaReunion: citacion.actaReunion || '',
+            acuerdo: citacion.acuerdo || '',
+            resultado: citacion.resultado || '',
+            asistioApoderado: citacion.asistioApoderado ?? true
+        });
+        setShowActaModal(true);
+    };
+
+    const handleSaveActa = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.patch(`/citaciones/${selectedCitacion._id}/status`, actaFormData);
+            alert('Acta guardada correctamente.');
+            setShowActaModal(false);
+            refreshTabContent();
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al guardar el acta.');
+        }
+    };
 
     // -------------------------------------------------------------------------
     // Data Fetching
@@ -832,7 +871,7 @@ const UnifiedClassBook = () => {
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all"><X size={18} /></button>
-                                                    <button className="px-6 py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Ver Acta</button>
+                                                    <button onClick={() => openActaModal(c)} className="px-6 py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-600 hover:text-white transition-all">Ver Acta</button>
                                                 </div>
                                             </div>
                                         ))}
@@ -884,6 +923,133 @@ const UnifiedClassBook = () => {
                                                     </div>
                                                     <button type="submit" className="w-full py-6 bg-amber-500 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-amber-500/20 hover:scale-[1.02] transition-all">PROGRAMAR CITACIÓN Y NOTIFICAR</button>
                                                 </form>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {showActaModal && selectedCitacion && (
+                                        <div className="fixed inset-0 bg-[#11355a]/90 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+                                            <div className="bg-white rounded-[4rem] w-full max-w-4xl max-h-[90vh] shadow-2xl overflow-hidden animate-in zoom-in-95 flex flex-col border-b-[16px] border-blue-600">
+                                                <div className="p-10 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                                                    <div>
+                                                        <h2 className="text-3xl font-black text-[#11355a] uppercase tracking-tighter">Acta de Reunión</h2>
+                                                        <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-1">
+                                                            Estudiante: {selectedCitacion.estudianteId?.apellidos}, {selectedCitacion.estudianteId?.nombres}
+                                                        </p>
+                                                    </div>
+                                                    <div className="flex gap-4">
+                                                        <button type="button" onClick={() => handlePrintActa()} className="p-4 bg-[#11355a] text-white rounded-2xl hover:scale-110 shadow-lg transition-all">
+                                                            <Printer size={24} />
+                                                        </button>
+                                                        <button type="button" onClick={() => setShowActaModal(false)} className="text-slate-300 hover:text-rose-500 transition-colors">
+                                                            <X size={40} />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <form onSubmit={handleSaveActa} className="p-10 overflow-y-auto custom-scrollbar space-y-8 flex-1">
+                                                    <div className="grid grid-cols-2 gap-8">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estado de la Citación</label>
+                                                            <select value={actaFormData.estado} onChange={e => setActaFormData({ ...actaFormData, estado: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold">
+                                                                <option value="programada">Programada</option>
+                                                                <option value="confirmada">Confirmada</option>
+                                                                <option value="realizada">Realizada</option>
+                                                                <option value="cancelada">Cancelada</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Asistencia del Apoderado</label>
+                                                            <div className="flex gap-4">
+                                                                <button type="button" onClick={() => setActaFormData({ ...actaFormData, asistioApoderado: true })} className={`flex-1 py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest border-2 transition-all ${actaFormData.asistioApoderado ? 'bg-emerald-50 border-emerald-500 text-emerald-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>SÍ ASISTIÓ</button>
+                                                                <button type="button" onClick={() => setActaFormData({ ...actaFormData, asistioApoderado: false })} className={`flex-1 py-4 rounded-2xl font-black text-[9px] uppercase tracking-widest border-2 transition-all ${!actaFormData.asistioApoderado ? 'bg-rose-50 border-rose-500 text-rose-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>NO ASISTIÓ</button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Desarrollo de la Entrevista (Minuta)</label>
+                                                        <textarea value={actaFormData.actaReunion} onChange={e => setActaFormData({ ...actaFormData, actaReunion: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold resize-none" rows={4} placeholder="Escriba los puntos tratados..."></textarea>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 gap-8">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Acuerdos y Compromisos</label>
+                                                            <textarea value={actaFormData.acuerdo} onChange={e => setActaFormData({ ...actaFormData, acuerdo: e.target.value })} className="w-full px-8 py-5 bg-emerald-50 border-2 border-emerald-100 rounded-3xl font-bold resize-none" rows={3} placeholder="¿A qué se comprometió el apoderado/escuela?"></textarea>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Resolución / Resultado</label>
+                                                            <textarea value={actaFormData.resultado} onChange={e => setActaFormData({ ...actaFormData, resultado: e.target.value })} className="w-full px-8 py-5 bg-blue-50 border-2 border-blue-100 rounded-3xl font-bold resize-none" rows={3} placeholder="Resultado final de la reunión..."></textarea>
+                                                        </div>
+                                                    </div>
+
+                                                    <button type="submit" className="w-full py-6 bg-[#11355a] text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] transition-all">
+                                                        GUARDAR CAMBIOS EN EL ACTA
+                                                    </button>
+                                                </form>
+
+                                                {/* Printable Template (Hidden) */}
+                                                <div className="hidden">
+                                                    <div ref={actaPrintRef} className="p-20 text-slate-900 bg-white min-h-[1000px]">
+                                                        <div className="flex justify-between items-start border-b-4 border-[#11355a] pb-10 mb-10">
+                                                            <div>
+                                                                <h1 className="text-4xl font-black uppercase tracking-tighter text-[#11355a]">ACTA DE REUNIÓN</h1>
+                                                                <p className="text-lg font-bold text-slate-500 uppercase tracking-widest">SISTEMA ELECTRÓNICO EINSMART</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <div className="text-2xl font-black uppercase">{tenant?.name || 'ESTABLECIMIENTO'}</div>
+                                                                <div className="text-slate-400 font-bold uppercase text-xs">AÑO ESCOLAR {new Date().getFullYear()}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="grid grid-cols-2 gap-10 mb-10">
+                                                            <div className="space-y-4">
+                                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">DATOS DEL ESTUDIANTE</h3>
+                                                                <div className="text-sm"><span className="font-black uppercase">ALUMNO:</span> {selectedCitacion.estudianteId?.nombres} {selectedCitacion.estudianteId?.apellidos}</div>
+                                                                <div className="text-sm"><span className="font-black uppercase">CURSO:</span> {courses.find(c => c._id === selectedCourse)?.name || 'N/A'}</div>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">DETALLES DE LA CITA</h3>
+                                                                <div className="text-sm"><span className="font-black uppercase">FECHA:</span> {new Date(selectedCitacion.fecha).toLocaleDateString()}</div>
+                                                                <div className="text-sm"><span className="font-black uppercase">HORA:</span> {selectedCitacion.hora} hrs</div>
+                                                                <div className="text-sm"><span className="font-black uppercase">MOTIVO:</span> {selectedCitacion.motivo}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-10">
+                                                            <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
+                                                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">DESARROLLO DE LA ENTREVISTA</h3>
+                                                                <p className="text-sm whitespace-pre-wrap leading-relaxed">{actaFormData.actaReunion || 'No se registraron detalles del desarrollo.'}</p>
+                                                            </div>
+
+                                                            <div className="grid grid-cols-2 gap-10">
+                                                                <div className="p-8 border-2 border-emerald-100 rounded-[2rem] bg-emerald-50/50">
+                                                                    <h3 className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-4">ACUERDOS Y COMPROMISOS</h3>
+                                                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{actaFormData.acuerdo || 'Sin acuerdos registrados.'}</p>
+                                                                </div>
+                                                                <div className="p-8 border-2 border-blue-100 rounded-[2rem] bg-blue-50/50">
+                                                                    <h3 className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-4">RESULTADOS / RESOLUCIÓN</h3>
+                                                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{actaFormData.resultado || 'Pendiente de resolución.'}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="mt-32 grid grid-cols-2 gap-20 text-center">
+                                                            <div className="border-t-2 border-slate-200 pt-8">
+                                                                <div className="font-black uppercase text-xs mb-1">FIRMA RESPONSABLE COLEGIO</div>
+                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter">CERTIFICADO DIGITAL EINSMART ID-{selectedCitacion._id.slice(-8)}</div>
+                                                            </div>
+                                                            <div className="border-t-2 border-slate-200 pt-8">
+                                                                <div className="font-black uppercase text-xs mb-1">FIRMA APODERADO / TUTOR</div>
+                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter">ASISTENCIA: {actaFormData.asistioApoderado ? 'SÍ ASISTIÓ' : 'NO ASISTIÓ'}</div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="mt-20 text-center">
+                                                            <p className="text-[8px] text-slate-300 font-black uppercase tracking-[0.5em]">DOCUMENTO OFICIAL GENERADO POR EINSMART • NO REQUIERE TIMBRE FÍSICO SI TIENE CÓDIGO DE VALIDACIÓN</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     )}

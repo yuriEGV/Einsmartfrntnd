@@ -23,6 +23,7 @@ export interface Permissions {
     isAdmin: boolean;
     isStudent: boolean;
     isApoderado: boolean;
+    isInspectorGeneral: boolean;
     canApprovePlanning: boolean;
 }
 
@@ -30,11 +31,12 @@ export const usePermissions = (): Permissions => {
     const { user } = useAuth();
     const role = user?.role || 'guest';
 
-    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher' || role === 'psicologo' || role === 'orientador' || role === 'asistente_aula' || role === 'secretario' || role === 'utp';
-    const isAdmin = role === 'admin' || role === 'sostenedor' || role === 'director';
+    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher' || role === 'psicologo' || role === 'orientador' || role === 'asistente_aula' || role === 'secretario' || role === 'utp' || role === 'inspector_general';
+    const isAdmin = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'inspector_general';
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
+    const isInspectorGeneral = role === 'inspector_general';
     const isUTP = role === 'utp';
     const isSuperAdmin = role === 'admin';
     const isStudent = role === 'student';
@@ -62,6 +64,7 @@ export const usePermissions = (): Permissions => {
         isAdmin,
         isStudent,
         isApoderado,
+        isInspectorGeneral,
         canApprovePlanning: isAdmin || isUTP,
     };
 };

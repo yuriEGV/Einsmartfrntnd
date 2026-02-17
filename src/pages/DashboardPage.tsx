@@ -51,13 +51,15 @@ const DashboardPage = () => {
                 setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
             } else {
                 // [NEW] Fetch Admin Day Ranking for Director/Sostenedor
-                if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin) {
-                    const rankingRes = await api.get('/admin-days/ranking');
+                if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin || user?.role === 'inspector_general') {
+                    const [rankingRes, metricsRes, citRes] = await Promise.all([
+                        api.get('/admin-days/ranking'),
+                        api.get('/analytics/class-book'),
+                        api.get('/citaciones')
+                    ]);
                     setAdminRanking(rankingRes.data.slice(0, 5));
-
-                    // Fetch Class Book Metrics for admins
-                    const metricsRes = await api.get('/analytics/class-book');
                     setClassBookMetrics(metricsRes.data);
+                    setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
                 }
             }
 
@@ -100,8 +102,14 @@ const DashboardPage = () => {
                             <Calendar size={32} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-blue-900 uppercase tracking-tighter">CITACIÓN PENDIENTE</h3>
-                            <p className="text-sm font-bold text-blue-700/70">Tienes {pendingCitations.length} citaciones agendadas para entrevista.</p>
+                            <h3 className="text-xl font-black text-blue-900 uppercase tracking-tighter">
+                                {user?.role === 'student' || user?.role === 'apoderado' ? 'CITACIÓN PENDIENTE' : 'CONTROL DE CITACIONES'}
+                            </h3>
+                            <p className="text-sm font-bold text-blue-700/70">
+                                {user?.role === 'student' || user?.role === 'apoderado'
+                                    ? `Tienes ${pendingCitations.length} citaciones agendadas para entrevista.`
+                                    : `Hay ${pendingCitations.length} citaciones pendientes en el establecimiento.`}
+                            </p>
                         </div>
                     </div>
                     <div className="flex flex-col gap-2">
