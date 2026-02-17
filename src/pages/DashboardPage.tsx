@@ -114,8 +114,16 @@ const DashboardPage = () => {
                     </div>
                     <div className="flex flex-col gap-2">
                         {pendingCitations.map((cit: any) => (
-                            <div key={cit._id} className="text-[10px] font-black text-blue-600 uppercase tracking-widest bg-white/50 px-4 py-1.5 rounded-full border border-blue-100">
-                                {new Date(cit.fecha).toLocaleDateString()} • {cit.hora} • {cit.motivo}
+                            <div key={cit._id} className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-white/70 px-6 py-2 rounded-2xl border border-blue-100 flex items-center justify-between gap-4 group hover:bg-white transition-all">
+                                <span>{new Date(cit.fecha).toLocaleDateString()} • {cit.hora}</span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="flex-1 truncate">
+                                    {cit.profesorId?.name?.split(' ')[0]}
+                                    <span className="text-blue-300 mx-1">➜</span>
+                                    {cit.apoderadoId?.nombre} {cit.apoderadoId?.apellidos}
+                                </span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
                             </div>
                         ))}
                     </div>

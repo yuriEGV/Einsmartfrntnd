@@ -851,23 +851,33 @@ const UnifiedClassBook = () => {
 
                                     <div className="grid gap-6">
                                         {citaciones.map((c: any) => (
-                                            <div key={c._id} className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-50 flex flex-col md:flex-row gap-8 items-center group hover:border-amber-300 transition-all">
-                                                <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center text-amber-500">
-                                                    <Calendar size={32} />
-                                                </div>
-                                                <div className="flex-1">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest border ${c.estado === 'confirmada' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
-                                                            {c.estado || 'Pendiente'}
-                                                        </span>
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase">{c.modalidad}</span>
+                                            <div key={c._id} className="p-8 bg-white border-2 border-slate-100 rounded-[3rem] shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group animate-in slide-in-from-bottom-5">
+                                                <div className="flex items-center gap-6 mb-6">
+                                                    <div className="p-4 bg-amber-50 text-amber-500 rounded-2xl group-hover:scale-110 transition-transform">
+                                                        <Calendar size={32} />
                                                     </div>
-                                                    <h4 className="text-lg font-black text-[#11355a] uppercase">{c.estudianteId?.apellidos}, {c.estudianteId?.nombres}</h4>
-                                                    <p className="text-xs font-bold text-slate-500 italic mt-1">{c.motivo}</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="text-xl font-black text-[#11355a]">{new Date(c.fecha).toLocaleDateString()}</div>
-                                                    <div className="text-xs font-bold text-slate-400">{c.hora} hrs</div>
+                                                    <div className="flex-1">
+                                                        <div className="flex items-center gap-2 mb-1">
+                                                            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${c.estado === 'confirmada' ? 'bg-emerald-50 text-emerald-600' :
+                                                                    c.estado === 'realizada' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'
+                                                                }`}>{c.estado}</span>
+                                                            <span className="px-3 py-1 bg-blue-50 text-blue-400 rounded-full text-[8px] font-black uppercase tracking-widest">{c.modalidad}</span>
+                                                        </div>
+                                                        <h4 className="text-sm font-black text-[#11355a] uppercase leading-none">{c.estudianteId?.nombres} {c.estudianteId?.apellidos}</h4>
+                                                        <p className="text-[10px] text-slate-400 font-bold mt-1 italic leading-tight capitalize">{c.motivo}</p>
+                                                        <div className="mt-2 space-y-0.5">
+                                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">
+                                                                Profesor: <span className="text-blue-600">{c.profesorId?.name || 'No asignado'}</span>
+                                                            </p>
+                                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-tighter">
+                                                                Apoderado: <span className="text-[#11355a]">{c.apoderadoId?.nombre} {c.apoderadoId?.apellidos}</span>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="text-xl font-black text-[#11355a] tracking-tighter">{new Date(c.fecha).toLocaleDateString()}</div>
+                                                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{c.hora} hrs</div>
+                                                    </div>
                                                 </div>
                                                 <div className="flex gap-2">
                                                     <button className="p-3 bg-slate-50 text-slate-400 rounded-xl hover:bg-slate-100 transition-all"><X size={18} /></button>
