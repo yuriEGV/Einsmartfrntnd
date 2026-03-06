@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Building, Briefcase
+    Wand2, Building, Briefcase, Cloud
 } from 'lucide-react';
 
 const Layout = () => {
@@ -256,7 +256,10 @@ const Layout = () => {
                             {/* Submenu Items */}
                             <div className={`pl-4 space-y-1 overflow-hidden transition-all duration-300 ${isAcademicOpen && !isCollapsed ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
                                 {(permissions.canManageSubjects || permissions.isDirector || permissions.isSostenedor || permissions.isTeacher) && (
-                                    <NavLink to="/academic" icon={Wand2}>{!isCollapsed && "Gestionar Currículum"}</NavLink>
+                                    <>
+                                        <NavLink to="/academic" icon={Wand2}>{!isCollapsed && "Gestionar Currículum"}</NavLink>
+                                        <NavLink to="/google-workspace" icon={Cloud}>{!isCollapsed && "Google Workspace"}</NavLink>
+                                    </>
                                 )}
                             </div>
                         </div>

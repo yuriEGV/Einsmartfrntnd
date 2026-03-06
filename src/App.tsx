@@ -40,6 +40,7 @@ import HojaDeVidaPage from './pages/HojaDeVidaPage';
 import SecretariaPage from './pages/SecretariaPage';
 import AtrasosPage from './pages/AtrasosPage';
 import AlternanciasPage from './pages/AlternanciasPage';
+import GoogleWorkspacePage from './pages/GoogleWorkspacePage';
 
 function App() {
   return (
@@ -87,6 +88,7 @@ function App() {
             <Route path="/secretaria" element={<SecretariaPage />} />
             <Route path="/atrasos" element={<AtrasosPage />} />
             <Route path="/alternancias" element={<AlternanciasPage />} />
+            <Route path="/google-workspace" element={<GoogleWorkspacePage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

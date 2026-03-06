@@ -287,7 +287,7 @@ const EnrollmentsPage = () => {
                             NUEVA
                         </button>
                     </div>
-                    {permissions.isSuperAdmin && activeTab === 'list' && (
+                    {(permissions.isAdmin || permissions.isSuperAdmin || permissions.isSostenedor) && activeTab === 'list' && (
                         <>
                             <button
                                 onClick={handleSendInstitutionalList}
