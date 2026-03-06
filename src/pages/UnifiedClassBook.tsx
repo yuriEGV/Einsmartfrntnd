@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { useReactToPrint } from 'react-to-print';
@@ -12,7 +12,7 @@ const UnifiedClassBook = () => {
     const actaPrintRef = useRef<HTMLDivElement>(null);
 
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
-    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones'>('ficha');
+    const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones' | 'atrasos'>('ficha');
     const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
 
     const [courses, setCourses] = useState<any[]>([]);
@@ -209,9 +209,6 @@ const UnifiedClassBook = () => {
                     setStudents(studRes.data);
                     setEvaluations(evalsRes.data.filter((e: any) => (e.courseId?._id || e.courseId) === selectedCourse));
                     setGrades(gradesRes.data);
-                } else if (activeTab === 'citaciones') {
-                    const res = await api.get(`/citaciones?courseId=${selectedCourse}`);
-                    setCitaciones(res.data);
                 }
             }
         } catch (err) { console.error('REFRESH ERROR:', err); }
@@ -479,6 +476,7 @@ const UnifiedClassBook = () => {
                     {[
                         { id: 'ficha', label: 'Ficha Estudiantes', icon: GraduationCap },
                         { id: 'asistencia', label: 'Lista Digital', icon: UserCheck },
+                        { id: 'atrasos', label: 'Atrasos', icon: Clock },
                         { id: 'leccionario', label: 'Leccionario', icon: List },
                         { id: 'notas', label: 'Calificaciones', icon: ClipboardList },
                         { id: 'citaciones', label: 'Citaciones', icon: Calendar },
@@ -696,6 +694,34 @@ const UnifiedClassBook = () => {
                                             ))}
                                         </div>
                                     )}
+                                </div>
+                            )}
+
+                            {/* TAB CONTEXT: ATRASOS */}
+                            {activeTab === 'atrasos' && (
+                                <div className="space-y-8 animate-in fade-in duration-500">
+                                    <div className="flex justify-between items-center bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+                                        <div>
+                                            <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter flex items-center gap-3">
+                                                <Clock size={28} className="text-blue-500" /> Registro de Atrasos
+                                            </h2>
+                                            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-2 flex items-center gap-2">
+                                                <ShieldCheck size={14} className="text-emerald-500" /> Control Oficial Diario
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white p-10 rounded-[3rem] shadow-xl border-4 border-slate-50 text-center">
+                                        <Clock size={80} className="mx-auto text-slate-200 mb-6" />
+                                        <h3 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter mb-2">Módulo en Desarrollo</h3>
+                                        <p className="text-slate-400 font-bold text-sm tracking-wide">
+                                            La visualización consolidada de atrasos del curso está siendo integrada.
+                                            Por favor, utiliza la vista principal de Atrasos en el menú para gestionar los ingresos.
+                                        </p>
+                                        <a href="/atrasos" className="inline-block mt-8 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
+                                            Ir al Gestor Global de Atrasos
+                                        </a>
+                                    </div>
                                 </div>
                             )}
 

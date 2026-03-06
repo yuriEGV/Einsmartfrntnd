@@ -1,0 +1,1 @@
+﻿src/pages/UnifiedClassBook.tsx(212,28): error TS2367: This comparison appears to be unintentional because the types '"atrasos"' and '"citaciones"' have no overlap.

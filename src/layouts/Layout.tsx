@@ -262,14 +262,16 @@ const Layout = () => {
                         </div>
                     )}
 
-                    {/* Redundant links hidden for teachers to favor unified dashboard */}
+                    {/* Redundant links hidden for teachers to favor unified dashboard, EXCEPT alternancias which is TP specific */}
                     {(user?.role !== 'teacher') && (
                         <>
                             <NavLink to="/grades" icon={ClipboardList}>{!isCollapsed && "Notas Globales"}</NavLink>
                             <NavLink to="/attendance" icon={CheckCircle2}>{!isCollapsed && "Asistencia Global"}</NavLink>
-                            <NavLink to="/atrasos" icon={Clock}>{!isCollapsed && "Atrasos"}</NavLink>
-                            <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
                         </>
+                    )}
+
+                    {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'director' || user?.role === 'utp' || user?.role === 'sostenedor') && (
+                        <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
                     )}
 
                     {/* Redefine messages visibility: Only staff */}
