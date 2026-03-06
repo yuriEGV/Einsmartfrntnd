@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Building
+    Wand2, Building, Briefcase
 } from 'lucide-react';
 
 const Layout = () => {
@@ -267,6 +267,8 @@ const Layout = () => {
                         <>
                             <NavLink to="/grades" icon={ClipboardList}>{!isCollapsed && "Notas Globales"}</NavLink>
                             <NavLink to="/attendance" icon={CheckCircle2}>{!isCollapsed && "Asistencia Global"}</NavLink>
+                            <NavLink to="/atrasos" icon={Clock}>{!isCollapsed && "Atrasos"}</NavLink>
+                            <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
                         </>
                     )}
 
