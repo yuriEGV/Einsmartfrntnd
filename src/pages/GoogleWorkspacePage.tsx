@@ -1,12 +1,21 @@
+import { useAuth } from '../context/AuthContext';
 import { Cloud, Video, HardDrive, Mail, ExternalLink } from 'lucide-react';
 
 const GoogleWorkspacePage = () => {
+    const { user } = useAuth();
+    const userEmail = user?.email || '';
+
+    const wrapUrl = (url: string) => {
+        if (!userEmail) return url;
+        return `https://accounts.google.com/AccountChooser?Email=${encodeURIComponent(userEmail)}&continue=${encodeURIComponent(url)}`;
+    };
+
     const tools = [
         {
             name: 'Google Classroom',
             description: 'Gestión de clases, tareas y calificaciones centralizadas.',
             icon: <Cloud size={40} className="text-emerald-500" />,
-            url: 'https://classroom.google.com',
+            url: wrapUrl('https://classroom.google.com'),
             color: 'bg-emerald-50 border-emerald-100 hover:border-emerald-300',
             buttonColor: 'bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/20'
         },
@@ -14,7 +23,7 @@ const GoogleWorkspacePage = () => {
             name: 'Google Drive',
             description: 'Almacenamiento en la nube para documentos y material educativo.',
             icon: <HardDrive size={40} className="text-blue-500" />,
-            url: 'https://drive.google.com',
+            url: wrapUrl('https://drive.google.com'),
             color: 'bg-blue-50 border-blue-100 hover:border-blue-300',
             buttonColor: 'bg-blue-600 hover:bg-blue-700 shadow-blue-600/20'
         },
@@ -22,7 +31,7 @@ const GoogleWorkspacePage = () => {
             name: 'Google Meet',
             description: 'Videoconferencias seguras para clases remotas y reuniones.',
             icon: <Video size={40} className="text-green-500" />,
-            url: 'https://meet.google.com',
+            url: wrapUrl('https://meet.google.com'),
             color: 'bg-green-50 border-green-100 hover:border-green-300',
             buttonColor: 'bg-green-600 hover:bg-green-700 shadow-green-600/20'
         },
@@ -30,7 +39,7 @@ const GoogleWorkspacePage = () => {
             name: 'Gmail Institucional',
             description: 'Correo electrónico seguro para comunicaciones académicas.',
             icon: <Mail size={40} className="text-red-500" />,
-            url: 'https://mail.google.com',
+            url: wrapUrl('https://mail.google.com'),
             color: 'bg-red-50 border-red-100 hover:border-red-300',
             buttonColor: 'bg-red-600 hover:bg-red-700 shadow-red-600/20'
         }
