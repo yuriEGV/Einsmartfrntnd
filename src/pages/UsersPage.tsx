@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, Shield, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Shield, Save, Key, X } from 'lucide-react';
 
 interface UserData {
     _id: string;
@@ -26,6 +26,10 @@ const UsersPage = () => {
     const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
     const [currentUserData, setCurrentUserData] = useState<Partial<UserData & { tenantId?: string }>>({});
     const [password, setPassword] = useState('');
+
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [userToReset, setUserToReset] = useState<UserData | null>(null);
+    const [newAdminPassword, setNewAdminPassword] = useState('');
 
     useEffect(() => {
         fetchUsers();
@@ -68,6 +72,20 @@ const UsersPage = () => {
             fetchUsers();
         } catch (error: any) {
             alert(error.response?.data?.message || 'Error al guardar usuario');
+        }
+    };
+
+    const handleResetPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!userToReset || !newAdminPassword) return;
+        try {
+            await api.put(`/users/${userToReset._id}/reset-password-admin`, { password: newAdminPassword });
+            alert('Contraseña restablecida correctamente.');
+            setShowResetModal(false);
+            setNewAdminPassword('');
+            setUserToReset(null);
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al restablecer contraseña');
         }
     };
 
@@ -196,6 +214,17 @@ const UsersPage = () => {
                                                 >
                                                     <Edit size={18} />
                                                 </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setUserToReset(user);
+                                                        setNewAdminPassword('');
+                                                        setShowResetModal(true);
+                                                    }}
+                                                    className="p-2.5 text-slate-400 hover:text-amber-600 hover:bg-amber-50 rounded-xl transition-all"
+                                                    title="Forzar Cambio de Contraseña"
+                                                >
+                                                    <Key size={18} />
+                                                </button>
                                                 {currentUser?._id !== user._id && (
                                                     <button
                                                         onClick={() => handleDelete(user._id)}
@@ -245,6 +274,16 @@ const UsersPage = () => {
                                             className="p-3 text-slate-400 hover:text-blue-600 bg-slate-50 rounded-xl active:bg-blue-50 transition-all"
                                         >
                                             <Edit size={20} />
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setUserToReset(user);
+                                                setNewAdminPassword('');
+                                                setShowResetModal(true);
+                                            }}
+                                            className="p-3 text-slate-400 hover:text-amber-600 bg-slate-50 rounded-xl active:bg-amber-50 transition-all"
+                                        >
+                                            <Key size={20} />
                                         </button>
                                         {currentUser?._id !== user._id && (
                                             <button
@@ -407,6 +446,49 @@ const UsersPage = () => {
                                     {modalMode === 'create' ? 'CONFIRMAR ALTA' : 'GUARDAR CAMBIOS'}
                                 </button>
                             </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showResetModal && userToReset && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[1000] animate-in fade-in duration-300">
+                    <div className="bg-white rounded-3xl w-full max-w-sm shadow-2xl overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                            <h2 className="text-xl font-black uppercase text-slate-800 tracking-tighter flex items-center gap-2">
+                                <Key className="text-amber-500" /> Resetear Clave
+                            </h2>
+                            <button onClick={() => setShowResetModal(false)} className="p-2 hover:bg-slate-200 rounded-xl transition-colors">
+                                <X size={20} className="text-slate-500" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleResetPassword} className="p-6 space-y-6">
+                            <div>
+                                <p className="text-sm font-bold text-slate-500 mb-4">
+                                    Establecer nueva contraseña para el usuario <span className="text-slate-800 uppercase">{userToReset.name}</span>.
+                                </p>
+                                <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                                    Nueva Contraseña Genérica
+                                </label>
+                                <input
+                                    type="password"
+                                    required
+                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700"
+                                    value={newAdminPassword}
+                                    onChange={e => setNewAdminPassword(e.target.value)}
+                                    placeholder="Ingrese nueva contraseña"
+                                    minLength={6}
+                                />
+                                <p className="text-[10px] text-amber-600 font-bold mt-2 leading-tight">
+                                    El usuario será forzado a cambiar esta contraseña administrativa en su próximo inicio de sesión.
+                                </p>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-black uppercase tracking-widest text-xs rounded-xl shadow-lg shadow-amber-500/20 transition-all"
+                            >
+                                ACTUALIZAR CONTRASEÑA
+                            </button>
                         </form>
                     </div>
                 </div>

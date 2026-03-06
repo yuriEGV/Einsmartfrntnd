@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Alternancia {
@@ -27,6 +27,7 @@ export default function AlternanciasPage() {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingId, setEditingId] = useState<string | null>(null);
 
     const [formData, setFormData] = useState({
         estudianteId: '',
@@ -69,9 +70,15 @@ export default function AlternanciasPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await api.post('/alternancias', formData);
-            toast.success('Alternancia registrada correctamente');
+            if (editingId) {
+                await api.put(`/alternancias/${editingId}`, formData);
+                toast.success('Alternancia actualizada correctamente');
+            } else {
+                await api.post('/alternancias', formData);
+                toast.success('Alternancia registrada correctamente');
+            }
             setIsModalOpen(false);
+            setEditingId(null);
             loadData();
             // Reset form
             setFormData({
@@ -88,8 +95,25 @@ export default function AlternanciasPage() {
             });
         } catch (error) {
             console.error(error);
-            toast.error('Error al registrar alternancia');
+            toast.error(editingId ? 'Error al actualizar alternancia' : 'Error al registrar alternancia');
         }
+    };
+
+    const handleEdit = (alt: Alternancia) => {
+        setFormData({
+            estudianteId: alt.estudianteId?._id || '',
+            careerId: (alt as any).careerId || '',
+            empresaInstitucion: alt.empresaInstitucion || '',
+            tipo: alt.tipo || 'empresa',
+            fechaInicio: alt.fechaInicio ? new Date(alt.fechaInicio).toISOString().split('T')[0] : '',
+            fechaTermino: alt.fechaTermino ? new Date(alt.fechaTermino).toISOString().split('T')[0] : '',
+            estado: alt.estado || 'activa',
+            tutorEmpresa: alt.tutorEmpresa || '',
+            profesorSupervisor: alt.profesorSupervisor?._id || '',
+            observaciones: (alt as any).observaciones || ''
+        });
+        setEditingId(alt._id);
+        setIsModalOpen(true);
     };
 
     const handleDelete = async (id: string) => {
@@ -122,7 +146,22 @@ export default function AlternanciasPage() {
                 </div>
                 {(permissions.isAdmin || user?.role === 'teacher' || user?.role === 'director' || permissions.isSuperAdmin) && (
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={() => {
+                            setEditingId(null);
+                            setFormData({
+                                estudianteId: '',
+                                careerId: '',
+                                empresaInstitucion: '',
+                                tipo: 'empresa',
+                                fechaInicio: '',
+                                fechaTermino: '',
+                                estado: 'activa',
+                                tutorEmpresa: '',
+                                profesorSupervisor: '',
+                                observaciones: ''
+                            });
+                            setIsModalOpen(true);
+                        }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-colors shadow-lg shadow-blue-600/20"
                     >
                         <Plus size={16} /> Nueva Alternancia
@@ -186,14 +225,26 @@ export default function AlternanciasPage() {
                                             </span>
                                         </td>
                                         <td className="py-4">
-                                            {(permissions.isAdmin || user?.role === 'director' || permissions.isSuperAdmin) && (
-                                                <button
-                                                    onClick={() => handleDelete(alt._id)}
-                                                    className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            )}
+                                            <div className="flex gap-2">
+                                                {(permissions.isAdmin || user?.role === 'director' || user?.role === 'teacher' || permissions.isSuperAdmin) && (
+                                                    <button
+                                                        onClick={() => handleEdit(alt)}
+                                                        className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
+                                                        title="Editar Alternancia"
+                                                    >
+                                                        <Edit size={18} />
+                                                    </button>
+                                                )}
+                                                {(permissions.isAdmin || user?.role === 'director' || permissions.isSuperAdmin) && (
+                                                    <button
+                                                        onClick={() => handleDelete(alt._id)}
+                                                        className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                                                        title="Eliminar Alternancia"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
@@ -212,10 +263,12 @@ export default function AlternanciasPage() {
 
             {/* Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 overflow-y-auto w-full h-full">
                     <div className="bg-white rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl my-8">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10">
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-800">Registrar Alternancia</h2>
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 sticky top-0 z-10 w-full">
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-800">
+                                {editingId ? 'Editar Alternancia' : 'Registrar Alternancia'}
+                            </h2>
                             <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-200 rounded-xl transition-colors">
                                 <X size={20} className="text-slate-500" />
                             </button>
@@ -350,19 +403,12 @@ export default function AlternanciasPage() {
                                 />
                             </div>
 
-                            <div className="flex justify-end pt-4 mt-6 border-t border-slate-100">
-                                <button
-                                    type="button"
-                                    onClick={() => setIsModalOpen(false)}
-                                    className="px-6 py-3 font-black text-xs uppercase tracking-widest text-slate-500 hover:bg-slate-100 rounded-xl mr-3 transition-colors"
-                                >
+                            <div className="pt-6 border-t border-slate-100 flex flex-col md:flex-row gap-4">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 text-slate-500 font-bold hover:bg-slate-50 rounded-xl transition-colors uppercase tracking-widest text-xs">
                                     Cancelar
                                 </button>
-                                <button
-                                    type="submit"
-                                    className="px-6 py-3 font-black text-xs uppercase tracking-widest text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-lg shadow-blue-600/20"
-                                >
-                                    Guardar Alternancia
+                                <button type="submit" className="flex-[2] py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-black shadow-lg shadow-blue-600/20 transition-all uppercase tracking-widest text-xs">
+                                    {editingId ? 'Actualizar Alternancia' : 'Guardar Alternancia'}
                                 </button>
                             </div>
                         </form>
