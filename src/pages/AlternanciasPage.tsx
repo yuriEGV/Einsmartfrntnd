@@ -237,13 +237,14 @@ export default function AlternanciasPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Carrera (Opcional)</label>
+                                    <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Carrera (Obligatoria para TP)</label>
                                     <select
+                                        required
                                         value={formData.careerId}
                                         onChange={(e) => setFormData({ ...formData, careerId: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="">Ninguna</option>
+                                        <option value="">Seleccione carrera...</option>
                                         {careers.map(c => (
                                             <option key={c._id} value={c._id}>{c.name}</option>
                                         ))}
