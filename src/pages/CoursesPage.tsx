@@ -132,14 +132,35 @@ const CoursesPage = () => {
         }
     };
 
+    // Helper: parse course name like "4 I" → { level: "4", letter: "I" }
+    const parseCourseName = (name: string): { level: string; letter: string } => {
+        const parts = name.trim().split(/\s+/);
+        if (parts.length >= 2) {
+            const lastPart = parts[parts.length - 1].toUpperCase();
+            const isLetter = /^[A-Z]$/.test(lastPart);
+            if (isLetter) {
+                return { level: parts.slice(0, -1).join(' '), letter: lastPart };
+            }
+        }
+        return { level: name, letter: '' };
+    };
+
     const handleOpenModal = (mode: 'create' | 'edit', course?: any) => {
         setModalMode(mode);
         if (mode === 'edit' && course) {
             setCurrentCourse(course);
+            // [FIX] If level/letter are missing (old courses), auto-parse from course name
+            let level = course.level || '';
+            let letter = course.letter || '';
+            if (!level || !letter) {
+                const parsed = parseCourseName(course.name || '');
+                if (!level) level = parsed.level;
+                if (!letter) letter = parsed.letter;
+            }
             setFormData({
                 name: course.name,
-                level: course.level || '',
-                letter: course.letter || '',
+                level,
+                letter,
                 description: course.description,
                 teacherId: (course.teacherId && typeof course.teacherId === 'object') ? course.teacherId._id : (course.teacherId || ''),
                 careerId: (course.careerId && typeof course.careerId === 'object') ? course.careerId._id : (course.careerId || ''),
