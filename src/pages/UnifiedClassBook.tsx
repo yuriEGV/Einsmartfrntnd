@@ -455,7 +455,7 @@ const UnifiedClassBook = () => {
                         <select className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all shadow-sm text-xs"
                             value={selectedCourse} onChange={e => { setSelectedCourse(e.target.value); setSelectedSubject(''); }}>
                             <option value="">-- CURSO --</option>
-                            {courses.map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
+                            {(Array.isArray(courses) ? courses : []).map(c => <option key={c._id} value={c._id}>{c.name}</option>)}
                         </select>
                     </div>
                     <div className="flex-1 lg:w-60">
@@ -463,7 +463,7 @@ const UnifiedClassBook = () => {
                         <select className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 disabled:opacity-50 transition-all shadow-sm text-xs"
                             value={selectedSubject} onChange={e => setSelectedSubject(e.target.value)} disabled={!selectedCourse}>
                             <option value="">-- SELECCIONAR --</option>
-                            {filteredSubjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                            {(Array.isArray(filteredSubjects) ? filteredSubjects : []).map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
                         </select>
                     </div>
                 </div>
@@ -531,9 +531,9 @@ const UnifiedClassBook = () => {
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {students.filter(s =>
-                                            s.nombres.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                            s.apellidos.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                        {(Array.isArray(students) ? students : []).filter(s =>
+                                            s.nombres?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                                            s.apellidos?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                             s.rut?.includes(searchQuery)
                                         ).map((s: any) => (
                                             <div key={s._id} className="bg-white p-6 rounded-2xl shadow-lg border border-slate-50 relative group hover:border-blue-300 transition-all">
@@ -554,7 +554,7 @@ const UnifiedClassBook = () => {
                                                             </div>
                                                             <div className="flex justify-between text-[10px]">
                                                                 <span className="text-slate-400 font-bold uppercase">Salud</span>
-                                                                <span className="text-slate-700 font-black">{s.salud || 'Sin Registro'}</span>
+                                                                <span className="text-slate-700 font-black">{typeof s.salud === 'object' ? (s.salud?.seguro || 'Sin Registro') : (s.salud || 'Sin Registro')}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -828,24 +828,24 @@ const UnifiedClassBook = () => {
                                             <thead>
                                                 <tr className="border-b-2 border-slate-50">
                                                     <th className="pb-8 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante</th>
-                                                    {evaluations.map((ev: any) => (
+                                                    {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => (
                                                         <th key={ev._id} className="pb-8 px-4 text-center">
                                                             <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest truncate max-w-[100px]">{ev.title}</div>
-                                                            <div className="text-[8px] font-bold text-slate-300">{new Date(ev.date).toLocaleDateString()}</div>
+                                                            <div className="text-[8px] font-bold text-slate-300">{ev.date ? new Date(ev.date).toLocaleDateString() : 'S/F'}</div>
                                                         </th>
                                                     ))}
                                                     <th className="pb-8 px-8 text-center text-[10px] font-black text-slate-900 uppercase tracking-widest">P. Final</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-50">
-                                                {students.map((s: any) => {
-                                                    const sGrades = grades.filter((g: any) => g.estudianteId?._id === s._id || g.estudianteId === s._id);
-                                                    const total = sGrades.reduce((acc, curr) => acc + curr.score, 0);
+                                                {(Array.isArray(students) ? students : []).map((s: any) => {
+                                                    const sGrades = (Array.isArray(grades) ? grades : []).filter((g: any) => (g.estudianteId?._id || g.estudianteId) === s._id);
+                                                    const total = sGrades.reduce((acc, curr) => acc + (curr.score || 0), 0);
                                                     const avg = sGrades.length > 0 ? (total / sGrades.length).toFixed(1) : '-';
                                                     return (
                                                         <tr key={s._id} className="hover:bg-slate-50/50 transition-all">
                                                             <td className="py-6 px-4 font-black text-[#11355a] text-sm uppercase">{s.apellidos}, {s.nombres}</td>
-                                                            {evaluations.map((ev: any) => {
+                                                            {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => {
                                                                 const gradeItem = sGrades.find((g: any) => (g.evaluationId?._id || g.evaluationId) === ev._id);
                                                                 return (
                                                                     <td key={ev._id} className="py-6 px-4 text-center">
@@ -876,7 +876,7 @@ const UnifiedClassBook = () => {
                                     </div>
 
                                     <div className="grid gap-6">
-                                        {citaciones.map((c: any) => (
+                                        {(Array.isArray(citaciones) ? citaciones : []).map((c: any) => (
                                             <div key={c._id} className="p-8 bg-white border-2 border-slate-100 rounded-[3rem] shadow-sm hover:shadow-xl hover:border-blue-200 transition-all group animate-in slide-in-from-bottom-5">
                                                 <div className="flex items-center gap-6 mb-6">
                                                     <div className="p-4 bg-amber-50 text-amber-500 rounded-2xl group-hover:scale-110 transition-transform">
@@ -934,7 +934,7 @@ const UnifiedClassBook = () => {
                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante</label>
                                                             <select required value={citacionFormData.estudianteId} onChange={e => setCitacionFormData({ ...citacionFormData, estudianteId: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold">
                                                                 <option value="">Seleccionar Alumno</option>
-                                                                {students.map(s => <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>)}
+                                                                {(Array.isArray(students) ? students : []).map(s => <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>)}
                                                             </select>
                                                         </div>
                                                         <div className="space-y-2">
@@ -1105,7 +1105,7 @@ const UnifiedClassBook = () => {
                                     </div>
 
                                     <div className="grid gap-6">
-                                        {annotations.map((a: any) => (
+                                        {(Array.isArray(annotations) ? annotations : []).map((a: any) => (
                                             <div key={a._id} className={`bg-white p-8 rounded-[2.5rem] shadow-xl border-l-[12px] flex flex-col md:flex-row gap-8 items-center group transition-all
                                                 ${a.tipo === 'positiva' ? 'border-emerald-500' : a.tipo === 'negativa' ? 'border-rose-500' : 'border-blue-500'}`}>
                                                 <div className={`w-20 h-20 rounded-full flex items-center justify-center
@@ -1156,7 +1156,7 @@ const UnifiedClassBook = () => {
                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante (Opcional)</label>
                                                             <select value={annotationFormData.estudianteId} onChange={e => setAnnotationFormData({ ...annotationFormData, estudianteId: e.target.value })} className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold">
                                                                 <option value="">-- TODO EL CURSO --</option>
-                                                                {students.map(s => <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>)}
+                                                                {(Array.isArray(students) ? students : []).map(s => <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>)}
                                                             </select>
                                                         </div>
                                                         <div className="space-y-2">
@@ -1205,7 +1205,7 @@ const UnifiedClassBook = () => {
                                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
                                         >
                                             <option value="">Seleccionar Estudiante</option>
-                                            {students.map((s: any) => (
+                                            {(Array.isArray(students) ? students : []).map((s: any) => (
                                                 <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>
                                             ))}
                                         </select>
@@ -1218,7 +1218,7 @@ const UnifiedClassBook = () => {
                                             className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
                                         >
                                             <option value="">Seleccionar Evaluación</option>
-                                            {evaluations.map((ev: any) => (
+                                            {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => (
                                                 <option key={ev._id} value={ev._id}>{ev.title}</option>
                                             ))}
                                         </select>

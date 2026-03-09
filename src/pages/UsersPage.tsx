@@ -403,14 +403,14 @@ const UsersPage = () => {
                                     />
                                 </div>
                                 <div className="group text-start">
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">VINCULAR A ALUMNO O APODERADO (OPCIONAL)</label>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">VINCULACIÓN A PERFIL, CURSO O CARRERA (ID)</label>
                                     <input
                                         className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 transition-all outline-none font-bold text-slate-500 text-xs"
                                         value={currentUserData.profileId || ''}
                                         onChange={e => setCurrentUserData({ ...currentUserData, profileId: e.target.value })}
-                                        placeholder="UUID de la ficha relacionada"
+                                        placeholder="UUID de la ficha o entidad relacionada"
                                     />
-                                    <p className="text-[9px] font-bold text-slate-300 mt-2 ml-1 uppercase tracking-widest leading-relaxed">Conecta el usuario con su ficha de datos correspondiente.</p>
+                                    <p className="text-[9px] font-bold text-slate-300 mt-2 ml-1 uppercase tracking-widest leading-relaxed">Conecta el usuario con su ficha técnica o entidad correspondiente.</p>
                                 </div>
 
                                 {isSuperAdmin && modalMode === 'create' && (
