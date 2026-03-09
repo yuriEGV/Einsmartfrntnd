@@ -171,17 +171,26 @@ const UnifiedClassBook = () => {
     const refreshTabContent = async () => {
         if (!selectedCourse) return;
         try {
+            // [FIX] Celo de Datos: Enforce strict filtering of returned students
+            const strictFilter = (stds: any[]) => stds.filter(s => {
+                const sCourseId = s.activeEnrollment?.[0]?.courseId?.toString() || (s.enrolledCourse?.[0]?._id?.toString());
+                if (sCourseId) return sCourseId === selectedCourse;
+                const crs = courses.find((c: any) => c._id === selectedCourse);
+                return crs && s.grado && (s.grado === crs.name || s.grado.includes(crs.name));
+            });
+
             if (activeTab === 'ficha') {
                 const res = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
-                setStudents(res.data);
+                setStudents(strictFilter(res.data));
             } else if (activeTab === 'asistencia') {
                 const [studRes, attRes] = await Promise.all([
                     api.get(`/estudiantes?cursoId=${selectedCourse}`),
                     api.get(`/attendance?courseId=${selectedCourse}&fecha=${attendanceDate}&bloqueHorario=${selectedBlock}`)
                 ]);
-                setStudents(studRes.data);
+                const filteredData = strictFilter(studRes.data);
+                setStudents(filteredData);
                 const amap: Record<string, string> = {};
-                studRes.data.forEach((s: any) => {
+                filteredData.forEach((s: any) => {
                     const rec = attRes.data.find((r: any) => (r.estudianteId?._id || r.estudianteId) === s._id);
                     if (rec) amap[s._id] = rec.estado;
                 });
@@ -192,7 +201,7 @@ const UnifiedClassBook = () => {
                     api.get(`/estudiantes?cursoId=${selectedCourse}`)
                 ]);
                 setAnnotations(annRes.data);
-                setStudents(studRes.data);
+                setStudents(strictFilter(studRes.data));
             } else if (activeTab === 'citaciones') {
                 const res = await api.get(`/citaciones?cursoId=${selectedCourse}`);
                 setCitaciones(res.data);
@@ -206,7 +215,7 @@ const UnifiedClassBook = () => {
                         api.get('/evaluations'),
                         api.get(`/estudiantes?cursoId=${selectedCourse}`)
                     ]);
-                    setStudents(studRes.data);
+                    setStudents(strictFilter(studRes.data));
                     setEvaluations(evalsRes.data.filter((e: any) => (e.courseId?._id || e.courseId) === selectedCourse));
                     setGrades(gradesRes.data);
                 }

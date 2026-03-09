@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Building, Briefcase, Cloud
+    Wand2, Building, Briefcase, Cloud, Library
 } from 'lucide-react';
 
 const Layout = () => {
@@ -220,6 +220,10 @@ const Layout = () => {
 
                     {(permissions.canManageCourses || user?.role === 'teacher' || user?.role === 'admin') && (
                         <NavLink to="/courses" icon={GraduationCap}>{!isCollapsed && "Cursos"}</NavLink>
+                    )}
+
+                    {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'utp' || user?.role === 'director' || permissions.isSuperAdmin) && (
+                        <NavLink to="/subjects" icon={Library}>{!isCollapsed && "Asignaturas"}</NavLink>
                     )}
 
                     {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (

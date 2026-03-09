@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 interface Atraso {
     _id: string;
-    estudianteId: { _id: string; firstName: string; lastName: string; rut: string };
+    estudianteId: { _id: string; nombres: string; apellidos: string; rut: string; fotoUrl?: string };
     fecha: string;
     bloque: string;
     minutosAtraso: number;
@@ -84,9 +84,9 @@ export default function AtrasosPage() {
     };
 
     const filteredAtrasos = atrasos.filter(a =>
-        a.estudianteId?.rut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.estudianteId?.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.estudianteId?.lastName.toLowerCase().includes(searchTerm.toLowerCase())
+        a.estudianteId?.rut?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.estudianteId?.nombres?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.estudianteId?.apellidos?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
@@ -138,7 +138,7 @@ export default function AtrasosPage() {
                                 {filteredAtrasos.map(atraso => (
                                     <tr key={atraso._id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                         <td className="py-4">
-                                            <p className="font-bold text-slate-800 text-sm">{atraso.estudianteId?.firstName} {atraso.estudianteId?.lastName}</p>
+                                            <p className="font-bold text-slate-800 text-sm">{atraso.estudianteId?.nombres} {atraso.estudianteId?.apellidos}</p>
                                             <p className="text-xs font-bold text-slate-500">{atraso.estudianteId?.rut}</p>
                                         </td>
                                         <td className="py-4">
@@ -189,19 +189,66 @@ export default function AtrasosPage() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div>
+                            {/* Custom Dropdown for Students */}
+                            <div className="relative">
                                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Estudiante</label>
-                                <select
-                                    required
-                                    value={formData.estudianteId}
-                                    onChange={(e) => setFormData({ ...formData, estudianteId: e.target.value })}
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm focus:ring-2 focus:ring-blue-500"
+                                <div
+                                    className="w-full px-4 py-3 rounded-xl border border-slate-200 font-bold text-sm bg-white cursor-pointer flex justify-between items-center"
+                                    onClick={() => {
+                                        const list = document.getElementById('student-dropdown');
+                                        if (list) list.classList.toggle('hidden');
+                                    }}
                                 >
-                                    <option value="">Seleccione un estudiante...</option>
+                                    <span>
+                                        {formData.estudianteId
+                                            ? (() => {
+                                                const s = students.find(s => s._id === formData.estudianteId);
+                                                return s ? `${s.rut || 'S/R'} - ${s.nombres} ${s.apellidos}` : 'Estudiante seleccionado';
+                                            })()
+                                            : 'Seleccione un estudiante...'
+                                        }
+                                    </span>
+                                    <span className="text-slate-400">▼</span>
+                                </div>
+                                <div id="student-dropdown" className="hidden absolute z-50 w-full mt-2 bg-white border border-slate-200 rounded-xl shadow-2xl max-h-60 overflow-y-auto custom-scrollbar">
+                                    <div className="sticky top-0 bg-white p-2 border-b border-slate-100">
+                                        <input
+                                            type="text"
+                                            placeholder="Buscar por RUT o nombre..."
+                                            className="w-full p-2 bg-slate-50 border border-slate-100 rounded-lg text-sm outline-none focus:border-blue-500"
+                                            onChange={(e) => {
+                                                const val = e.target.value.toLowerCase();
+                                                const items = document.querySelectorAll('.student-dropdown-item');
+                                                items.forEach(item => {
+                                                    const text = item.textContent?.toLowerCase() || '';
+                                                    (item as HTMLElement).style.display = text.includes(val) ? 'flex' : 'none';
+                                                });
+                                            }}
+                                        />
+                                    </div>
                                     {students.map(s => (
-                                        <option key={s._id} value={s._id}>{s.rut} - {s.firstName} {s.lastName}</option>
+                                        <div
+                                            key={s._id}
+                                            className="student-dropdown-item flex items-center gap-3 p-3 hover:bg-slate-50 cursor-pointer border-b border-slate-50 transition-colors"
+                                            onClick={() => {
+                                                setFormData({ ...formData, estudianteId: s._id });
+                                                document.getElementById('student-dropdown')?.classList.add('hidden');
+                                            }}
+                                        >
+                                            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-black overflow-hidden shrink-0 border-2 border-slate-100">
+                                                {s.fotoUrl ? (
+                                                    <img src={s.fotoUrl} alt={s.nombres} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    s.nombres?.charAt(0) || '?'
+                                                )}
+                                            </div>
+                                            <div>
+                                                <div className="font-black text-slate-700 text-sm">{s.nombres} {s.apellidos}</div>
+                                                <div className="text-[10px] font-bold text-slate-400">{s.rut || 'S/N RUT'}</div>
+                                            </div>
+                                        </div>
                                     ))}
-                                </select>
+                                </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">
                                 <div>

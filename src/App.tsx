@@ -41,6 +41,7 @@ import SecretariaPage from './pages/SecretariaPage';
 import AtrasosPage from './pages/AtrasosPage';
 import AlternanciasPage from './pages/AlternanciasPage';
 import GoogleWorkspacePage from './pages/GoogleWorkspacePage';
+import SubjectsPage from './pages/SubjectsPage';
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/my-payments" element={<GuardianPaymentsPage />} />
             <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/subjects" element={<SubjectsPage />} />
             <Route path="/courses/:id/students" element={<CourseStudentsPage />} />
             <Route path="/attendance" element={<AttendancePage />} />
             <Route path="/tariffs" element={<TariffsPage />} />
