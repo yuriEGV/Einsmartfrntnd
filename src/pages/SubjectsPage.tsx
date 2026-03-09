@@ -279,7 +279,7 @@ export default function SubjectsPage() {
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Profesor Asignado</label>
                                     <select
                                         required
-                                        value={formData.formData}
+                                        value={formData.teacherId}
                                         onChange={(e) => setFormData({ ...formData, teacherId: e.target.value })}
                                         className="w-full px-4 py-3 rounded-xl border-2 border-slate-100 font-bold text-sm focus:border-blue-500 focus:ring-0 outline-none transition-colors bg-white"
                                     >
