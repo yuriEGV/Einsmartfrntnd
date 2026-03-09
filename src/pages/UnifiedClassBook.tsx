@@ -175,8 +175,17 @@ const UnifiedClassBook = () => {
             const strictFilter = (stds: any[]) => stds.filter(s => {
                 const sCourseId = s.activeEnrollment?.[0]?.courseId?.toString() || (s.enrolledCourse?.[0]?._id?.toString());
                 if (sCourseId) return sCourseId === selectedCourse;
+
                 const crs = courses.find((c: any) => c._id === selectedCourse);
-                return crs && s.grado && (s.grado === crs.name || s.grado.includes(crs.name));
+                if (!crs) return false;
+
+                if (s.grado === crs.name) return true;
+
+                const normalize = (str: string) => (str || '').replace(/\s+/g, '').toLowerCase();
+                const normGrado = normalize(s.grado);
+                const normCrs = normalize(crs.name);
+
+                return normGrado && normCrs && (normGrado === normCrs || normGrado.includes(normCrs) || normCrs.includes(normGrado));
             });
 
             if (activeTab === 'ficha') {

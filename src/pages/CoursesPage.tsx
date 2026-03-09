@@ -214,8 +214,8 @@ const CoursesPage = () => {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            // Enforce format: Level + Letter in Name
-            const finalName = `${formData.level}${formData.letter}`;
+            // Enforce format: Level + Space + Letter in Name for better readability
+            const finalName = `${formData.level} ${formData.letter}`.trim();
             const payload = { ...formData, name: finalName };
 
             if (modalMode === 'create') {
