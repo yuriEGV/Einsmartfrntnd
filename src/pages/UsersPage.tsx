@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, Shield, Save, Key, X } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 interface UserData {
     _id: string;
@@ -20,6 +21,8 @@ const UsersPage = () => {
     const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+    const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -94,8 +97,47 @@ const UsersPage = () => {
         try {
             await api.delete(`/users/${id}`);
             fetchUsers();
+            setSelectedUsers(prev => prev.filter(uid => uid !== id));
         } catch (error) {
             alert('Error al eliminar');
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedUsers.length === 0) return;
+
+        const count = selectedUsers.length;
+        const confirmMsg = `¿ESTÁS ABSOLUTAMENTE SEGURO?\n\nSe eliminarán de forma PERMANENTE ${count} usuarios y todos sus datos relacionados.\nEsta acción no se puede deshacer.`;
+
+        if (!window.confirm(confirmMsg)) return;
+
+        setIsDeletingBulk(true);
+        try {
+            await api.post('/users/bulk-delete', { userIds: selectedUsers });
+            toast.success(`${count} usuarios eliminados correctamente`);
+            setSelectedUsers([]);
+            fetchUsers();
+        } catch (error: any) {
+            console.error('Bulk delete error:', error);
+            alert(error.response?.data?.message || 'Error al eliminar múltiples usuarios');
+        } finally {
+            setIsDeletingBulk(false);
+        }
+    };
+
+    const toggleSelectUser = (id: string) => {
+        setSelectedUsers(prev =>
+            prev.includes(id)
+                ? prev.filter(uid => uid !== id)
+                : [...prev, id]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedUsers.length === filteredUsers.length) {
+            setSelectedUsers([]);
+        } else {
+            setSelectedUsers(filteredUsers.map(u => u._id));
         }
     };
 
@@ -153,6 +195,36 @@ const UsersPage = () => {
                 </button>
             </div>
 
+            {/* Bulk Actions Bar */}
+            {selectedUsers.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2rem] flex flex-col md:flex-row justify-between items-center gap-4 animate-in slide-in-from-top-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-rose-500 text-white rounded-2xl shadow-lg ring-4 ring-rose-500/20">
+                            <Trash2 size={24} />
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-black text-rose-800 uppercase tracking-tight">{selectedUsers.length} Usuarios Seleccionados</h3>
+                            <p className="text-[10px] font-bold text-rose-400 uppercase tracking-widest">Acción masiva de seguridad</p>
+                        </div>
+                    </div>
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <button
+                            onClick={() => setSelectedUsers([])}
+                            className="flex-1 md:flex-none px-6 py-3 bg-white border border-rose-200 text-rose-800 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all"
+                        >
+                            Cancelar
+                        </button>
+                        <button
+                            onClick={handleBulkDelete}
+                            disabled={isDeletingBulk}
+                            className="flex-1 md:flex-none px-10 py-3 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-rose-700 shadow-xl shadow-rose-900/20 active:scale-95 transition-all flex items-center justify-center gap-2"
+                        >
+                            {isDeletingBulk ? 'Eliminando...' : 'BORRAR SELECCIONADOS'}
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Enhanced Search Bar */}
             <div className="bg-white p-2 rounded-[1.5rem] shadow-xl shadow-blue-900/5 border border-slate-50 flex items-center gap-2 group focus-within:ring-4 focus-within:ring-indigo-500/5 transition-all">
                 <div className="p-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors">
@@ -180,6 +252,14 @@ const UsersPage = () => {
                         <table className="w-full text-left">
                             <thead className="bg-slate-50/50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">
                                 <tr>
+                                    <th className="px-6 py-6 w-10">
+                                        <input
+                                            type="checkbox"
+                                            className="w-5 h-5 rounded border-2 border-slate-200 text-[#11355a] focus:ring-[#11355a] cursor-pointer"
+                                            checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
+                                            onChange={toggleSelectAll}
+                                        />
+                                    </th>
                                     <th className="px-10 py-6">Usuario Identificado</th>
                                     <th className="px-10 py-6">Nivel de Acceso</th>
                                     <th className="px-10 py-6">Correo Electrónico</th>
@@ -188,7 +268,15 @@ const UsersPage = () => {
                             </thead>
                             <tbody className="divide-y divide-slate-50">
                                 {filteredUsers.map(user => (
-                                    <tr key={user._id} className="hover:bg-indigo-50/30 transition-all group">
+                                    <tr key={user._id} className={`hover:bg-indigo-50/30 transition-all group ${selectedUsers.includes(user._id) ? 'bg-indigo-50/50' : ''}`}>
+                                        <td className="px-6 py-6">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 rounded border-2 border-slate-200 text-[#11355a] focus:ring-[#11355a] cursor-pointer"
+                                                checked={selectedUsers.includes(user._id)}
+                                                onChange={() => toggleSelectUser(user._id)}
+                                            />
+                                        </td>
                                         <td className="px-10 py-6">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-12 h-12 rounded-2xl bg-[#11355a] text-white flex items-center justify-center font-black text-lg shadow-lg border-2 border-white">

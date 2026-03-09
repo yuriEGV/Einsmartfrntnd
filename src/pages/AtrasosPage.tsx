@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
@@ -22,6 +23,8 @@ const BLOQUES = ['Bloque 1', 'Bloque 2', 'Bloque 3', 'Bloque 4', 'Bloque 5'];
 export default function AtrasosPage() {
     const { user } = useAuth();
     const permissions = usePermissions();
+    const [searchParams] = useSearchParams();
+    const courseId = searchParams.get('courseId');
     const [atrasos, setAtrasos] = useState<Atraso[]>([]);
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -40,8 +43,8 @@ export default function AtrasosPage() {
         try {
             setLoading(true);
             const [atrasosRes, studentsRes] = await Promise.all([
-                api.get('/atrasos'),
-                api.get('/estudiantes')
+                api.get(courseId ? `/atrasos?courseId=${courseId}` : '/atrasos'),
+                api.get(courseId ? `/estudiantes?cursoId=${courseId}` : '/estudiantes')
             ]);
             setAtrasos(atrasosRes.data);
             setStudents(studentsRes.data);

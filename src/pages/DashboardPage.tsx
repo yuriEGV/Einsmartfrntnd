@@ -35,7 +35,7 @@ const DashboardPage = () => {
                 api.get('/events'),
                 (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
                 (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] }),
-                (['admin', 'sostenedor', 'director'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] })
+                (['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] })
             ]);
 
             setUpcomingEvents(eventsRes.data.slice(0, 3));

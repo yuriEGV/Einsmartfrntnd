@@ -65,6 +65,7 @@ const CoursesPage = () => {
         teacherId: '',
         isComplementary: false
     });
+    const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null);
 
     // Form specific state
     const [formData, setFormData] = useState({
@@ -221,6 +222,34 @@ const CoursesPage = () => {
             console.error(error);
             alert('Error al asignar ramo');
         }
+    };
+
+    const handleEditSubject = (subject: any) => {
+        setEditingSubjectId(subject._id);
+        setNewSubjectData({
+            name: subject.name,
+            teacherId: subject.teacherId?._id || subject.teacherId || '',
+            isComplementary: !!subject.isComplementary
+        });
+    };
+
+    const handleUpdateSubject = async () => {
+        try {
+            await api.put(`/subjects/${editingSubjectId}`, newSubjectData);
+            toast.success('Ramo actualizado');
+            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+            setViewingCourseSubjects(res.data);
+            setEditingSubjectId(null);
+            setNewSubjectData({ name: '', teacherId: '', isComplementary: false });
+        } catch (error) {
+            console.error(error);
+            alert('Error al actualizar ramo');
+        }
+    };
+
+    const handleCancelEditSubject = () => {
+        setEditingSubjectId(null);
+        setNewSubjectData({ name: '', teacherId: '', isComplementary: false });
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -638,9 +667,11 @@ const CoursesPage = () => {
                             </div>
                         </div>
                         <div className="flex-1 overflow-y-auto p-8 space-y-8 bg-slate-50">
-                            {/* Quick Add Form */}
+                            {/* Quick Add / Edit Form */}
                             <div className="bg-white p-6 rounded-[2rem] border-2 border-blue-100 shadow-sm space-y-4">
-                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1">Asignar Nuevo Ramo</h4>
+                                <h4 className="text-[10px] font-black text-blue-600 uppercase tracking-widest ml-1">
+                                    {editingSubjectId ? 'Editar Ramo' : 'Asignar Nuevo Ramo'}
+                                </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <input
                                         placeholder="Nombre del Ramo (Ej: Ciencias)"
@@ -669,13 +700,23 @@ const CoursesPage = () => {
                                         />
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Es Complementario</span>
                                     </label>
-                                    <button
-                                        onClick={handleAssignSubject}
-                                        disabled={!newSubjectData.name || !newSubjectData.teacherId}
-                                        className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-200"
-                                    >
-                                        Asignar ramo
-                                    </button>
+                                    <div className="flex gap-2">
+                                        {editingSubjectId && (
+                                            <button
+                                                onClick={handleCancelEditSubject}
+                                                className="px-6 py-3 bg-slate-100 text-slate-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all shadow-sm"
+                                            >
+                                                Cancelar
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={editingSubjectId ? handleUpdateSubject : handleAssignSubject}
+                                            disabled={!newSubjectData.name || !newSubjectData.teacherId}
+                                            className="px-6 py-3 bg-blue-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all shadow-lg shadow-blue-200"
+                                        >
+                                            {editingSubjectId ? 'Actualizar ramo' : 'Asignar ramo'}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -717,6 +758,13 @@ const CoursesPage = () => {
                                                                 </span>
                                                             )}
                                                             <button
+                                                                onClick={() => handleEditSubject(subject)}
+                                                                className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                                title="Editar ramo"
+                                                            >
+                                                                <Edit size={16} />
+                                                            </button>
+                                                            <button
                                                                 onClick={async () => {
                                                                     if (window.confirm('¿Desvincular este ramo del curso?')) {
                                                                         try {
@@ -724,6 +772,7 @@ const CoursesPage = () => {
                                                                             toast.success('Ramo desvinculado');
                                                                             const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
                                                                             setViewingCourseSubjects(res.data);
+                                                                            if (editingSubjectId === subject._id) handleCancelEditSubject();
                                                                         } catch (err: any) {
                                                                             const msg = err.response?.data?.message || 'Error al eliminar';
                                                                             toast.error(msg);
@@ -734,6 +783,7 @@ const CoursesPage = () => {
                                                                     }
                                                                 }}
                                                                 className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                                title="Eliminar ramo"
                                                             >
                                                                 <Trash2 size={16} />
                                                             </button>

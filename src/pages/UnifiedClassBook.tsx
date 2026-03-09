@@ -754,7 +754,7 @@ const UnifiedClassBook = () => {
                                             La visualización consolidada de atrasos del curso está siendo integrada.
                                             Por favor, utiliza la vista principal de Atrasos en el menú para gestionar los ingresos.
                                         </p>
-                                        <a href="/atrasos" className="inline-block mt-8 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
+                                        <a href={`/atrasos?courseId=${selectedCourse}`} className="inline-block mt-8 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
                                             Ir al Gestor Global de Atrasos
                                         </a>
                                     </div>
