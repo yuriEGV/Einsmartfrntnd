@@ -19,6 +19,11 @@ interface Course {
         _id: string;
         name: string;
     };
+    collaborators?: {
+        _id: string;
+        name: string;
+        email: string;
+    }[];
     createdAt: string;
 }
 
@@ -66,7 +71,8 @@ const CoursesPage = () => {
         letter: '',
         description: '',
         teacherId: '',
-        careerId: ''
+        careerId: '',
+        collaborators: [] as string[]
     });
 
     useEffect(() => {
@@ -136,7 +142,8 @@ const CoursesPage = () => {
                 letter: course.letter || '',
                 description: course.description,
                 teacherId: (course.teacherId && typeof course.teacherId === 'object') ? course.teacherId._id : (course.teacherId || ''),
-                careerId: (course.careerId && typeof course.careerId === 'object') ? course.careerId._id : (course.careerId || '')
+                careerId: (course.careerId && typeof course.careerId === 'object') ? course.careerId._id : (course.careerId || ''),
+                collaborators: course.collaborators?.map((c: any) => c._id || c) || []
             });
         } else {
             setCurrentCourse(null);
@@ -146,7 +153,8 @@ const CoursesPage = () => {
                 letter: '',
                 description: '',
                 teacherId: '',
-                careerId: ''
+                careerId: '',
+                collaborators: []
             });
         }
         setShowModal(true);
@@ -337,6 +345,19 @@ const CoursesPage = () => {
                                         </div>
                                     </div>
 
+                                    {course.collaborators && course.collaborators.length > 0 && (
+                                        <div className="p-3 bg-indigo-50/30 rounded-2xl border border-indigo-50">
+                                            <div className="text-[8px] font-black text-indigo-400 uppercase tracking-widest leading-none mb-2">Docentes Colaboradores</div>
+                                            <div className="flex flex-wrap gap-1">
+                                                {course.collaborators.map(c => (
+                                                    <span key={c._id} className="text-[9px] font-bold text-indigo-600 bg-white px-2 py-0.5 rounded-lg border border-indigo-100 shadow-sm">
+                                                        {c.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Career display moved to header area but keeping this for legacy if needed or removing it to clean up */}
                                     {/* Removing the redundant career block to make space for the button */}
 
@@ -488,6 +509,32 @@ const CoursesPage = () => {
                                                 ))}
                                             </select>
                                         </div>
+                                    </div>
+
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">DOCENTES COLABORADORES</label>
+                                        <div className="w-full px-5 py-4 bg-white border-2 border-slate-100 rounded-2xl max-h-40 overflow-y-auto">
+                                            {teachers.map(t => (
+                                                <div key={t._id} className="flex items-center gap-3 mb-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`collab-${t._id}`}
+                                                        checked={formData.collaborators.includes(t._id)}
+                                                        onChange={e => {
+                                                            const newCollabs = e.target.checked
+                                                                ? [...formData.collaborators, t._id]
+                                                                : formData.collaborators.filter(id => id !== t._id);
+                                                            setFormData({ ...formData, collaborators: newCollabs });
+                                                        }}
+                                                        className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 font-black cursor-pointer"
+                                                    />
+                                                    <label htmlFor={`collab-${t._id}`} className="text-xs font-bold text-slate-600 cursor-pointer select-none">{t.name}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <p className="text-[9px] font-bold text-slate-300 mt-2 ml-1 uppercase tracking-widest">
+                                            Seleccione los profesores que apoyan en este curso además del profesor jefe.
+                                        </p>
                                     </div>
                                 </div>
                             </form>

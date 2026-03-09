@@ -16,6 +16,7 @@ interface Career {
     code?: string;
     teachers?: { _id: string; name: string }[];
     headTeacher?: { _id: string; name: string };
+    profesorJefe?: { _id: string; name: string };
     createdAt: string;
 }
 
@@ -38,9 +39,11 @@ const CareersPage = () => {
         type: 'cientifico-humanista',
         code: '',
         teachers: [] as string[],
-        headTeacher: ''
+        headTeacher: '',
+        profesorJefe: ''
     });
     const [availableTeachers, setAvailableTeachers] = useState<User[]>([]);
+    const [allCourses, setAllCourses] = useState<any[]>([]);
 
     useEffect(() => {
         fetchCareers();
@@ -49,12 +52,14 @@ const CareersPage = () => {
     const fetchCareers = async () => {
         try {
             setLoading(true);
-            const [res, teachersRes] = await Promise.all([
+            const [res, teachersRes, coursesRes] = await Promise.all([
                 api.get('/careers'),
-                api.get('/users?role=teacher')
+                api.get('/users?role=teacher'),
+                api.get('/courses')
             ]);
             setCareers(res.data);
             setAvailableTeachers(teachersRes.data);
+            setAllCourses(coursesRes.data);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -72,9 +77,7 @@ const CareersPage = () => {
             }
             setShowModal(false);
             setEditingCareer(null);
-            setShowModal(false);
-            setEditingCareer(null);
-            setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '' });
+            setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '', profesorJefe: '' });
             fetchCareers();
         } catch (error: any) {
             alert(error.response?.data?.message || 'Error al guardar carrera');
@@ -99,7 +102,8 @@ const CareersPage = () => {
             type: career.type,
             code: career.code || '',
             teachers: career.teachers?.map(t => t._id) || [],
-            headTeacher: career.headTeacher?._id || ''
+            headTeacher: career.headTeacher?._id || '',
+            profesorJefe: career.profesorJefe?._id || ''
         });
         setShowModal(true);
     };
@@ -136,7 +140,7 @@ const CareersPage = () => {
                 <button
                     onClick={() => {
                         setEditingCareer(null);
-                        setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '' });
+                        setFormData({ name: '', description: '', type: 'cientifico-humanista', code: '', teachers: [], headTeacher: '', profesorJefe: '' });
                         setShowModal(true);
                     }}
                     className="bg-[#11355a] text-white px-8 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-widest hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 self-start md:self-center"
@@ -208,6 +212,12 @@ const CareersPage = () => {
                                     <div className="flex items-center gap-2">
                                         <div className="px-2 py-1 bg-purple-50 text-purple-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-purple-100">Jefe Carrera</div>
                                         <span className="text-xs font-bold text-slate-600">{career.headTeacher.name}</span>
+                                    </div>
+                                )}
+                                {career.profesorJefe && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="px-2 py-1 bg-blue-50 text-blue-600 rounded-md text-[9px] font-black uppercase tracking-widest border border-blue-100">Prof. Jefe</div>
+                                        <span className="text-xs font-bold text-slate-600">{career.profesorJefe.name}</span>
                                     </div>
                                 )}
                                 {career.teachers && career.teachers.length > 0 && (
@@ -324,28 +334,69 @@ const CareersPage = () => {
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Docentes Asociados</label>
-                                            <div className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner max-h-40 overflow-y-auto">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Profesor Jefe (Coord. Docente)</label>
+                                            <select
+                                                className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner appearance-none"
+                                                value={formData.profesorJefe}
+                                                onChange={e => setFormData({ ...formData, profesorJefe: e.target.value })}
+                                            >
+                                                <option value="">-- Seleccionar --</option>
                                                 {availableTeachers.map(t => (
-                                                    <div key={t._id} className="flex items-center gap-3 mb-2">
-                                                        <input
-                                                            type="checkbox"
-                                                            id={`teacher-${t._id}`}
-                                                            checked={formData.teachers.includes(t._id)}
-                                                            onChange={e => {
-                                                                const newTeachers = e.target.checked
-                                                                    ? [...formData.teachers, t._id]
-                                                                    : formData.teachers.filter(id => id !== t._id);
-                                                                setFormData({ ...formData, teachers: newTeachers });
-                                                            }}
-                                                            className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
-                                                        />
-                                                        <label htmlFor={`teacher-${t._id}`} className="text-xs text-slate-600 cursor-pointer select-none">{t.name}</label>
-                                                    </div>
+                                                    <option key={t._id} value={t._id}>{t.name}</option>
                                                 ))}
-                                            </div>
+                                            </select>
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Docentes Especialistas Asociados</label>
+                                        <div className="w-full px-6 py-5 bg-slate-50 rounded-[1.5rem] border-2 border-transparent focus:border-indigo-500 focus:bg-white transition-all font-bold text-slate-700 shadow-inner max-h-40 overflow-y-auto">
+                                            {availableTeachers.map(t => (
+                                                <div key={t._id} className="flex items-center gap-3 mb-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        id={`teacher-${t._id}`}
+                                                        checked={formData.teachers.includes(t._id)}
+                                                        onChange={e => {
+                                                            const newTeachers = e.target.checked
+                                                                ? [...formData.teachers, t._id]
+                                                                : formData.teachers.filter(id => id !== t._id);
+                                                            setFormData({ ...formData, teachers: newTeachers });
+                                                        }}
+                                                        className="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500"
+                                                    />
+                                                    <label htmlFor={`teacher-${t._id}`} className="text-xs text-slate-600 cursor-pointer select-none">{t.name}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {editingCareer && (
+                                        <div className="bg-indigo-50/50 p-6 rounded-[2rem] border border-indigo-100">
+                                            <label className="block text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-4 ml-1">Cursos Pertenecientes a esta Especialidad</label>
+                                            <div className="space-y-3">
+                                                {allCourses.filter(c => (c.careerId?._id || c.careerId) === editingCareer._id).length > 0 ? (
+                                                    allCourses.filter(c => (c.careerId?._id || c.careerId) === editingCareer._id).map((course: any) => (
+                                                        <div key={course._id} className="flex items-center justify-between p-3 bg-white rounded-xl border border-indigo-100 shadow-sm">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="bg-indigo-600 text-white text-[10px] font-black px-2 py-1 rounded-lg uppercase">{course.name}</div>
+                                                                <div>
+                                                                    <div className="text-xs font-bold text-slate-700">Prof. Jefe: {course.teacherId?.name || 'No asignado'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-4 text-xs font-bold text-slate-400 uppercase tracking-widest bg-white/50 rounded-xl border border-dashed border-indigo-200">
+                                                        No hay cursos asignados a esta carrera
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <p className="text-[9px] font-bold text-slate-400 mt-4 leading-relaxed uppercase tracking-tighter">
+                                                Para asignar nuevos cursos a esta carrera, diríjase al módulo de "Cursos" y edite la especialidad del nivel correspondiente.
+                                            </p>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 ml-1">Descripción Breve</label>
