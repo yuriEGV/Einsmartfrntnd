@@ -1301,22 +1301,37 @@ const UnifiedClassBook = () => {
                                     {/* Personal Info */}
                                     <div className="space-y-4">
                                         <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">Información Personal</h3>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="p-4 bg-slate-50 rounded-2xl">
-                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Nombre Completo</label>
-                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.nombres} {selectedStudentForDetail.apellidos}</div>
+                                        <div className="flex flex-col md:flex-row gap-6">
+                                            {/* Foto */}
+                                            <div className="shrink-0 flex justify-center">
+                                                <div className="w-32 h-32 rounded-3xl bg-slate-50 border-4 border-slate-100 shadow-xl overflow-hidden flex justify-center items-center text-slate-300">
+                                                    {selectedStudentForDetail.fotoUrl ? (
+                                                        <img src={selectedStudentForDetail.fotoUrl} alt="Foto Estudiante" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-black text-5xl">
+                                                            {selectedStudentForDetail.nombres?.charAt(0)}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div className="p-4 bg-slate-50 rounded-2xl">
-                                                <label className="text-[9px] font-bold text-slate-400 uppercase">RUT</label>
-                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.rut || 'No Registrado'}</div>
-                                            </div>
-                                            <div className="p-4 bg-slate-50 rounded-2xl">
-                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Matrícula</label>
-                                                <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.matricula || 'No Registrada'}</div>
-                                            </div>
-                                            <div className="p-4 bg-slate-50 rounded-2xl">
-                                                <label className="text-[9px] font-bold text-slate-400 uppercase">Email</label>
-                                                <div className="text-sm font-black text-[#11355a] truncate">{selectedStudentForDetail.email}</div>
+                                            {/* Info Grid */}
+                                            <div className="grid grid-cols-2 gap-4 flex-1">
+                                                <div className="p-4 bg-slate-50 rounded-2xl">
+                                                    <label className="text-[9px] font-bold text-slate-400 uppercase">Nombre Completo</label>
+                                                    <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.nombres} {selectedStudentForDetail.apellidos}</div>
+                                                </div>
+                                                <div className="p-4 bg-slate-50 rounded-2xl">
+                                                    <label className="text-[9px] font-bold text-slate-400 uppercase">RUT</label>
+                                                    <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.rut || 'No Registrado'}</div>
+                                                </div>
+                                                <div className="p-4 bg-slate-50 rounded-2xl">
+                                                    <label className="text-[9px] font-bold text-slate-400 uppercase">Matrícula</label>
+                                                    <div className="text-sm font-black text-[#11355a]">{selectedStudentForDetail.matricula || 'No Registrada'}</div>
+                                                </div>
+                                                <div className="p-4 bg-slate-50 rounded-2xl">
+                                                    <label className="text-[9px] font-bold text-slate-400 uppercase">Email</label>
+                                                    <div className="text-sm font-black text-[#11355a] truncate">{selectedStudentForDetail.email}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

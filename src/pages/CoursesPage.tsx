@@ -465,10 +465,10 @@ const CoursesPage = () => {
                                                 <option value="6°">6° Básico</option>
                                                 <option value="7°">7° Básico</option>
                                                 <option value="8°">8° Básico</option>
-                                                <option value="I°">I° Medio</option>
-                                                <option value="II°">II° Medio</option>
-                                                <option value="III°">III° Medio</option>
-                                                <option value="IV°">IV° Medio</option>
+                                                <option value="1° Medio">1° Medio</option>
+                                                <option value="2° Medio">2° Medio</option>
+                                                <option value="3° Medio">3° Medio</option>
+                                                <option value="4° Medio">4° Medio</option>
                                             </select>
                                         </div>
                                         <div className="group">

@@ -4,7 +4,7 @@ import api from '../services/api';
 import { useLocation } from 'react-router-dom';
 import { useTenant } from '../context/TenantContext';
 import { usePermissions } from '../hooks/usePermissions';
-import { Search, Plus, School, Mail, Printer, Trash2, Users, AlertCircle } from 'lucide-react';
+import { Search, Plus, School, Mail, Printer, Trash2, Users, AlertCircle, Camera } from 'lucide-react';
 import { validateRut } from '../services/utils';
 import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 
@@ -14,6 +14,7 @@ interface Student {
     apellidos: string;
     rut?: string;
     matricula?: string;
+    fotoUrl?: string;
     email: string;
     grado: string;
     edad?: number;
@@ -145,6 +146,21 @@ const StudentsPage = () => {
         } catch (error) {
             console.error('Error printing student report:', error);
             alert('Error al generar el reporte imprimible.');
+        }
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('La imagen no puede pesar más de 10MB');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCurrentStudent({ ...currentStudent, fotoUrl: reader.result as string });
+            };
+            reader.readAsDataURL(file);
         }
     };
 
@@ -283,8 +299,12 @@ const StudentsPage = () => {
                                         <div className="relative z-10 flex flex-col h-full">
                                             <div className="flex items-start justify-between mb-6">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-black text-2xl shadow-lg border-4 border-white">
-                                                        {student.nombres.charAt(0)}
+                                                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-500 to-blue-700 text-white flex items-center justify-center font-black text-2xl shadow-lg border-4 border-white overflow-hidden">
+                                                        {student.fotoUrl ? (
+                                                            <img src={student.fotoUrl} alt={student.nombres} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            student.nombres.charAt(0)
+                                                        )}
                                                     </div>
                                                     <div>
                                                         <h3 className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tighter truncate max-w-[150px]">
@@ -406,6 +426,26 @@ const StudentsPage = () => {
                                             <School size={20} />
                                         </div>
                                         <h3 className="text-lg font-black text-slate-700 uppercase tracking-tight">Información del Estudiante</h3>
+                                    </div>
+
+                                    {/* Student Photo Section */}
+                                    <div className="flex flex-col items-center gap-3 mb-6 relative">
+                                        <div className="relative group/photo">
+                                            <div className="w-24 h-24 rounded-[2rem] bg-slate-50 border-4 border-white shadow-xl shadow-blue-900/5 overflow-hidden flex items-center justify-center text-slate-300 transition-all group-hover/photo:scale-105">
+                                                {currentStudent.fotoUrl ? (
+                                                    <img src={currentStudent.fotoUrl} alt="Foto Estudiante" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <Camera size={32} />
+                                                )}
+                                            </div>
+                                            <label className="absolute -bottom-2 -right-2 bg-blue-600 text-white w-9 h-9 flex items-center justify-center rounded-xl shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-110 transition-all border-2 border-white">
+                                                <Camera size={14} />
+                                                <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                                            </label>
+                                        </div>
+                                        <div className="text-center mt-2">
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Foto de Carnet</p>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
