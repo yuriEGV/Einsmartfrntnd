@@ -3,7 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap, Library, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Course {
     _id: string;
@@ -47,6 +48,7 @@ const CoursesPage = () => {
     const [careers, setCareers] = useState<Career[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [subjects, setSubjects] = useState<any[]>([]); // Added for Subject Catalog
 
     // Modal State
     const [showModal, setShowModal] = useState(false);
@@ -80,6 +82,7 @@ const CoursesPage = () => {
         if (!isStudentOrGuardian) {
             fetchTeachers();
             fetchCareers();
+            fetchSubjects(); // Added
         }
     }, [isStudentOrGuardian]);
 
@@ -129,6 +132,15 @@ const CoursesPage = () => {
             setCareers(response.data);
         } catch (error) {
             console.error('Error fetching careers:', error);
+        }
+    };
+
+    const fetchSubjects = async () => {
+        try {
+            const response = await api.get('/subjects');
+            setSubjects(response.data);
+        } catch (error) {
+            console.error('Error fetching subjects:', error);
         }
     };
 
@@ -280,6 +292,31 @@ const CoursesPage = () => {
                     >
                         <Plus size={20} /> NUEVO CURSO
                     </button>
+                )}
+
+                {/* Subject Catalog / Existing Names to avoid duplicates */}
+                {!loading && (
+                    <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-400">
+                                <Library size={20} />
+                            </div>
+                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Nombres en Catálogo (Evitar Duplicados)</h3>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {Array.from(new Set(subjects.map(s => s.name))).sort().map(name => (
+                                <button
+                                    key={name}
+                                    onClick={() => setSearchTerm(name)}
+                                    className="px-4 py-2 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:text-blue-600 shadow-sm"
+                                >
+                                    {name}
+                                </button>
+                            ))}
+                            {subjects.length === 0 && <p className="text-xs text-slate-400 font-medium italic">No hay asignaturas en el catálogo aún.</p>}
+                        </div>
+                        <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tip: Haz clic en un nombre para filtrar y ver sus vinculaciones actuales.</p>
+                    </div>
                 )}
             </div>
 
@@ -644,40 +681,69 @@ const CoursesPage = () => {
 
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Malla Curricular Vigente</h4>
-                                {viewingCourseSubjects.length > 0 ? viewingCourseSubjects.map((subject: any) => (
-                                    <div key={subject._id} className="p-5 bg-white rounded-3xl border-2 border-slate-100 shadow-sm flex items-center justify-between hover:border-blue-200 transition-all animate-in fade-in slide-in-from-bottom-2">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center text-blue-600 shadow-inner font-black">
-                                                {subject.name.charAt(0)}
+                                {viewingCourseSubjects.length > 0 ? (
+                                    Object.entries(
+                                        viewingCourseSubjects.reduce((acc: any, sub: any) => {
+                                            if (!acc[sub.name]) acc[sub.name] = [];
+                                            acc[sub.name].push(sub);
+                                            return acc;
+                                        }, {})
+                                    ).map(([name, group]: [string, any]) => (
+                                        <div key={name} className="bg-white rounded-[2rem] border-2 border-slate-100 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+                                            <div className="flex items-center gap-4 p-5 bg-slate-50 border-b border-slate-100">
+                                                <div className="w-12 h-12 rounded-2xl bg-blue-100 flex items-center justify-center text-blue-600 shadow-inner font-black text-xl">
+                                                    {name.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <div className="font-black text-slate-800 text-lg uppercase tracking-tight">{name}</div>
+                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{group.length} {group.length === 1 ? 'Vinculación' : 'Vinculaciones'}</div>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <div className="font-black text-slate-800 uppercase tracking-tight">{subject.name}</div>
-                                                <div className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                            <div className="p-2 space-y-2">
+                                                {group.map((subject: any) => (
+                                                    <div key={subject._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-transparent hover:border-slate-100 transition-all group/item">
+                                                        <div>
+                                                            <div className="text-xs font-black text-slate-700 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                                            {group.filter((s: any) => s.teacherId?._id === subject.teacherId?._id).length > 1 && (
+                                                                <div className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-1 flex items-center gap-1">
+                                                                    <AlertCircle size={10} /> Registro Duplicado
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            {subject.isComplementary && (
+                                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
+                                                                    Complementario
+                                                                </span>
+                                                            )}
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (window.confirm('¿Desvincular este ramo del curso?')) {
+                                                                        try {
+                                                                            await api.delete(`/subjects/${subject._id}`);
+                                                                            toast.success('Ramo desvinculado');
+                                                                            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
+                                                                            setViewingCourseSubjects(res.data);
+                                                                        } catch (err: any) {
+                                                                            const msg = err.response?.data?.message || 'Error al eliminar';
+                                                                            toast.error(msg);
+                                                                            if (err.response?.status === 403) {
+                                                                                alert('Acceso Denegado: Solo administradores o el profesor asignado pueden eliminar este registro.');
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }}
+                                                                className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                                                            >
+                                                                <Trash2 size={16} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            {subject.isComplementary && (
-                                                <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
-                                                    Complementario
-                                                </span>
-                                            )}
-                                            <button
-                                                onClick={async () => {
-                                                    if (window.confirm('¿Desvincular este ramo del curso?')) {
-                                                        try {
-                                                            await api.delete(`/subjects/${subject._id}`);
-                                                            const res = await api.get(`/subjects?courseId=${viewingCourseId}`);
-                                                            setViewingCourseSubjects(res.data);
-                                                        } catch (err) { alert('Error al eliminar'); }
-                                                    }
-                                                }}
-                                                className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )) : (
+                                    ))
+                                ) : (
                                     <div className="py-20 text-center border-4 border-dashed border-slate-200 rounded-[2.5rem]">
                                         <BookOpen size={48} className="mx-auto text-slate-200 mb-4" />
                                         <p className="text-slate-400 font-bold">No hay ramos registrados para este curso.</p>
