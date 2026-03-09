@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X } from 'lucide-react';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -20,6 +20,7 @@ const DashboardPage = () => {
     const [pendingCitations, setPendingCitations] = useState([]);
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [pendingSignatures, setPendingSignatures] = useState([]);
+    const [accessLogs, setAccessLogs] = useState([]); // [NEW] Access Logs
 
     useEffect(() => {
         if (user) {
@@ -30,15 +31,17 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
         try {
             // Parallel fetch
-            const [eventsRes, statsRes, signaturesRes] = await Promise.all([
+            const [eventsRes, statsRes, signaturesRes, logsRes] = await Promise.all([
                 api.get('/events'),
                 (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
-                (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] })
+                (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] }),
+                (['admin', 'sostenedor', 'director'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] })
             ]);
 
             setUpcomingEvents(eventsRes.data.slice(0, 3));
             if (statsRes.data) setStats(statsRes.data);
             if (signaturesRes.data) setPendingSignatures(signaturesRes.data);
+            if (logsRes.data) setAccessLogs(logsRes.data);
 
             if (user?.role === 'student' || user?.role === 'apoderado') {
                 const [gradesRes, anotRes, citRes] = await Promise.all([
@@ -95,7 +98,7 @@ const DashboardPage = () => {
             )}
 
             {/* Citaciones Pendientes para Apoderados */}
-            {pendingCitations.length > 0 && (
+            {(pendingCitations.filter((c: any) => c.tipo === 'citacion' || !c.tipo).length > 0) && (
                 <div className="bg-blue-50 border-2 border-blue-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500 shadow-xl shadow-blue-900/5">
                     <div className="flex items-center gap-6 text-center md:text-left">
                         <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-200">
@@ -107,13 +110,13 @@ const DashboardPage = () => {
                             </h3>
                             <p className="text-sm font-bold text-blue-700/70">
                                 {user?.role === 'student' || user?.role === 'apoderado'
-                                    ? `Tienes ${pendingCitations.length} citaciones agendadas para entrevista.`
-                                    : `Hay ${pendingCitations.length} citaciones pendientes en el establecimiento.`}
+                                    ? `Tienes citaciones agendadas para entrevista.`
+                                    : `Hay citaciones pendientes en el establecimiento.`}
                             </p>
                         </div>
                     </div>
-                    <div className="flex flex-col gap-2">
-                        {pendingCitations.map((cit: any) => (
+                    <div className="flex flex-col gap-2 w-full md:w-auto">
+                        {pendingCitations.filter((c: any) => c.tipo === 'citacion' || !c.tipo).map((cit: any) => (
                             <div key={cit._id} className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-white/70 px-6 py-2 rounded-2xl border border-blue-100 flex items-center justify-between gap-4 group hover:bg-white transition-all">
                                 <span>{new Date(cit.fecha).toLocaleDateString()} • {cit.hora}</span>
                                 <span className="text-[8px] opacity-60">|</span>
@@ -124,6 +127,64 @@ const DashboardPage = () => {
                                 </span>
                                 <span className="text-[8px] opacity-60">|</span>
                                 <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
+                                {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm('¿Eliminar esta citación?')) {
+                                                await api.delete(`/citaciones/${cit._id}`);
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        className="p-1 hover:bg-rose-50 text-rose-400 rounded-lg transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Peticiones Pendientes */}
+            {(pendingCitations.filter((c: any) => c.tipo === 'peticion').length > 0) && (
+                <div className="bg-purple-50 border-2 border-purple-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500 shadow-xl shadow-purple-900/5 mt-6">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-purple-600 text-white rounded-3xl shadow-xl shadow-purple-200">
+                            <FileText size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-purple-900 uppercase tracking-tighter">
+                                CONTROL DE PETICIONES
+                            </h3>
+                            <p className="text-sm font-bold text-purple-700/70">
+                                Hay peticiones y solicitudes pendientes.
+                            </p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 w-full md:w-auto">
+                        {pendingCitations.filter((c: any) => c.tipo === 'peticion').map((cit: any) => (
+                            <div key={cit._id} className="text-[9px] font-black text-purple-600 uppercase tracking-widest bg-white/70 px-6 py-2 rounded-2xl border border-purple-100 flex items-center justify-between gap-4 group hover:bg-white transition-all">
+                                <span>{new Date(cit.fecha).toLocaleDateString()}</span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="flex-1 truncate uppercase">
+                                    {cit.estudianteId?.nombres} {cit.estudianteId?.apellidos}
+                                </span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
+                                {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm('¿Eliminar esta petición?')) {
+                                                await api.delete(`/citaciones/${cit._id}`);
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        className="p-1 hover:bg-rose-50 text-rose-400 rounded-lg transition-colors"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -436,6 +497,38 @@ const DashboardPage = () => {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* [NEW] Historial de Acceso al Libro de Clases (Solo Directivos) */}
+                {accessLogs.length > 0 && (
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mt-6 lg:col-span-2">
+                        <div
+                            className="px-8 py-6"
+                            style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
+                        >
+                            <h2 className="text-white font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
+                                <Clock size={18} className="text-emerald-300" /> HISTORIAL DE ACCESO LIBRO DIGITAL
+                            </h2>
+                        </div>
+                        <div className="p-6 md:p-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {accessLogs.map((log: any) => (
+                                    <div key={log._id} className="flex items-center gap-4 p-4 hover:bg-slate-50 rounded-[1.5rem] transition-all border border-slate-100 group">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-black text-sm shrink-0 uppercase">
+                                            {log.userId?.name?.charAt(0)}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="font-bold text-slate-800 text-xs leading-tight uppercase truncate">{log.userId?.name}</h4>
+                                            <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{log.courseId?.name} {log.courseId?.letter}</p>
+                                            <p className="text-[8px] font-bold text-emerald-500 uppercase mt-1">
+                                                {new Date(log.createdAt).toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}

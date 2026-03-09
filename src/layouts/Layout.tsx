@@ -226,7 +226,7 @@ const Layout = () => {
                         <NavLink to="/subjects" icon={Library}>{!isCollapsed && "Asignaturas"}</NavLink>
                     )}
 
-                    {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin') && (
+                    {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp' || user?.role === 'inspector_general' || user?.role === 'sostenedor') && (
                         <NavLink to="/class-book" icon={BookOpen}>{!isCollapsed && "Libro de Clases"}</NavLink>
                     )}
 

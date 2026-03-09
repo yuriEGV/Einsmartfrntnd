@@ -234,6 +234,24 @@ const UnifiedClassBook = () => {
 
     useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate, selectedBlock]);
 
+    // [NEW] Log Access to Class Book
+    useEffect(() => {
+        if (selectedCourse) {
+            const logAccess = async () => {
+                try {
+                    await api.post('/logs/class-book', {
+                        courseId: selectedCourse,
+                        action: 'view',
+                        details: `Acceso a libro de clases - Tab: ${activeTab}`
+                    });
+                } catch (err) {
+                    console.error('Error logging access:', err);
+                }
+            };
+            logAccess();
+        }
+    }, [selectedCourse, activeTab]);
+
     // -------------------------------------------------------------------------
     // Handlers
     // -------------------------------------------------------------------------
