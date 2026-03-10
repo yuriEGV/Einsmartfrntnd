@@ -325,7 +325,7 @@ const PlanningPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                         </div>
                                     </div>
                                     <div className="flex gap-1">
-                                        {isTeacher && (
+                                        {(isTeacher || isUTP || isDirector || isSuperAdmin) && (
                                             <>
                                                 <button
                                                     onClick={() => handleEdit(p)}
