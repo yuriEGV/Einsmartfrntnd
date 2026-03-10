@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import {
     UserPlus, Search, BookOpen, ShieldAlert, AlertCircle,
-    DollarSign, UserCheck, CreditCard, ChevronRight, Save, Printer, Trash2
+    DollarSign, UserCheck, CreditCard, ChevronRight, Save, Printer, Trash2, Plus
 } from 'lucide-react';
 import { validateRut, formatRut } from '../services/utils';
 

@@ -25,6 +25,7 @@ interface Student {
     apellidos: string;
     rut: string;
     grado?: string;
+    photoUrl?: string;
 }
 
 const AttendancePage = () => {
