@@ -65,7 +65,35 @@ const CoursesPage = () => {
         teacherId: '',
         isComplementary: false
     });
+    const [isCustomSubject, setIsCustomSubject] = useState(false);
     const [editingSubjectId, setEditingSubjectId] = useState<string | null>(null);
+
+    // Subject Lists
+    const FORMACION_GENERAL = [
+        "Artes Visuales",
+        "Biología",
+        "Ciencias para la Ciudadanía",
+        "Educación Ciudadana",
+        "Educación Física",
+        "Filosofía",
+        "Física",
+        "Historia, Geografía y Ciencias Sociales",
+        "Inglés",
+        "Lengua y Literatura",
+        "Matemática",
+        "Música",
+        "Orientación",
+        "Química",
+        "Religión",
+        "Tecnología"
+    ].sort((a, b) => a.localeCompare(b));
+
+    const allSubjectNames = Array.from(new Set(subjects.map(s => s.name?.trim()))).filter(Boolean);
+    const formacionTecnica = allSubjectNames
+        .filter(n => !FORMACION_GENERAL.includes(n))
+        .filter(n => !/^(ingles|inglés|matematicas|matemática|fisica|física|quimica|química|lenguaje|castellano|alimentos|materiales pesados)$/i.test(n))
+        .sort((a, b) => a.localeCompare(b));
+
 
     // Form specific state
     const [formData, setFormData] = useState({
@@ -250,6 +278,7 @@ const CoursesPage = () => {
     const handleCancelEditSubject = () => {
         setEditingSubjectId(null);
         setNewSubjectData({ name: '', teacherId: '', isComplementary: false });
+        setIsCustomSubject(false);
     };
 
     const handleSave = async (e: React.FormEvent) => {
@@ -673,12 +702,47 @@ const CoursesPage = () => {
                                     {editingSubjectId ? 'Editar Ramo' : 'Asignar Nuevo Ramo'}
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input
-                                        placeholder="Nombre del Ramo (Ej: Ciencias)"
-                                        className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm"
-                                        value={newSubjectData.name}
-                                        onChange={e => setNewSubjectData({ ...newSubjectData, name: e.target.value })}
-                                    />
+                                    <div className="relative">
+                                        {isCustomSubject ? (
+                                            <div className="flex items-center gap-2">
+                                                <input
+                                                    placeholder="Escriba el nombre..."
+                                                    className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm"
+                                                    value={newSubjectData.name}
+                                                    onChange={e => setNewSubjectData({ ...newSubjectData, name: e.target.value })}
+                                                />
+                                                <button 
+                                                    onClick={() => { setIsCustomSubject(false); setNewSubjectData({ ...newSubjectData, name: '' }); }}
+                                                    className="p-3 text-slate-400 hover:text-blue-600 bg-slate-50 border-2 border-slate-100 hover:border-blue-200 rounded-xl transition-all"
+                                                    title="Volver a lista"
+                                                >
+                                                    <Library size={18} />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <select
+                                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm appearance-none"
+                                                value={newSubjectData.name}
+                                                onChange={e => {
+                                                    if (e.target.value === '__OTHER__') {
+                                                        setIsCustomSubject(true);
+                                                        setNewSubjectData({ ...newSubjectData, name: '' });
+                                                    } else {
+                                                        setNewSubjectData({ ...newSubjectData, name: e.target.value });
+                                                    }
+                                                }}
+                                            >
+                                                <option value="">Seleccionar Ramo...</option>
+                                                <optgroup label="Formación General">
+                                                    {FORMACION_GENERAL.map(n => <option key={n} value={n}>{n}</option>)}
+                                                </optgroup>
+                                                <optgroup label="Formación Técnica / Especialidad">
+                                                    {formacionTecnica.map(n => <option key={n} value={n}>{n}</option>)}
+                                                </optgroup>
+                                                <option value="__OTHER__">Otro (Escritura Manual)...</option>
+                                            </select>
+                                        )}
+                                    </div>
                                     <select
                                         className="px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm appearance-none"
                                         value={newSubjectData.teacherId}
@@ -743,22 +807,54 @@ const CoursesPage = () => {
                                             <div className="p-2 space-y-2">
                                                 {group.map((subject: any) => (
                                                     <div key={subject._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-transparent hover:border-slate-100 transition-all group/item">
-                                                        <div>
-                                                            <div className="text-xs font-black text-slate-700 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
-                                                        </div>
+                                                        {editingSubjectId === subject._id ? (
+                                                            <div className="flex-1 mr-4">
+                                                                <select
+                                                                    className="w-full px-3 py-2 bg-slate-50 border-2 border-slate-200 rounded-lg outline-none font-bold text-slate-700 focus:border-blue-500 transition-all text-sm appearance-none"
+                                                                    value={newSubjectData.teacherId}
+                                                                    onChange={e => setNewSubjectData({ ...newSubjectData, teacherId: e.target.value })}
+                                                                >
+                                                                    <option value="">Seleccionar Docente...</option>
+                                                                    {teachers.map((t: any) => (
+                                                                        <option key={t._id} value={t._id}>{t.name}</option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <div className="text-xs font-black text-slate-700 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
+                                                            </div>
+                                                        )}
                                                         <div className="flex items-center gap-2">
                                                             {subject.isComplementary && (
                                                                 <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-100">
                                                                     Complementario
                                                                 </span>
                                                             )}
-                                                            <button
-                                                                onClick={() => handleEditSubject(subject)}
-                                                                className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
-                                                                title="Editar ramo"
-                                                            >
-                                                                <Edit size={16} />
-                                                            </button>
+                                                            {editingSubjectId === subject._id ? (
+                                                                <>
+                                                                    <button
+                                                                        onClick={handleUpdateSubject}
+                                                                        className="px-4 py-1.5 bg-blue-600 text-white rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-sm"
+                                                                    >
+                                                                        Guardar
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={handleCancelEditSubject}
+                                                                        className="px-4 py-1.5 bg-slate-100 text-slate-500 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all shadow-sm"
+                                                                    >
+                                                                        Cancelar
+                                                                    </button>
+                                                                </>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={() => handleEditSubject(subject)}
+                                                                    className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                                                    title="Editar ramo (Asignar docente)"
+                                                                >
+                                                                    <Edit size={16} />
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={async () => {
                                                                     if (window.confirm('¿Desvincular este ramo del curso?')) {
