@@ -42,6 +42,7 @@ import AtrasosPage from './pages/AtrasosPage';
 import AlternanciasPage from './pages/AlternanciasPage';
 import GoogleWorkspacePage from './pages/GoogleWorkspacePage';
 import SubjectsPage from './pages/SubjectsPage';
+import MedicalLicensesPage from './pages/MedicalLicensesPage';
 
 function App() {
   return (
@@ -91,6 +92,7 @@ function App() {
             <Route path="/atrasos" element={<AtrasosPage />} />
             <Route path="/alternancias" element={<AlternanciasPage />} />
             <Route path="/google-workspace" element={<GoogleWorkspacePage />} />
+            <Route path="/medical-licenses" element={<MedicalLicensesPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 

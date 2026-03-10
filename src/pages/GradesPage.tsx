@@ -12,7 +12,8 @@ import {
     GraduationCap,
     AlertCircle,
     ChevronRight,
-    Printer
+    Printer,
+    ShieldCheck
 } from 'lucide-react';
 
 interface Grade {
@@ -23,6 +24,7 @@ interface Grade {
     tenantId: string;
     comments?: string;
     subjectId?: string; // Cache subjectId if possible
+    status?: string; // 'justified' or other
 }
 
 interface Student {
@@ -339,6 +341,12 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                     </div>
                                 </div>
 
+                                {grade.status === 'justified' && (
+                                    <div className="mb-3 px-3 py-1.5 bg-blue-50 text-blue-600 rounded-xl text-[10px] font-black border border-blue-100 flex items-center gap-2">
+                                        <ShieldCheck size={14} /> EVALUACIÓN JUSTIFICADA
+                                    </div>
+                                )}
+
                                 {canManageGrades && (
                                     <div className="mt-auto flex gap-2 pt-4 border-t border-slate-50">
                                         <button onClick={() => {
@@ -467,6 +475,11 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                                                                     {grade.score.toFixed(1)}
                                                                 </div>
                                                             </div>
+                                                            {grade.status === 'justified' && (
+                                                                <div className="mt-2 px-2 py-1 bg-blue-50 text-blue-600 rounded-lg text-[8px] font-black border border-blue-100 flex items-center gap-1">
+                                                                    <ShieldCheck size={10} /> JUSTIFICADA
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>

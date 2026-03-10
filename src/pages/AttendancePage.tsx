@@ -11,6 +11,7 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
+    ShieldCheck
 } from 'lucide-react';
 
 interface Course {
@@ -39,6 +40,7 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState<'current' | 'history'>('current');
     const [historicalRecords, setHistoricalRecords] = useState<any[]>([]);
+    const [activeLicenses, setActiveLicenses] = useState<any[]>([]);
 
     // Stats
     const [stats, setStats] = useState({ present: 0, absent: 0, late: 0, total: 0 });
@@ -124,6 +126,10 @@ const AttendancePage = () => {
 
             setAttendance(attMap);
             setStats({ present: p, absent: a, late: l, total: studs.length });
+
+            // Fetch licenses for this date to show indicators
+            const licRes = await api.get(`/medical-licenses?fecha=${selectedDate}`);
+            setActiveLicenses(licRes.data);
 
         } catch (error) {
             console.error(error);
@@ -398,6 +404,11 @@ const AttendancePage = () => {
                                                                         <div>
                                                                             <div className="text-lg font-black text-slate-700 tracking-tight flex items-center gap-2">
                                                                                 {student.nombres} {student.apellidos}
+                                                                                {activeLicenses.some(lic => lic.userId?._id === student._id || lic.userId === student._id) && (
+                                                                                    <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-black border border-rose-100 animate-pulse">
+                                                                                        <ShieldCheck size={12} /> LICENCIA
+                                                                                    </div>
+                                                                                )}
                                                                             </div>
                                                                             <div className="text-[10px] text-blue-500 font-black font-mono tracking-tighter opacity-60 uppercase">
                                                                                 ID: {student.rut}

@@ -11,7 +11,7 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Building, Briefcase, Cloud, Library
+    Wand2, Building, Briefcase, Cloud, Library, ShieldCheck
 } from 'lucide-react';
 
 const Layout = () => {
@@ -300,6 +300,10 @@ const Layout = () => {
 
                         {(permissions.isStaff && user?.role !== 'student' && user?.role !== 'apoderado') && (
                             <NavLink to="/admin-days" icon={Clock}>{!isCollapsed && "Días Administrativos"}</NavLink>
+                        )}
+
+                        {(permissions.isAdmin || user?.role === 'director' || user?.role === 'sostenedor' || user?.role === 'utp') && (
+                            <NavLink to="/medical-licenses" icon={ShieldCheck}>{!isCollapsed && "Licencias Médicas"}</NavLink>
                         )}
 
                         {permissions.isAdmin && (
