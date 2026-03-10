@@ -174,7 +174,7 @@ const UnifiedClassBook = () => {
             // [FIX] Celo de Datos: Enforce strict filtering of returned students
             const strictFilter = (stds: any[]) => stds.filter(s => {
                 const sCourseId = s.activeEnrollment?.[0]?.courseId?.toString() || (s.enrolledCourse?.[0]?._id?.toString());
-                if (sCourseId) return sCourseId === selectedCourse;
+                if (sCourseId && sCourseId === selectedCourse) return true;
 
                 const crs = courses.find((c: any) => c._id === selectedCourse);
                 if (!crs) return false;
