@@ -9,7 +9,7 @@ interface UserData {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado';
+    role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado' | 'inspector_general';
     rut?: string;
     password?: string;
     profileId?: string;
@@ -159,6 +159,7 @@ const UsersPage = () => {
             case 'asistente_aula': return <span className="bg-amber-100 text-amber-800 px-2 py-1 rounded-full text-xs font-bold">Asistente</span>;
             case 'secretario': return <span className="bg-slate-100 text-slate-800 px-2 py-1 rounded-full text-xs font-bold">Secretario</span>;
             case 'apoderado': return <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-bold">Apoderado</span>;
+            case 'inspector_general': return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-bold">Inspector General</span>;
             default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-bold">{role}</span>;
         }
     };
@@ -469,6 +470,7 @@ const UsersPage = () => {
                                             <option value="secretario">Secretario / Administrativo</option>
                                             <option value="bibliotecario">Bibliotecario</option>
                                             <option value="paradocente">Paradocente</option>
+                                            <option value="inspector_general">Inspector General</option>
                                             <option value="student">Estudiante</option>
                                             <option value="apoderado">Apoderado / Tutor</option>
                                         </select>

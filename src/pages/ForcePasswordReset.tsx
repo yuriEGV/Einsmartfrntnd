@@ -27,7 +27,7 @@ const ForcePasswordReset: React.FC = () => {
 
         setLoading(true);
         try {
-            await api.put(`/users/profile/reset-password`, { password });
+            await api.put(`/users/reset-password`, { password });
 
             // Actualizar el estado local del usuario
             const updatedUser = { ...user, mustChangePassword: false };
