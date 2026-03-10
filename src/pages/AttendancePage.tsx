@@ -398,8 +398,12 @@ const AttendancePage = () => {
                                                             <tr key={student._id} className="group hover:bg-blue-50/20 transition-all duration-300">
                                                                 <td className="px-10 py-8">
                                                                     <div className="flex items-center gap-4">
-                                                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#11355a] flex items-center justify-center font-black group-hover:bg-[#11355a] group-hover:text-white transition-all shadow-sm">
-                                                                            {student.nombres.charAt(0)}
+                                                                        <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#11355a] flex items-center justify-center font-black group-hover:bg-[#11355a] group-hover:text-white transition-all shadow-sm overflow-hidden" title="Foto Alumno">
+                                                                            {student.photoUrl ? (
+                                                                                <img src={student.photoUrl} alt="Foto Alumno" className="w-full h-full object-cover" />
+                                                                            ) : (
+                                                                                student.nombres.charAt(0)
+                                                                            )}
                                                                         </div>
                                                                         <div>
                                                                             <div className="text-lg font-black text-slate-700 tracking-tight flex items-center gap-2">
@@ -481,11 +485,22 @@ const AttendancePage = () => {
                                                     `}
                                                     >
                                                         <div className="flex items-center gap-4 mb-6">
-                                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 border border-slate-100 italic">
-                                                                {student.nombres.charAt(0)}
+                                                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center font-black text-slate-400 border border-slate-100 italic overflow-hidden shrink-0" title="Foto Alumno">
+                                                                {student.photoUrl ? (
+                                                                    <img src={student.photoUrl} alt="Foto Alumno" className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    student.nombres.charAt(0)
+                                                                )}
                                                             </div>
                                                             <div className="min-w-0">
-                                                                <h3 className="font-black text-slate-800 text-md uppercase truncate leading-none mb-1">{student.nombres} {student.apellidos}</h3>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <h3 className="font-black text-slate-800 text-md uppercase truncate leading-none">{student.nombres} {student.apellidos}</h3>
+                                                                    {activeLicenses.some(lic => lic.userId?._id === student._id || lic.userId === student._id) && (
+                                                                        <span className="px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[8px] font-black border border-rose-100 animate-pulse">
+                                                                            LICENCIA
+                                                                        </span>
+                                                                    )}
+                                                                </div>
                                                                 <div className="text-[9px] font-mono text-slate-400 font-bold opacity-60 uppercase">{student.rut}</div>
                                                             </div>
                                                         </div>

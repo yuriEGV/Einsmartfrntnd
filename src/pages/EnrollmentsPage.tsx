@@ -57,7 +57,7 @@ const EnrollmentsPage = () => {
         notes: '',
         metodoPago: 'transferencia',
         // Direct creation data
-        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
+        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '' },
         newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
     });
 
@@ -143,6 +143,20 @@ const EnrollmentsPage = () => {
         }
     };
 
+    const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setFormData(prev => ({
+                    ...prev,
+                    newStudent: { ...prev.newStudent, photoUrl: reader.result as string }
+                }));
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
     const handleDeleteEnrollment = async (id: string) => {
         if (!window.confirm('¿Desea eliminar esta matrícula? Esta acción no se puede deshacer.')) return;
         setLoading(true);
@@ -222,7 +236,7 @@ const EnrollmentsPage = () => {
                 fee: 0,
                 notes: '',
                 metodoPago: 'transferencia',
-                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '' },
+                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '' },
                 newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
             });
             setSearchTermStudent('');
@@ -381,45 +395,65 @@ const EnrollmentsPage = () => {
                                 </div>
                             ) : (
                                 <div className="space-y-6 mb-6 animate-in fade-in duration-300">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input
-                                            placeholder="Nombres"
-                                            maxLength={50}
-                                            required
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newStudent.nombres}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nombres: e.target.value } })}
-                                        />
-                                        <input
-                                            placeholder="Apellidos"
-                                            maxLength={50}
-                                            required
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newStudent.apellidos}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, apellidos: e.target.value } })}
-                                        />
-                                        <input
-                                            placeholder="RUT (ej: 12.345.678-9)"
-                                            maxLength={12}
-                                            required
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newStudent.rut}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: formatRut(e.target.value) } })}
-                                        />
-                                        <input
-                                            type="email"
-                                            placeholder="Email del Alumno"
-                                            required
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newStudent.email}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
-                                        />
-                                        <input
-                                            placeholder="Dirección del Alumno"
-                                            className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newStudent.direccion || ''}
-                                            onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
-                                        />
+                                    <div className="flex flex-col md:flex-row gap-6">
+                                        <div className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-gray-200 rounded-2xl p-4 bg-gray-50 h-[160px] w-[140px] shrink-0 relative overflow-hidden group">
+                                            {formData.newStudent.photoUrl ? (
+                                                <img src={formData.newStudent.photoUrl} alt="Foto Alumno" className="w-full h-full object-cover rounded-xl" />
+                                            ) : (
+                                                <>
+                                                    <div className="bg-white p-3 rounded-full shadow-sm text-blue-500">
+                                                        <Plus size={24} />
+                                                    </div>
+                                                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Subir Foto</span>
+                                                </>
+                                            )}
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                onChange={handlePhotoUpload} 
+                                                className="absolute inset-0 opacity-0 cursor-pointer" 
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
+                                            <input
+                                                placeholder="Nombres"
+                                                maxLength={50}
+                                                required
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                value={formData.newStudent.nombres}
+                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nombres: e.target.value } })}
+                                            />
+                                            <input
+                                                placeholder="Apellidos"
+                                                maxLength={50}
+                                                required
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                value={formData.newStudent.apellidos}
+                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, apellidos: e.target.value } })}
+                                            />
+                                            <input
+                                                placeholder="RUT (ej: 12.345.678-9)"
+                                                maxLength={12}
+                                                required
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                value={formData.newStudent.rut}
+                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: formatRut(e.target.value) } })}
+                                            />
+                                            <input
+                                                type="email"
+                                                placeholder="Email del Alumno"
+                                                required
+                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                value={formData.newStudent.email}
+                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
+                                            />
+                                            <input
+                                                placeholder="Dirección del Alumno"
+                                                className="md:col-span-2 w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                value={formData.newStudent.direccion || ''}
+                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
+                                            />
+                                        </div>
                                     </div>
                                 </div>
                             )}

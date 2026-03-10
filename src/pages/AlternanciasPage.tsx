@@ -144,7 +144,7 @@ export default function AlternanciasPage() {
                     </h1>
                     <p className="text-slate-500 font-bold text-sm tracking-wide">Gestiona el aprendizaje práctico en entornos reales para estudiantes</p>
                 </div>
-                {(permissions.isAdmin || user?.role === 'teacher' || user?.role === 'director' || permissions.isSuperAdmin) && (
+                {(permissions.isAdmin || user?.role === 'teacher' || user?.role === 'director' || user?.role === 'UTP' || permissions.isSuperAdmin) && (
                     <button
                         onClick={() => {
                             setEditingId(null);
@@ -226,7 +226,7 @@ export default function AlternanciasPage() {
                                         </td>
                                         <td className="py-4">
                                             <div className="flex gap-2">
-                                                {(permissions.isAdmin || user?.role === 'director' || user?.role === 'teacher' || permissions.isSuperAdmin) && (
+                                                {(permissions.isAdmin || user?.role === 'director' || user?.role === 'teacher' || user?.role === 'UTP' || permissions.isSuperAdmin) && (
                                                     <button
                                                         onClick={() => handleEdit(alt)}
                                                         className="p-2 text-blue-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors"
@@ -235,7 +235,7 @@ export default function AlternanciasPage() {
                                                         <Edit size={18} />
                                                     </button>
                                                 )}
-                                                {(permissions.isAdmin || user?.role === 'director' || permissions.isSuperAdmin) && (
+                                                {(permissions.isAdmin || user?.role === 'director' || user?.role === 'UTP' || permissions.isSuperAdmin) && (
                                                     <button
                                                         onClick={() => handleDelete(alt._id)}
                                                         className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"

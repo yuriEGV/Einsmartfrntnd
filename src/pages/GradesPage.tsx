@@ -3,6 +3,7 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
+import { useNavigate } from 'react-router-dom';
 import {
     ClipboardList,
     Plus,
@@ -45,6 +46,7 @@ interface Evaluation {
 const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
+    const navigate = useNavigate();
     const canManageGrades = permissions.canEditGrades;
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -251,7 +253,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
                     {!hideHeader && permissions.isStaff && (
                         <button
-                            onClick={() => window.location.href = '/evaluations'}
+                            onClick={() => navigate('/evaluations')}
                             className="bg-emerald-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/20"
                         >
                             <Plus size={20} />
@@ -286,7 +288,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
 
                     {(permissions.isStudent || permissions.isApoderado) && (
                         <button
-                            onClick={() => window.location.href = '/hoja-de-vida'}
+                            onClick={() => navigate('/hoja-de-vida')}
                             className="bg-rose-600 text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/20"
                         >
                             <ClipboardList size={20} />
