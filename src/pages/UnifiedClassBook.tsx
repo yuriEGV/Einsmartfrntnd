@@ -574,8 +574,12 @@ const UnifiedClassBook = () => {
                                         ).map((s: any) => (
                                             <div key={s._id} className="bg-white p-6 rounded-2xl shadow-lg border border-slate-50 relative group hover:border-blue-300 transition-all">
                                                 <div className="flex gap-4">
-                                                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0">
-                                                        <span className="text-xl font-black text-slate-300 uppercase">{s.nombres[0]}{s.apellidos[0]}</span>
+                                                    <div className="w-16 h-16 rounded-2xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                                                        {(s.fotoUrl || s.photoUrl) ? (
+                                                            <img src={s.fotoUrl || s.photoUrl} alt="Foto Alumno" className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <span className="text-xl font-black text-slate-300 uppercase">{s.nombres[0]}{s.apellidos[0]}</span>
+                                                        )}
                                                     </div>
                                                     <div className="flex-1">
                                                         <h4 className="font-black text-[#11355a] text-sm uppercase leading-tight mb-1">{s.apellidos}, {s.nombres}</h4>
