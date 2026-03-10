@@ -745,11 +745,6 @@ const CoursesPage = () => {
                                                     <div key={subject._id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-transparent hover:border-slate-100 transition-all group/item">
                                                         <div>
                                                             <div className="text-xs font-black text-slate-700 uppercase tracking-widest">Docente: {subject.teacherId?.name || 'No asignado'}</div>
-                                                            {group.filter((s: any) => s.teacherId?._id === subject.teacherId?._id).length > 1 && (
-                                                                <div className="text-[9px] font-black text-rose-500 uppercase tracking-widest mt-1 flex items-center gap-1">
-                                                                    <AlertCircle size={10} /> Registro Duplicado
-                                                                </div>
-                                                            )}
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             {subject.isComplementary && (
