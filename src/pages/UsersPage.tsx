@@ -463,6 +463,7 @@ const UsersPage = () => {
                                             <option value="sostenedor">Sostenedor / Dueño</option>
                                             <option value="director">Director / Académico</option>
                                             <option value="utp">Jefe UTP</option>
+                                            <option value="inspector_general">Inspector General</option>
                                             <option value="teacher">Profesor / Docente</option>
                                             <option value="psicologo">Psicólogo</option>
                                             <option value="orientador">Orientador</option>
