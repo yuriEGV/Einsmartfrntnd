@@ -9,8 +9,9 @@ interface SchoolEvent {
     title: string;
     description: string;
     date: string;
+    endDate?: string;
     location: string;
-    type: 'evento' | 'reunion' | 'otro';
+    type: 'evento' | 'reunion' | 'otro' | 'licencia' | 'alternancia';
 }
 
 const EventsPage = () => {
@@ -94,7 +95,11 @@ const EventsPage = () => {
                     {events.map(event => (
                         <div key={event._id} className="bg-white p-5 rounded-lg shadow border-l-4 border-[#11355a]">
                             <div className="flex justify-between items-start">
-                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${event.type === 'reunion' ? 'bg-orange-100 text-orange-800' : 'bg-blue-100 text-blue-800'
+                                <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${
+                                    event.type === 'reunion' ? 'bg-orange-100 text-orange-800' : 
+                                    event.type === 'licencia' ? 'bg-red-100 text-red-800' :
+                                    event.type === 'alternancia' ? 'bg-purple-100 text-purple-800' :
+                                    'bg-blue-100 text-blue-800'
                                     }`}>
                                     {event.type}
                                 </span>
