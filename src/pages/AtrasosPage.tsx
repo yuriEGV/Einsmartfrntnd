@@ -12,6 +12,7 @@ interface Atraso {
     fecha: string;
     bloque: string;
     minutosAtraso: number;
+    minutosLegales?: number;
     motivo: string;
     estado: string;
     registradoPor: { _id: string; name: string };
@@ -131,7 +132,8 @@ export default function AtrasosPage() {
                                 <th>Estudiante</th>
                                 <th>RUT</th>
                                 <th>Fecha / Bloque</th>
-                                <th>Minutos</th>
+                                <th>Minutos Atraso</th>
+                                <th>Min. Legales Descuento</th>
                                 <th>Estado</th>
                                 <th>Registrado Por</th>
                             </tr>
@@ -143,10 +145,11 @@ export default function AtrasosPage() {
                                     <td>${a.estudianteId?.rut || 'S/R'}</td>
                                     <td>${new Date(a.fecha).toLocaleDateString()} - ${a.bloque}</td>
                                     <td style="color: #e11d48; font-weight: bold;">${a.minutosAtraso} min</td>
+                                    <td style="color: #7c3aed; font-weight: bold; background: #f5f3ff;">${a.minutosLegales !== undefined ? a.minutosLegales + ' min' : '-'}</td>
                                     <td>${a.estado}</td>
                                     <td>${a.registradoPor?.name || 'Sistema'}</td>
                                 </tr>
-                            `).join('') : '<tr><td colspan="6" style="text-align: center;">No se encontraron atrasos registrados.</td></tr>'}
+                            `).join('') : '<tr><td colspan="7" style="text-align: center;">No se encontraron atrasos registrados.</td></tr>'}
                         </tbody>
                     </table>
 
@@ -217,7 +220,8 @@ export default function AtrasosPage() {
                                 <tr className="border-b border-slate-200">
                                     <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Estudiante</th>
                                     <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Fecha / Bloque</th>
-                                    <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Minutos</th>
+                                    <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Min. Atraso</th>
+                                    <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Min. Legales</th>
                                     <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Estado</th>
                                     <th className="pb-4 font-black text-xs text-slate-400 tracking-widest uppercase">Acciones</th>
                                 </tr>
@@ -235,6 +239,13 @@ export default function AtrasosPage() {
                                         </td>
                                         <td className="py-4">
                                             <span className="font-bold text-rose-500 text-sm bg-rose-50 px-3 py-1 rounded-full">{atraso.minutosAtraso} min</span>
+                                        </td>
+                                        <td className="py-4">
+                                            {atraso.minutosLegales !== undefined ? (
+                                                <span className="font-bold text-violet-600 text-sm bg-violet-50 px-3 py-1 rounded-full">{atraso.minutosLegales} min</span>
+                                            ) : (
+                                                <span className="font-bold text-slate-300 text-sm">—</span>
+                                            )}
                                         </td>
                                         <td className="py-4">
                                             <span className={`font-black text-[10px] tracking-widest uppercase px-3 py-1 rounded-full ${atraso.estado === 'justificado' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
@@ -255,7 +266,7 @@ export default function AtrasosPage() {
                                 ))}
                                 {filteredAtrasos.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="py-8 text-center text-slate-400 font-bold text-sm">
+                                        <td colSpan={6} className="py-8 text-center text-slate-400 font-bold text-sm">
                                             No se encontraron atrasos registrados.
                                         </td>
                                     </tr>

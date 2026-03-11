@@ -12,6 +12,8 @@ interface SchoolEvent {
     endDate?: string;
     location: string;
     type: 'evento' | 'reunion' | 'otro' | 'licencia' | 'alternancia';
+    colorHex?: string;
+    isLicencia?: boolean;
 }
 
 const EventsPage = () => {
@@ -92,16 +94,27 @@ const EventsPage = () => {
                 <p>Cargando...</p>
             ) : (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    {events.map(event => (
-                        <div key={event._id} className="bg-white p-5 rounded-lg shadow border-l-4 border-[#11355a]">
+                    {events.map(event => {
+                        const isLicencia = event.type === 'licencia' || event.isLicencia;
+                        const borderColor = event.colorHex || (isLicencia ? '#ef4444' : '#11355a');
+                        return (
+                        <div
+                            key={event._id}
+                            className={`p-5 rounded-lg shadow transition-all ${
+                                isLicencia
+                                    ? 'bg-red-50 border-l-[6px]'
+                                    : 'bg-white border-l-4'
+                            }`}
+                            style={{ borderLeftColor: borderColor }}
+                        >
                             <div className="flex justify-between items-start">
                                 <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded ${
+                                    isLicencia ? 'bg-red-200 text-red-800' :
                                     event.type === 'reunion' ? 'bg-orange-100 text-orange-800' : 
-                                    event.type === 'licencia' ? 'bg-red-100 text-red-800' :
                                     event.type === 'alternancia' ? 'bg-purple-100 text-purple-800' :
                                     'bg-blue-100 text-blue-800'
-                                    }`}>
-                                    {event.type}
+                                }`}>
+                                    {isLicencia ? '🏥 Licencia Médica' : event.type}
                                 </span>
                                 {permissions.isAdmin && (
                                     <button onClick={() => handleDelete(event._id)} className="text-gray-400 hover:text-red-500">
@@ -109,10 +122,10 @@ const EventsPage = () => {
                                     </button>
                                 )}
                             </div>
-                            <h3 className="font-bold text-lg mt-2 text-gray-800">{event.title}</h3>
-                            <p className="text-gray-600 text-sm mt-1 line-clamp-2">{event.description}</p>
+                            <h3 className={`font-bold text-lg mt-2 ${isLicencia ? 'text-red-900' : 'text-gray-800'}`}>{event.title}</h3>
+                            <p className={`text-sm mt-1 line-clamp-2 ${isLicencia ? 'text-red-700' : 'text-gray-600'}`}>{event.description}</p>
 
-                            <div className="mt-4 space-y-2 text-sm text-gray-500">
+                            <div className={`mt-4 space-y-2 text-sm ${isLicencia ? 'text-red-500' : 'text-gray-500'}`}>
                                 <div className="flex items-center gap-2">
                                     <Clock size={14} />
                                     {new Date(event.date).toLocaleDateString()} {new Date(event.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -123,7 +136,8 @@ const EventsPage = () => {
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                     {events.length === 0 && <p className="text-gray-500 col-span-3">No hay eventos programados.</p>}
                 </div>
             )}

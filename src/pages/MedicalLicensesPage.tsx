@@ -10,6 +10,7 @@ import {
 interface MedicalLicense {
     _id: string;
     userId: { _id: string; name: string; role: string } | string;
+    userName?: string;  // Campo plano retornado por el backend como fallback
     userType: 'Estudiante' | 'Funcionario';
     fechaInicio: string;
     fechaFin: string;
@@ -23,10 +24,16 @@ interface MedicalLicense {
     createdAt: string;
 }
 
-const getUserName = (userId: MedicalLicense['userId']): string => {
+const getUserName = (license: MedicalLicense): string => {
+    // Prioridad: campo plano userName > objeto userId.name > fallback
+    if (license.userName) return license.userName;
+    const userId = license.userId;
     if (!userId) return 'Usuario desconocido';
+    if (typeof userId === 'object' && userId.name) return userId.name;
+    // Si es string y parece un ObjectId largo, mostrar texto amigable
+    if (typeof userId === 'string' && userId.length > 20) return 'Usuario (ID no resuelto)';
     if (typeof userId === 'string') return userId;
-    return userId.name || 'Sin nombre';
+    return 'Sin nombre';
 };
 
 const MedicalLicensesPage = () => {
@@ -176,7 +183,7 @@ const MedicalLicensesPage = () => {
                                         </span>
                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Desde {new Date(license.fechaInicio).toLocaleDateString()} hasta {new Date(license.fechaFin).toLocaleDateString()}</span>
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{getUserName(license.userId)}</h3>
+                                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{getUserName(license)}</h3>
                                     <p className="text-sm font-bold text-slate-500 italic">{license.tipo} - {license.observaciones || 'Sin observaciones'}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
