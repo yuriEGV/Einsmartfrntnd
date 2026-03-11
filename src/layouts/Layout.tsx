@@ -316,6 +316,10 @@ const Layout = () => {
                         {permissions.canViewSensitiveData && (
                             <NavLink to="/analytics" icon={TrendingUp}>{!isCollapsed && "Reportes"}</NavLink>
                         )}
+                        
+                        {(permissions.isAdmin || permissions.isDirector || user?.role === 'inspector_general' || user?.role === 'sostenedor' || user?.role === 'utp') && (
+                            <NavLink to="/teacher-time-report" icon={Clock}>{!isCollapsed && "Horas Profesores"}</NavLink>
+                        )}
 
                         {permissions.isSuperAdmin && (
                             <NavLink to="/tenants" icon={School}>{!isCollapsed && "Clientes"}</NavLink>

@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Clock, Plus, Search, Trash2, X } from 'lucide-react';
+import { Clock, Plus, Search, Trash2, X, Printer } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 interface Atraso {
@@ -92,6 +92,83 @@ export default function AtrasosPage() {
         a.estudianteId?.apellidos?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const handlePrintAtrasos = () => {
+        const printWindow = window.open('', '_blank');
+        if (printWindow) {
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Reporte de Atrasos Oficial</title>
+                    <style>
+                        body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
+                        .header { border-bottom: 2px solid #11355a; margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+                        .logo-placeholder { width: 60px; height: 60px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 10px; color: #64748b; }
+                        h1 { color: #11355a; margin: 0; font-size: 24px; text-transform: uppercase; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 12px; text-align: left; font-size: 12px; }
+                        th { background: #f8fafc; font-weight: bold; color: #475569; text-transform: uppercase; }
+                        @media print { .no-print { display: none; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <img src="/logo.png" onerror="this.style.display='none'" style="max-height: 60px;" />
+                            <div>
+                                <h1>Registro Oficial de Atrasos</h1>
+                                <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b; font-weight: bold;">Documento Legal Interno</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right; font-size: 12px; color: #64748b;">
+                            <p style="margin: 0;">Fecha Emisión: ${new Date().toLocaleDateString()}</p>
+                            <p style="margin: 5px 0 0 0;">Generado por Sistema EinSmart</p>
+                        </div>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Estudiante</th>
+                                <th>RUT</th>
+                                <th>Fecha / Bloque</th>
+                                <th>Minutos</th>
+                                <th>Estado</th>
+                                <th>Registrado Por</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filteredAtrasos.length > 0 ? filteredAtrasos.map(a => `
+                                <tr>
+                                    <td><b>${a.estudianteId?.nombres} ${a.estudianteId?.apellidos}</b></td>
+                                    <td>${a.estudianteId?.rut || 'S/R'}</td>
+                                    <td>${new Date(a.fecha).toLocaleDateString()} - ${a.bloque}</td>
+                                    <td style="color: #e11d48; font-weight: bold;">${a.minutosAtraso} min</td>
+                                    <td>${a.estado}</td>
+                                    <td>${a.registradoPor?.name || 'Sistema'}</td>
+                                </tr>
+                            `).join('') : '<tr><td colspan="6" style="text-align: center;">No se encontraron atrasos registrados.</td></tr>'}
+                        </tbody>
+                    </table>
+
+                    <div style="margin-top: 60px; width: 100%; display: flex; justify-content: space-around;">
+                        <div style="text-align: center;">
+                            <div style="border-top: 1px solid #333; width: 200px; padding-top: 10px; font-weight: bold;">Firma Inspector General</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="border-top: 1px solid #333; width: 200px; padding-top: 10px; font-weight: bold;">Timbre Institución</div>
+                        </div>
+                    </div>
+
+                    <script>
+                        window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        }
+    };
+
     return (
         <div className="p-6">
             <div className="flex justify-between items-center mb-6">
@@ -101,14 +178,22 @@ export default function AtrasosPage() {
                     </h1>
                     <p className="text-slate-500 font-bold text-sm tracking-wide">Gestiona los atrasos de los estudiantes por bloque</p>
                 </div>
-                {(permissions.isAdmin || user?.role === 'teacher' || user?.role === 'director') && (
+                <div className="flex gap-2">
                     <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-colors shadow-lg shadow-blue-600/20"
+                        onClick={handlePrintAtrasos}
+                        className="bg-white border-2 border-[#11355a] text-[#11355a] hover:bg-slate-50 px-4 py-2 rounded-xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-colors shadow-sm"
                     >
-                        <Plus size={16} /> Registrar Atraso
+                        <Printer size={16} /> Exportar PDF Oficial
                     </button>
-                )}
+                    {(permissions.isAdmin || user?.role === 'teacher' || user?.role === 'director' || user?.role === 'inspector_general') && (
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-colors shadow-lg shadow-blue-600/20"
+                        >
+                            <Plus size={16} /> Registrar Atraso
+                        </button>
+                    )}
+                </div>
             </div>
 
             <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100">

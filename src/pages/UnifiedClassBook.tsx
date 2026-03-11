@@ -41,8 +41,9 @@ const UnifiedClassBook = () => {
 
     // Aula Efectiva (Timer)
     const [isTimerRunning, setIsTimerRunning] = useState(false);
-    const [effectiveDuration, setEffectiveDuration] = useState(0); // in minutes
+    const [effectiveDuration, setEffectiveDuration] = useState(0); // in seconds
     const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
+    const currentSessionRef = useRef({ course: '', subject: '', block: '' });
 
     // Grade Entry Modal
     const [showGradeModal, setShowGradeModal] = useState(false);
@@ -92,26 +93,37 @@ const UnifiedClassBook = () => {
     useEffect(() => {
         let interval: any;
         if (isTimerRunning && timerStartTime) {
+            // Run every second to show real-time progress
             interval = setInterval(() => {
                 const now = Date.now();
-                const elapsed = Math.floor((now - timerStartTime) / 60000); // Minutes
-                setEffectiveDuration(elapsed);
-            }, 60000);
+                const elapsedSeconds = Math.floor((now - timerStartTime) / 1000);
+                setEffectiveDuration(elapsedSeconds);
+            }, 1000);
         }
         return () => clearInterval(interval);
     }, [isTimerRunning, timerStartTime]);
 
-    // Start timer when selecting a block that is currently active or about to start
+    // Manage timer based on session context (prevent resetting on tab switch)
     useEffect(() => {
-        if (selectedBlock && !isTimerRunning) {
-            // In a real app, check if current time matches block time
-            // For now, auto-start when opening the book/selecting block
-            setTimerStartTime(Date.now());
-            setIsTimerRunning(true);
+        if (selectedCourse && selectedSubject && selectedBlock) {
+            const isNewSession =
+                currentSessionRef.current.course !== selectedCourse ||
+                currentSessionRef.current.subject !== selectedSubject ||
+                currentSessionRef.current.block !== selectedBlock;
+            
+            if (isNewSession) {
+                currentSessionRef.current = { course: selectedCourse, subject: selectedSubject, block: selectedBlock };
+                setTimerStartTime(Date.now());
+                setEffectiveDuration(0);
+                setIsTimerRunning(true);
+            }
+        } else {
+            setIsTimerRunning(false);
+            setTimerStartTime(null);
+            setEffectiveDuration(0);
+            currentSessionRef.current = { course: '', subject: '', block: '' };
         }
-    }, [selectedBlock]);
-
-
+    }, [selectedCourse, selectedSubject, selectedBlock]);
 
 
     const handlePrint = useReactToPrint({
@@ -295,7 +307,7 @@ const UnifiedClassBook = () => {
         try {
             await api.post(`/class-logs/${signingLogId}/sign`, {
                 pin,
-                effectiveDuration, // Send the tracked duration
+                effectiveDuration: Math.floor(effectiveDuration / 60), // Send the tracked duration in minutes
                 bloqueHorario: selectedBlock
             });
             alert('Registro firmado exitosamente con firma digital legal.');
@@ -776,7 +788,7 @@ const UnifiedClassBook = () => {
                                                 <div className="flex flex-col">
                                                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Aula Efectiva</span>
                                                     <span className={`text-xl font-black tabular-nums transition-colors ${isTimerRunning ? 'text-blue-600' : 'text-slate-400'}`}>
-                                                        {effectiveDuration}m
+                                                        {Math.floor(effectiveDuration / 60)}m {effectiveDuration % 60}s
                                                     </span>
                                                 </div>
                                             </div>
