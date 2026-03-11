@@ -478,6 +478,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                             </div>
                                         </div>
 
+                                        {/* Ocultar si ya vienen del contexto del libro de clases */}
+                                        {!initialCourseId && (
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Curso</label>
                                             <select
@@ -494,6 +496,8 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                                 ))}
                                             </select>
                                         </div>
+                                        )}
+                                        {!initialSubjectId && (
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Asignatura</label>
                                             <select
@@ -508,6 +512,7 @@ const TestWizard = ({ isOpen, onClose, initialCourseId, initialSubjectId, initia
                                                 ))}
                                             </select>
                                         </div>
+                                        )}
                                     </div>
                                 </div>
 
