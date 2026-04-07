@@ -10,5 +10,14 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
+    // Proxy para dev local: /api → backend en localhost:5000
+    // Esto imita el comportamiento del nginx en Docker
+    proxy: {
+      '/api': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+      }
+    }
   }
 })
+

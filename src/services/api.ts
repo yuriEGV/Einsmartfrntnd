@@ -1,28 +1,46 @@
 import axios from 'axios';
 
+/**
+ * Resolución de la URL base de la API según el entorno:
+ *
+ * 1. VITE_API_URL  → Si se define en .env / en el build de Docker/Vercel
+ * 2. /api          → Docker local: nginx hace proxy interno al backend
+ * 3. localhost     → Desarrollo local sin Docker
+ * 4. Vercel URL    → Producción en la nube (fallback automático)
+ */
 const getBaseURL = () => {
-    // 1. Prioridad: Variable de entorno explícita (VITE_API_URL)
-    let url = import.meta.env.VITE_API_URL;
+    const envUrl = import.meta.env.VITE_API_URL as string | undefined;
 
-    // 2. Si no hay variable y estamos en producción (no localhost), usar backup default
-    if (!url && typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-        url = 'https://einsmart-bcknd.vercel.app/api';
+    if (envUrl) {
+        // Limpiar espacios/saltos que a veces entran en .env
+        return envUrl.trim().replace(/[\r\n]/g, '');
     }
 
-    // 3. Si aún no hay nada (probablemente local), usar localhost
-    if (!url) {
-        url = 'http://localhost:5000/api';
+    if (typeof window !== 'undefined') {
+        const hostname = window.location.hostname;
+
+        // Desarrollo local — sin Docker
+        if (hostname === 'localhost' || hostname === '127.0.0.1') {
+            return 'http://localhost:5000/api';
+        }
+
+        // Docker LAN o cualquier IP privada →
+        // El frontend es servido por nginx que hace proxy de /api al backend.
+        // Usamos ruta relativa para que funcione en cualquier IP del colegio.
+        const isPrivateIP =
+            /^192\.168\./.test(hostname) ||
+            /^10\./.test(hostname) ||
+            /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+
+        if (isPrivateIP) {
+            return '/api';
+        }
+
+        // Producción Vercel (dominio público)
+        return 'https://einsmart-bcknd.vercel.app/api';
     }
 
-    // Limpiar espacios y saltos de línea que a veces se cuelan en .env
-    url = url.trim().replace(/[\r\n]/g, '');
-
-    // Corregir errores de duplicación de protocolo
-    if (url.startsWith('https://https://')) {
-        url = url.replace('https://https://', 'https://');
-    }
-
-    return url;
+    return 'http://localhost:5000/api';
 };
 
 const api = axios.create({
