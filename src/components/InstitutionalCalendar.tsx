@@ -30,13 +30,18 @@ interface InstitutionalCalendarProps {
     studentId?: string;
     guardianId?: string;
     courseId?: string;
+    items: CalendarItem[];
+    licenses?: any[]; // Added optional licenses array
+    onItemClick?: (item: CalendarItem) => void;
+    view?: 'month' | 'week' | 'day';
 }
 
-const InstitutionalCalendar = ({ studentId, guardianId, courseId }: InstitutionalCalendarProps) => {
+const InstitutionalCalendar = ({ studentId, guardianId, courseId, onItemClick, view = 'month' }: InstitutionalCalendarProps) => {
     const { user } = useAuth();
     const { tenant } = useTenant();
     const [currentDate, setCurrentDate] = useState(new Date());
     const [items, setItems] = useState<CalendarItem[]>([]);
+    const [licenses, setLicenses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [newEvent, setNewEvent] = useState({
@@ -63,15 +68,17 @@ const InstitutionalCalendar = ({ studentId, guardianId, courseId }: Institutiona
             if (guardianId) params.append('guardianId', guardianId);
             if (courseId) params.append('courseId', courseId);
 
-            const [evalRes, eventRes] = await Promise.all([
+            const [evalRes, eventRes, licenseRes] = await Promise.all([
                 api.get(`/evaluations?${params.toString()}`),
-                api.get('/events')
+                api.get('/events'),
+                api.get('/medical-licenses/approved')
             ]);
 
             const evals = evalRes.data.map((e: any) => ({ ...e, itemType: 'evaluation' }));
             const events = eventRes.data.map((e: any) => ({ ...e, itemType: 'event' }));
 
             setItems([...evals, ...events]);
+            setLicenses(licenseRes.data);
         } catch (err) {
             console.error('Error fetching calendar data:', err);
         } finally {
@@ -119,7 +126,37 @@ const InstitutionalCalendar = ({ studentId, guardianId, courseId }: Institutiona
 
     const getItemsForDate = (date: Date) => {
         const dateStr = date.toISOString().split('T')[0];
-        return items.filter(e => e.date.split('T')[0] === dateStr);
+        
+        // Exact match for regular events and evaluations
+        // [FIX] Exclude 'licencia' type events coming from the generic /events endpoint to avoid duplication
+        const baseItems = items.filter(e => {
+            const isMatch = e.date.split('T')[0] === dateStr;
+            const isEvaluation = e.itemType === 'evaluation';
+            const isManualEvent = e.itemType === 'event' && (e as any).type !== 'licencia';
+            return isMatch && (isEvaluation || isManualEvent);
+        });
+        
+        // Range match for medical licenses
+        const licenseEvents = licenses.filter(lic => {
+            if (lic.estado !== 'Aprobado') return false;
+            const start = new Date(lic.fechaInicio).toISOString().split('T')[0];
+            const end = new Date(lic.fechaFin).toISOString().split('T')[0];
+            return dateStr >= start && dateStr <= end;
+        }).map(lic => {
+            const isFirstDay = new Date(lic.fechaInicio).toISOString().split('T')[0] === dateStr;
+            return {
+                _id: lic._id,
+                title: isFirstDay ? `Licencia: ${lic.userName || 'Usuario'}` : '🔴 Cont. Licencia',
+                type: 'evento', 
+                category: 'Licencia Médica',
+                date: lic.fechaInicio,
+                color: '#ef4444',
+                itemType: 'event', // This makes it use the event style but we'll customize if needed
+                isLicense: true
+            } as any; 
+        });
+
+        return [...baseItems, ...licenseEvents];
     };
 
     const previousMonth = () => {
@@ -156,9 +193,10 @@ const InstitutionalCalendar = ({ studentId, guardianId, courseId }: Institutiona
                     {dayItems.map(item => (
                         <div
                             key={item._id}
-                            className={`text-[9px] font-black px-2 py-1 rounded-lg truncate flex items-center justify-between group ${item.itemType === 'evaluation'
-                                ? (item.category === 'planificada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')
-                                : 'bg-indigo-100 text-indigo-700'
+                            className={`text-[9px] font-black px-2 py-1 rounded-lg truncate flex items-center justify-between group ${
+                                item.itemType === 'evaluation'
+                                    ? (item.category === 'planificada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')
+                                    : (item.isLicense ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-indigo-100 text-indigo-700')
                                 }`}
                             title={item.title}
                         >

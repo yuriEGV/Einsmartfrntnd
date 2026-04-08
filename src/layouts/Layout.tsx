@@ -318,7 +318,10 @@ const Layout = () => {
                         )}
                         
                         {(permissions.isAdmin || permissions.isDirector || user?.role === 'inspector_general' || user?.role === 'sostenedor' || user?.role === 'utp') && (
-                            <NavLink to="/teacher-time-report" icon={Clock}>{!isCollapsed && "Horas Profesores"}</NavLink>
+                            <>
+                                <NavLink to="/teacher-time-report" icon={Clock}>{!isCollapsed && "Horas Profesores"}</NavLink>
+                                <NavLink to="/classroom-efficiency" icon={TrendingUp}>{!isCollapsed && "Eficiencia en Aula"}</NavLink>
+                            </>
                         )}
 
                         {permissions.isSuperAdmin && (

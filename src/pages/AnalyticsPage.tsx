@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
-import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, ShieldCheck } from 'lucide-react';
+import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, FileText, Activity, Users, ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer
@@ -19,6 +20,7 @@ const AnalyticsPage = () => {
     const [performanceTrends, setPerformanceTrends] = useState([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
+    const [licenseRanking, setLicenseRanking] = useState<any[]>([]);
     const printRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -38,20 +40,23 @@ const AnalyticsPage = () => {
         }
     };
     const fetchAnalytics = async () => {
+        setLoading(true);
         try {
             const params = selectedCourse ? `?courseId=${selectedCourse}` : '';
-            const [topRes, annotRes, studentRes, debtRes, trendRes] = await Promise.all([
+            const [topRes, annotRes, studentRes, debtRes, trendRes, licRes] = await Promise.all([
                 api.get(`/analytics/top-students?limit=10${params ? `&${params.slice(1)}` : ''}`),
                 api.get(`/analytics/annotations-ranking${params}`),
                 api.get(`/analytics/students${params}`),
                 api.get(`/analytics/debtors${params}`),
-                api.get(`/analytics/performance-trends${params}`)
+                api.get(`/analytics/performance-trends${params}`),
+                api.get(`/analytics/licenses-ranking${params}`)
             ]);
             setTopStudents(topRes.data);
             setAnnotationRankings(annotRes.data);
             setStudentAnalytics(studentRes.data);
             setDebtorRanking(debtRes.data);
             setPerformanceTrends(trendRes.data);
+            setLicenseRanking(licRes.data);
         } catch (err) {
             console.error('Error fetching analytics:', err);
         } finally {
@@ -253,7 +258,47 @@ const AnalyticsPage = () => {
                                 >
                                     Ver Listado de Riesgo
                                 </Link>
+                                <Link
+                                    to="/classroom-efficiency"
+                                    className="flex items-center justify-center gap-2 px-8 py-5 bg-[#11355a] text-white rounded-[2rem] font-black uppercase tracking-widest text-sm hover:bg-[#0a233d] transition-all shadow-2xl active:scale-95"
+                                >
+                                    <Activity size={18} />
+                                    Eficiencia en Aula
+                                </Link>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                        <div className="px-8 py-5 bg-gradient-to-r from-blue-700 to-indigo-800">
+                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                                <FileText size={24} />
+                                Ranking de Licencias Médicas
+                            </h2>
+                        </div>
+                        <div className="p-6 space-y-3">
+                            {licenseRanking && licenseRanking.length > 0 ? (
+                                licenseRanking.map((lic: any, index: number) => (
+                                    <div key={lic._id} className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100">
+                                        <div className="w-10 h-10 bg-blue-700 text-white rounded-full flex items-center justify-center font-black">
+                                            {index + 1}
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="font-bold text-gray-800">{lic.name}</div>
+                                            <div className="text-xs text-gray-500">{lic.userType}</div>
+                                        </div>
+                                        <div className="flex items-center gap-2 bg-blue-700 text-white px-4 py-2 rounded-full">
+                                            <span className="font-black">{lic.totalDays}D</span>
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="p-16 text-center text-slate-300 font-black uppercase tracking-[0.2em] text-[10px] border-2 border-dashed border-slate-50 rounded-3xl bg-slate-50/30">
+                                    Sin licencias registradas
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

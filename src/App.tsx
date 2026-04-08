@@ -44,6 +44,7 @@ import GoogleWorkspacePage from './pages/GoogleWorkspacePage';
 import SubjectsPage from './pages/SubjectsPage';
 import MedicalLicensesPage from './pages/MedicalLicensesPage';
 import TeacherTimeReportPage from './pages/TeacherTimeReportPage';
+import ClassroomEfficiencyPage from './pages/ClassroomEfficiencyPage';
 
 function App() {
   return (
@@ -95,6 +96,7 @@ function App() {
             <Route path="/google-workspace" element={<GoogleWorkspacePage />} />
             <Route path="/medical-licenses" element={<MedicalLicensesPage />} />
             <Route path="/teacher-time-report" element={<TeacherTimeReportPage />} />
+            <Route path="/classroom-efficiency" element={<ClassroomEfficiencyPage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 
