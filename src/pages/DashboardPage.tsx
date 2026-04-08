@@ -536,6 +536,7 @@ const DashboardPage = () => {
 
             {/* Institutional Calendar for the whole community */}
             <InstitutionalCalendar
+                items={[]}
                 studentId={user?.role === 'student' ? user._id : undefined}
                 guardianId={user?.role === 'apoderado' ? user._id : undefined}
             />

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Clock, TrendingUp, AlertTriangle, CheckCircle2, Search, Printer, User, BookOpen, AlertCircle } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useTenant } from '../context/TenantContext';
+import { Clock, TrendingUp, AlertTriangle, CheckCircle2, Search, Printer, BookOpen, AlertCircle } from 'lucide-react';
+// import { useAuth } from '../context/AuthContext'; // Removed unused import
+// import { useTenant } from '../context/TenantContext'; // Removed unused import
 import api from '../services/api';
 
 const ClassroomEfficiencyPage = () => {
-    const { tenant } = useTenant();
+    // const { tenant } = useTenant(); // Removed unused variable
+
     const [loading, setLoading] = useState(true);
     const [metrics, setMetrics] = useState<any>(null);
     const [dateRange, setDateRange] = useState('month');

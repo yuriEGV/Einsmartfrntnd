@@ -36,7 +36,7 @@ interface InstitutionalCalendarProps {
     view?: 'month' | 'week' | 'day';
 }
 
-const InstitutionalCalendar = ({ studentId, guardianId, courseId, onItemClick, view = 'month' }: InstitutionalCalendarProps) => {
+const InstitutionalCalendar = ({ studentId, guardianId, courseId }: InstitutionalCalendarProps) => {
     const { user } = useAuth();
     const { tenant } = useTenant();
     const [currentDate, setCurrentDate] = useState(new Date());
