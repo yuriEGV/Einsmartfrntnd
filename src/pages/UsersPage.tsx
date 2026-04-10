@@ -11,6 +11,8 @@ interface UserData {
     email: string;
     role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado' | 'inspector_general';
     rut?: string;
+    phone?: string;
+    address?: string;
     password?: string;
     profileId?: string;
 }
@@ -449,6 +451,33 @@ const UsersPage = () => {
                                         className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:shadow-xl focus:shadow-indigo-500/5 transition-all outline-none font-black text-slate-700"
                                         value={currentUserData.email || ''}
                                         onChange={e => setCurrentUserData({ ...currentUserData, email: e.target.value })}
+                                    />
+                                </div>
+                                <div className="group text-start">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">RUT / IDENTIFICADOR (OPCIONAL)</label>
+                                    <input
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:shadow-xl focus:shadow-indigo-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: 12.345.678-9"
+                                        value={currentUserData.rut || ''}
+                                        onChange={e => setCurrentUserData({ ...currentUserData, rut: e.target.value })}
+                                    />
+                                </div>
+                                <div className="group text-start">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">TELÉFONO DE CONTACTO (OPCIONAL)</label>
+                                    <input
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:shadow-xl focus:shadow-indigo-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: +569 1234 5678"
+                                        value={currentUserData.phone || ''}
+                                        onChange={e => setCurrentUserData({ ...currentUserData, phone: e.target.value })}
+                                    />
+                                </div>
+                                <div className="group text-start">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">DIRECCIÓN (PARTICULAR)</label>
+                                    <input
+                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:shadow-xl focus:shadow-indigo-500/5 transition-all outline-none font-black text-slate-700"
+                                        placeholder="Ej: Av. Siempreviva 742, Valparaíso"
+                                        value={currentUserData.address || ''}
+                                        onChange={e => setCurrentUserData({ ...currentUserData, address: e.target.value })}
                                     />
                                 </div>
                                 <div className="group text-start">
