@@ -314,12 +314,25 @@ const CoursesPage = () => {
     };
 
     const sortedCourses = [...courses].sort((a: any, b: any) => {
-        // Sort by level then letter
-        const levelOrder = ["1°", "2°", "3°", "4°", "5°", "6°", "7°", "8°", "I°", "II°", "III°", "IV°"];
+        // Advanced Sort: Primary levels then Secondary (Medio) levels
+        const levelOrder = [
+            "1°", "2°", "3°", "4°", "5°", "6°", "7°", "8°",
+            "1° Medio", "2° Medio", "3° Medio", "4° Medio",
+            "I°", "II°", "III°", "IV°"
+        ];
         const levelA = levelOrder.indexOf(a.level);
         const levelB = levelOrder.indexOf(b.level);
 
-        if (levelA !== levelB) return levelA - levelB;
+        if (levelA !== -1 && levelB !== -1) {
+            if (levelA !== levelB) return levelA - levelB;
+        } else if (levelA !== -1) {
+            return -1;
+        } else if (levelB !== -1) {
+            return 1;
+        }
+
+        // Fallback to name comparison if levels are not in levelOrder
+        if (a.level !== b.level) return (a.level || '').localeCompare(b.level || '');
         return (a.letter || '').localeCompare(b.letter || '');
     });
 
