@@ -97,9 +97,18 @@ const ScheduleManagementPage = () => {
             if (selectedCourse) url += `&courseId=${selectedCourse}`;
             
             const res = await api.get(url);
-            // res.data now returns { schedules, events, role }
-            setSchedules(res.data.schedules);
-            setEvents(res.data.events);
+            
+            // Polymorphic structure support (Handles {schedules, events} vs [schedules])
+            if (res.data && res.data.schedules) {
+                setSchedules(res.data.schedules || []);
+                setEvents(res.data.events || []);
+            } else if (Array.isArray(res.data)) {
+                setSchedules(res.data || []);
+                setEvents([]);
+            } else {
+                setSchedules([]);
+                setEvents([]);
+            }
         } catch (error) {
             console.error('Error fetching schedules', error);
         } finally {
@@ -188,22 +197,32 @@ const ScheduleManagementPage = () => {
                         </div>
                     )}
                     {canEdit && selectedCourse && (
-                        <button
-                            onClick={() => {
-                                setFormData({
-                                    courseId: selectedCourse,
-                                    subjectId: '',
-                                    teacherId: '',
-                                    dayOfWeek: 1,
-                                    blockId: 1
-                                });
-                                fetchSubjects(selectedCourse);
-                                setShowModal(true);
-                            }}
-                            className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95"
-                        >
-                            <Plus size={18} /> Nuevo Bloque
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <a
+                                href="/subjects"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="bg-slate-100 text-slate-500 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200 active:scale-95"
+                            >
+                                Gestionar Asignaturas
+                            </a>
+                            <button
+                                onClick={() => {
+                                    setFormData({
+                                        courseId: selectedCourse,
+                                        subjectId: '',
+                                        teacherId: '',
+                                        dayOfWeek: 1,
+                                        blockId: 1
+                                    });
+                                    fetchSubjects(selectedCourse);
+                                    setShowModal(true);
+                                }}
+                                className="bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 active:scale-95"
+                            >
+                                <Plus size={18} /> Nuevo Bloque
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
@@ -321,7 +340,9 @@ const ScheduleManagementPage = () => {
                                         onChange={e => setFormData({ ...formData, subjectId: e.target.value })}
                                     >
                                         <option value="">Seleccionar...</option>
-                                        {subjects.map(s => (
+                                        {subjects.length === 0 ? (
+                                            <option disabled>No hay asignaturas vinculadas a este curso</option>
+                                        ) : subjects.map(s => (
                                             <option key={s._id} value={s._id}>{s.name}</option>
                                         ))}
                                     </select>
