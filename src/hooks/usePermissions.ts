@@ -38,7 +38,7 @@ export const usePermissions = (): Permissions => {
     const isDirector = role === 'director';
     const isInspectorGeneral = role === 'inspector_general';
     const isUTP = role === 'utp';
-    const isSuperAdmin = role === 'admin';
+    const isSuperAdmin = (role === 'admin' && user?.email === 'yuri@einsmart.cl') || role === 'superadmin';
     const isStudent = role === 'student';
     const isApoderado = role === 'apoderado';
 
