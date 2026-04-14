@@ -13,6 +13,7 @@ import {
     Bell, BookOpen, CreditCard, User, Clock,
     Wand2, Building, Briefcase, Cloud, Library, ShieldCheck
 } from 'lucide-react';
+import EinsmartMasterSidebar from '../components/EinsmartMasterSidebar';
 
 const Layout = () => {
     const { user, logout } = useAuth();
@@ -161,16 +162,25 @@ const Layout = () => {
                 onClick={closeMenu}
             />
 
-            {/* Sidebar - Precision Engineered Navigation */}
-            <aside
-                className={`
-                    fixed inset-y-0 left-0 z-[65] text-white flex flex-col transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
-                    md:relative md:translate-x-0 border-r border-white/5
-                    ${isMenuOpen ? 'translate-x-0 shadow-[40px_0_80px_-20px_rgba(0,0,0,0.5)] w-[300px]' : '-translate-x-full md:translate-x-0 shadow-none'}
-                    ${isCollapsed ? 'md:w-[90px]' : 'md:w-[300px]'}
-                `}
-                style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
-            >
+            {/* Conditionally Render the Sidebar based on Paradigm Shift */}
+            {permissions.isSuperAdmin ? (
+                <EinsmartMasterSidebar
+                    isCollapsed={isCollapsed}
+                    setIsCollapsed={setIsCollapsed}
+                    user={user}
+                    tenant={tenant}
+                    handleLogout={handleLogout}
+                />
+            ) : (
+                <aside
+                    className={`
+                        fixed inset-y-0 left-0 z-[65] text-white flex flex-col transition-all duration-300 cubic-bezier(0.4, 0, 0.2, 1)
+                        md:relative md:translate-x-0 border-r border-white/5
+                        ${isMenuOpen ? 'translate-x-0 shadow-[40px_0_80px_-20px_rgba(0,0,0,0.5)] w-[300px]' : '-translate-x-full md:translate-x-0 shadow-none'}
+                        ${isCollapsed ? 'md:w-[90px]' : 'md:w-[300px]'}
+                    `}
+                    style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
+                >
                 {/* Desktop Header Enhancement */}
                 <div className={`p-6 hidden md:flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} border-b border-white/5 relative overflow-hidden group h-[88px]`}>
                     <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/5 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000"></div>
@@ -380,6 +390,7 @@ const Layout = () => {
                     </button>
                 </div>
             </aside>
+            )}
 
             {/* Main Application Area */}
             <main className="flex-1 bg-slate-50 md:h-screen overflow-y-auto relative custom-scrollbar">

@@ -5,6 +5,7 @@ import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
 import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X } from 'lucide-react';
+import EinsmartDashboardPage from './EinsmartDashboardPage';
 
 const DashboardPage = () => {
     const { user } = useAuth();
@@ -73,6 +74,10 @@ const DashboardPage = () => {
             console.error('Error loading dashboard data', error);
         }
     };
+
+    if (isSuperAdmin) {
+        return <EinsmartDashboardPage stats={stats} />;
+    }
 
     return (
         <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
