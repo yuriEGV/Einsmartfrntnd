@@ -1,6 +1,38 @@
-import { Activity, School, Users, Server, ShieldCheck, Box } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '../services/api';
+import { Activity, School, Users, Server, ShieldCheck, Box, Cpu, HardDrive, BarChart3, RefreshCcw } from 'lucide-react';
 
 export default function EinsmartDashboardPage({ stats }: { stats: any }) {
+    const [health, setHealth] = useState<any>(null);
+    const [trends, setTrends] = useState<any[]>([]);
+    const [loadingHealth, setLoadingHealth] = useState(true);
+
+    useEffect(() => {
+        fetchHealth();
+        fetchTrends();
+        const interval = setInterval(fetchHealth, 30000); // Pool every 30s
+        return () => clearInterval(interval);
+    }, []);
+
+    const fetchHealth = async () => {
+        try {
+            const res = await api.get('/analytics/system-health');
+            setHealth(res.data);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingHealth(false);
+        }
+    };
+
+    const fetchTrends = async () => {
+        try {
+            const res = await api.get('/analytics/global-trends');
+            setTrends(res.data);
+        } catch (e) {
+            console.error(e);
+        }
+    };
     return (
         <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700 bg-slate-50 min-h-full">
             
@@ -49,19 +81,108 @@ export default function EinsmartDashboardPage({ stats }: { stats: any }) {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl"></div>
                     <div className="flex items-center justify-between mb-6 relative z-10">
                         <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-400"><Server size={24} /></div>
-                        <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest bg-black/20 px-3 py-1 rounded-full border border-emerald-500/20">Uptime</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-emerald-500/50 uppercase tracking-widest bg-black/20 px-3 py-1 rounded-full border border-emerald-500/20">Uptime</span>
+                            <button onClick={fetchHealth} className="p-1 hover:rotate-180 transition-transform duration-500 text-emerald-500/50">
+                                <RefreshCcw size={14} />
+                            </button>
+                        </div>
                     </div>
                     <div className="relative z-10">
                         <p className="text-2xl font-black text-white tracking-tighter uppercase flex items-center gap-3">
-                            <ShieldCheck className="text-emerald-400" size={28} /> Salud Óptima
+                            <ShieldCheck className={health?.system.dbStatus === 'Conectado' ? "text-emerald-400" : "text-rose-400"} size={28} /> 
+                            {health?.system.dbStatus === 'Conectado' ? 'Salud Óptima' : 'Alerta de Nodo'}
                         </p>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Sistema Einsmart Activo</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                            Einsmart activo • {health?.system.uptime || 0}h en línea
+                        </p>
                     </div>
                 </div>
 
             </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Health Metrics Card */}
+                <div className="lg:col-span-1 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                        <Cpu size={16} className="text-blue-500" /> Rendimiento de Infraestructura
+                    </h3>
+                    
+                    <div className="space-y-8">
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">Carga de CPU (1m)</span>
+                                <span className="text-sm font-black text-slate-800">{(health?.system.cpuLoad * 10 || 0).toFixed(1)}%</span>
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-blue-500 transition-all duration-1000" 
+                                    style={{ width: `${Math.min(health?.system.cpuLoad * 10, 100) || 0}%` }}
+                                ></div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-end">
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">Uso de Memoria</span>
+                                <span className="text-sm font-black text-slate-800">{health?.system.memoryUsage || 0}%</span>
+                            </div>
+                            <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                    className="h-full bg-emerald-500 transition-all duration-1000" 
+                                    style={{ width: `${health?.system.memoryUsage || 0}%` }}
+                                ></div>
+                            </div>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                                {health?.system.totalMemGB} GB RAM TOTAL
+                            </p>
+                        </div>
+
+                        <div className="pt-4 border-t border-slate-50">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-slate-50 rounded-2xl text-slate-400"><HardDrive size={20} /></div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-800 uppercase leading-none">Status de DB</p>
+                                    <p className="text-[9px] font-bold text-emerald-500 uppercase mt-1">Sincronizado & Seguro</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Growth Trends Card */}
+                <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100">
+                    <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center gap-2">
+                        <BarChart3 size={16} className="text-purple-500" /> Censo de Alumnos (Último Año)
+                    </h3>
+                    
+                    <div className="h-[200px] flex items-end justify-between gap-3 px-2">
+                        {trends.length > 0 ? trends.map((t, idx) => (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-3 group">
+                                <div className="relative w-full">
+                                    <div 
+                                        className="w-full bg-slate-100 rounded-t-xl group-hover:bg-purple-100 transition-all duration-500 cursor-help"
+                                        style={{ height: `${(t.value / Math.max(...trends.map(x => x.value), 1) * 160) || 10}px` }}
+                                    >
+                                        <div className="absolute -top-6 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-slate-800 text-white text-[8px] px-2 py-1 rounded font-black whitespace-nowrap">
+                                            {t.value} ALUMNOS
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-tighter rotate-45 origin-left">{t.name}</span>
+                            </div>
+                        )) : (
+                            <div className="w-full h-full flex flex-col items-center justify-center text-slate-300">
+                                <BarChart3 size={40} className="mb-2 opacity-20" />
+                                <p className="text-[10px] uppercase font-black tracking-widest">Calculando Probabilidades...</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
             {/* Panel de Topología / Salud de Clúster */}
+
             <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
                 <div className="px-8 py-6 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
                     <h2 className="text-slate-800 font-black uppercase tracking-[0.1em] text-sm flex items-center gap-2">
