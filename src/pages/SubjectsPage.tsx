@@ -23,6 +23,7 @@ export default function SubjectsPage() {
     const [teachers, setTeachers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCourseFilter, setSelectedCourseFilter] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState({
@@ -113,14 +114,19 @@ export default function SubjectsPage() {
         setEditingId(null);
     };
 
-    const filteredSubjects = subjects.filter(s =>
-        s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.courseId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.teacherId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredSubjects = subjects.filter(s => {
+        const matchesSearch = 
+            s.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.courseId?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.teacherId?.name?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesCourse = !selectedCourseFilter || s.courseId?._id === selectedCourseFilter;
+        
+        return matchesSearch && matchesCourse;
+    });
 
     const groupedSubjects = filteredSubjects.reduce((acc, sub) => {
-        const key = sub.name;
+        const key = sub.courseId?.name || 'Sin Curso Asignado';
         if (!acc[key]) acc[key] = [];
         acc[key].push(sub);
         return acc;
@@ -149,15 +155,29 @@ export default function SubjectsPage() {
             </div>
 
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100">
-                <div className="relative mb-8">
-                    <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar asignatura, curso o profesor..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-14 pr-6 py-4 rounded-2xl border-2 border-slate-100 focus:outline-none focus:border-blue-500 text-sm font-bold text-slate-700 bg-slate-50 transition-colors"
-                    />
+                <div className="flex flex-col md:flex-row gap-4 mb-8">
+                    <div className="relative flex-1">
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar asignatura o profesor..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-14 pr-6 py-4 rounded-2xl border-2 border-slate-100 focus:outline-none focus:border-blue-500 text-sm font-bold text-slate-700 bg-slate-50 transition-colors"
+                        />
+                    </div>
+                    <div className="md:w-72">
+                        <select
+                            value={selectedCourseFilter}
+                            onChange={(e) => setSelectedCourseFilter(e.target.value)}
+                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-100 focus:outline-none focus:border-blue-500 text-sm font-bold text-slate-700 bg-slate-50 transition-colors appearance-none"
+                        >
+                            <option value="">Todos los Cursos</option>
+                            {courses.map(c => (
+                                <option key={c._id} value={c._id}>{c.name}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -170,8 +190,8 @@ export default function SubjectsPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-50 border-b border-slate-100">
-                                    <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Detalle Asignatura</th>
-                                    <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Curso Vinculado</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Asignatura</th>
+                                    <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Descripción</th>
                                     <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Profesor a Cargo</th>
                                     <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase">Tipo</th>
                                     <th className="p-4 font-black text-[10px] text-slate-400 tracking-widest uppercase text-right">Acciones</th>
@@ -196,12 +216,15 @@ export default function SubjectsPage() {
                                         {group.map(sub => (
                                             <tr key={sub._id} className="border-b border-slate-50 hover:bg-blue-50/50 transition-colors group/row">
                                                 <td className="p-4 pl-14">
-                                                    <p className="text-xs font-bold text-slate-400 line-clamp-1">{sub.description || 'Sin descripción'}</p>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-xs text-slate-400">
+                                                            {sub.name.charAt(0)}
+                                                        </div>
+                                                        <span className="font-bold text-slate-700 text-sm uppercase">{sub.name}</span>
+                                                    </div>
                                                 </td>
                                                 <td className="p-4">
-                                                    <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 shadow-sm">
-                                                        {sub.courseId?.name || '---'}
-                                                    </span>
+                                                    <p className="text-xs font-bold text-slate-400 line-clamp-1 italic">{sub.description || 'Sin descripción'}</p>
                                                 </td>
                                                 <td className="p-4">
                                                     <p className="font-bold text-slate-700 text-sm">{sub.teacherId?.name || 'Pendiente'}</p>

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Trash2, Calendar, Save, ShieldAlert, Loader2 } from 'lucide-react';
@@ -198,14 +199,12 @@ const ScheduleManagementPage = () => {
                     )}
                     {canEdit && selectedCourse && (
                         <div className="flex items-center gap-3">
-                            <a
-                                href="/subjects"
-                                target="_blank"
-                                rel="noopener noreferrer"
+                            <Link
+                                to="/subjects"
                                 className="bg-slate-100 text-slate-500 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-200 transition-all border border-slate-200 active:scale-95"
                             >
                                 Gestionar Asignaturas
-                            </a>
+                            </Link>
                             <button
                                 onClick={() => {
                                     setFormData({
