@@ -161,8 +161,8 @@ const ScheduleManagementPage = () => {
 
     // Helper to get item in a specific cell
     const getCellContent = (day: number, blockId: number) => {
-        const item = schedules.find(s => s.dayOfWeek === day && (s as any).blockId === blockId);
-        const dayEvents = events.filter(e => {
+        const item = (schedules || []).find(s => s.dayOfWeek === day && (s as any).blockId === blockId);
+        const dayEvents = (events || []).filter(e => {
             const eventDate = new Date(e.date);
             return eventDate.getDay() === day;
         });
@@ -190,7 +190,7 @@ const ScheduleManagementPage = () => {
                                 onChange={(e) => handleCourseChange(e.target.value)}
                             >
                                 <option value="">Seleccionar Curso...</option>
-                                {courses.map(c => (
+                                {Array.isArray(courses) && courses.map(c => (
                                     <option key={c._id} value={c._id}>{c.name}</option>
                                 ))}
                             </select>
