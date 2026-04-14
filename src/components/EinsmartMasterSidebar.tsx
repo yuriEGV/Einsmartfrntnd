@@ -82,7 +82,7 @@ export default function EinsmartMasterSidebar({ isCollapsed, setIsCollapsed, use
 
                 <NavLink to="/" icon={Activity}>Einsmart Dashboard</NavLink>
                 <NavLink to="/tenants" icon={School}>Clientes (Colegios)</NavLink>
-                <NavLink to="/analytics" icon={BarChart3}>Rendimiento Global</NavLink>
+                <NavLink to="/global-analytics" icon={BarChart3}>Rendimiento Global</NavLink>
                 <NavLink to="/audit" icon={Settings}>Trazabilidad y Logs</NavLink>
             </nav>
 

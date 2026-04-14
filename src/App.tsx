@@ -45,6 +45,7 @@ import SubjectsPage from './pages/SubjectsPage';
 import MedicalLicensesPage from './pages/MedicalLicensesPage';
 import TeacherTimeReportPage from './pages/TeacherTimeReportPage';
 import ClassroomEfficiencyPage from './pages/ClassroomEfficiencyPage';
+import GlobalAcademicPerformancePage from './pages/GlobalAcademicPerformancePage';
 
 function App() {
   return (
@@ -97,6 +98,7 @@ function App() {
             <Route path="/medical-licenses" element={<MedicalLicensesPage />} />
             <Route path="/teacher-time-report" element={<TeacherTimeReportPage />} />
             <Route path="/classroom-efficiency" element={<ClassroomEfficiencyPage />} />
+            <Route path="/global-analytics" element={<GlobalAcademicPerformancePage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
 
