@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { useReactToPrint } from 'react-to-print';
@@ -20,7 +20,6 @@ const UnifiedClassBook = () => {
     const [students, setStudents] = useState<any[]>([]);
     const [logs, setLogs] = useState<any[]>([]);
     const [evaluations, setEvaluations] = useState<any[]>([]);
-    const [grades, setGrades] = useState<any[]>([]);
     const [citaciones, setCitaciones] = useState<any[]>([]);
     const [annotations, setAnnotations] = useState<any[]>([]);
 
@@ -39,20 +38,19 @@ const UnifiedClassBook = () => {
     const [signingLogId, setSigningLogId] = useState<string | null>(null);
     const [pin, setPin] = useState('');
 
+    // Tardiness State
+    const [tardinessLogs, setTardinessLogs] = useState<any[]>([]);
+    const [tardinessLoading, setTardinessLoading] = useState(false);
+
+    // Grades Matrix State
+    const [gradeMatrix, setGradeMatrix] = useState<Record<string, Record<string, string>>>({});
+    const [isSavingMatrix, setIsSavingMatrix] = useState(false);
+
     // Aula Efectiva (Timer)
     const [isTimerRunning, setIsTimerRunning] = useState(false);
+    const [isTimerPaused, setIsTimerPaused] = useState(false);
     const [effectiveDuration, setEffectiveDuration] = useState(0); // in seconds
-    const [timerStartTime, setTimerStartTime] = useState<number | null>(null);
     const currentSessionRef = useRef({ course: '', subject: '', block: '' });
-
-    // Grade Entry Modal
-    const [showGradeModal, setShowGradeModal] = useState(false);
-    const [gradeFormData, setGradeFormData] = useState({
-        estudianteId: '',
-        evaluationId: '',
-        score: 4.0,
-        comments: ''
-    });
 
     // Student Detail Modal
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
@@ -92,18 +90,15 @@ const UnifiedClassBook = () => {
 
     useEffect(() => {
         let interval: any;
-        if (isTimerRunning && timerStartTime) {
-            // Run every second to show real-time progress
+        if (isTimerRunning && !isTimerPaused) {
             interval = setInterval(() => {
-                const now = Date.now();
-                const elapsedSeconds = Math.floor((now - timerStartTime) / 1000);
-                setEffectiveDuration(elapsedSeconds);
+                setEffectiveDuration(prev => prev + 1);
             }, 1000);
         }
         return () => clearInterval(interval);
-    }, [isTimerRunning, timerStartTime]);
+    }, [isTimerRunning, isTimerPaused]);
 
-    // Manage timer based on session context (prevent resetting on tab switch)
+    // Reset duration ONLY when session context REALLY changes
     useEffect(() => {
         if (selectedCourse && selectedSubject && selectedBlock) {
             const isNewSession =
@@ -113,13 +108,13 @@ const UnifiedClassBook = () => {
             
             if (isNewSession) {
                 currentSessionRef.current = { course: selectedCourse, subject: selectedSubject, block: selectedBlock };
-                setTimerStartTime(Date.now());
                 setEffectiveDuration(0);
-                setIsTimerRunning(true);
+                setIsTimerRunning(false); // Do not auto-start, teacher must control
+                setIsTimerPaused(false);
             }
         } else {
             setIsTimerRunning(false);
-            setTimerStartTime(null);
+            setIsTimerPaused(false);
             setEffectiveDuration(0);
             currentSessionRef.current = { course: '', subject: '', block: '' };
         }
@@ -173,7 +168,27 @@ const UnifiedClassBook = () => {
                     : '/courses';
 
                 const [cRes, sRes] = await Promise.all([api.get(endpoint), api.get('/subjects')]);
-                setCourses(cRes.data);
+                
+                // [NEW] Robust Chilean Pedagogical Sorting
+                const sortedCourses = cRes.data.sort((a: any, b: any) => {
+                    const getRank = (name: string) => {
+                        const n = name.toLowerCase();
+                        if (n.includes('pre-kínder') || n.includes('prek')) return -3;
+                        if (n.includes('kínder') || n.includes('kinder')) return -2;
+                        if (n.includes('i° medio') || n.includes('1° medio') || n.includes('1 medio')) return 9;
+                        if (n.includes('ii° medio') || n.includes('2° medio') || n.includes('2 medio')) return 10;
+                        if (n.includes('iii° medio') || n.includes('3° medio') || n.includes('3 medio')) return 11;
+                        if (n.includes('iv° medio') || n.includes('4° medio') || n.includes('4 medio')) return 12;
+                        const match = n.match(/(\d+)/);
+                        return match ? parseInt(match[0]) : 50;
+                    };
+                    const rankA = getRank(a.name);
+                    const rankB = getRank(b.name);
+                    if (rankA !== rankB) return rankA - rankB;
+                    return a.name.localeCompare(b.name);
+                });
+                
+                setCourses(sortedCourses);
                 setSubjects(sRes.data);
             } catch (err) { console.error(err); }
         };
@@ -232,13 +247,29 @@ const UnifiedClassBook = () => {
                     setLogs(res.data);
                 } else if (activeTab === 'notas') {
                     const [gradesRes, evalsRes, studRes] = await Promise.all([
-                        api.get('/grades'),
-                        api.get('/evaluations'),
+                        api.get(`/grades?courseId=${selectedCourse}`),
+                        api.get(`/evaluations?courseId=${selectedCourse}&subjectId=${selectedSubject}`),
                         api.get(`/estudiantes?cursoId=${selectedCourse}`)
                     ]);
+                    const filteredStudents = strictFilter(studRes.data);
+                    setStudents(filteredStudents);
+                    setEvaluations(evalsRes.data.slice(0, 10));
+                    
+                    const matrix: Record<string, Record<string, string>> = {};
+                    gradesRes.data.forEach((g: any) => {
+                        const studentId = typeof g.estudianteId === 'object' ? g.estudianteId._id : g.estudianteId;
+                        const evaluationId = typeof g.evaluationId === 'object' ? g.evaluationId._id : g.evaluationId;
+                        if (!matrix[studentId]) matrix[studentId] = {};
+                        matrix[studentId][evaluationId] = g.score.toString();
+                    });
+                    setGradeMatrix(matrix);
+                } else if (activeTab === 'atrasos') {
+                    setTardinessLoading(true);
+                    const res = await api.get(`/atrasos?courseId=${selectedCourse}`);
+                    setTardinessLogs(res.data);
+                    setTardinessLoading(false);
+                    const studRes = await api.get(`/estudiantes?cursoId=${selectedCourse}`);
                     setStudents(strictFilter(studRes.data));
-                    setEvaluations(evalsRes.data.filter((e: any) => (e.courseId?._id || e.courseId) === selectedCourse));
-                    setGrades(gradesRes.data);
                 }
             }
         } catch (err) { console.error('REFRESH ERROR:', err); }
@@ -319,18 +350,6 @@ const UnifiedClassBook = () => {
         } catch (err) { alert('Error al firmar documento.'); }
     };
 
-    const handleSaveGrade = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            await api.post('/grades', gradeFormData);
-            alert('Calificación ingresada correctamente.');
-            setShowGradeModal(false);
-            setGradeFormData({ ...gradeFormData, estudianteId: '', evaluationId: '', score: 4.0 });
-            refreshTabContent();
-        } catch (err: any) {
-            alert(err.response?.data?.message || 'Error al guardar calificación.');
-        }
-    };
 
 
     const handleSaveCitacion = async (e: React.FormEvent) => {
@@ -362,6 +381,53 @@ const UnifiedClassBook = () => {
             refreshTabContent();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al registrar la anotación.');
+        }
+    };
+
+    const handleBulkGradeSave = async () => {
+        setIsSavingMatrix(true);
+        try {
+            const gradesPayload: any[] = [];
+            Object.entries(gradeMatrix).forEach(([estId, evals]) => {
+                Object.entries(evals).forEach(([evId, score]) => {
+                    if (score) gradesPayload.push({ estudianteId: estId, evaluationId: evId, score });
+                });
+            });
+            await api.post('/grades/bulk', { grades: gradesPayload });
+            alert('Matriz de calificaciones actualizada.');
+            refreshTabContent();
+        } catch (error: any) {
+            alert(error.response?.data?.message || 'Error al guardar calificaciones');
+        } finally {
+            setIsSavingMatrix(false);
+        }
+    };
+
+    const handleAddTardiness = async (student: any) => {
+        const mins = window.prompt(`Minutos de atraso para ${student.apellidos}:`, "15");
+        if (!mins) return;
+        try {
+            await api.post('/atrasos', {
+                estudianteId: student._id,
+                fecha: new Date(),
+                minutosAtraso: parseInt(mins),
+                bloque: selectedBlock,
+                motivo: 'Ingreso tardío jornada'
+            });
+            alert('Atraso registrado');
+            refreshTabContent();
+        } catch (error) {
+            alert('Error al registrar atraso');
+        }
+    };
+
+    const handleDeleteTardiness = async (id: string) => {
+        if (!window.confirm('¿Eliminar este registro de atraso?')) return;
+        try {
+            await api.delete(`/atrasos/${id}`);
+            refreshTabContent();
+        } catch (error) {
+            alert('Error al eliminar');
         }
     };
 
@@ -751,28 +817,78 @@ const UnifiedClassBook = () => {
 
                             {/* TAB CONTEXT: ATRASOS */}
                             {activeTab === 'atrasos' && (
-                                <div className="space-y-8 animate-in fade-in duration-500">
-                                    <div className="flex justify-between items-center bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-in fade-in duration-500">
+                                    <div className="lg:col-span-1 bg-white rounded-[3rem] shadow-xl border border-slate-100 p-10 space-y-8 self-start">
                                         <div>
                                             <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter flex items-center gap-3">
-                                                <Clock size={28} className="text-blue-500" /> Registro de Atrasos
+                                                <Clock size={28} className="text-rose-600" /> Control de Atrasos
                                             </h2>
-                                            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-2 flex items-center gap-2">
-                                                <ShieldCheck size={14} className="text-emerald-500" /> Control Oficial Diario
+                                            <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest mt-2">Gestión de puntualidad reglamentaria</p>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Seleccionar Estudiante</label>
+                                            <div className="relative">
+                                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
+                                                <select 
+                                                    className="w-full pl-12 pr-6 py-5 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-xs outline-none focus:border-rose-500 transition-all appearance-none"
+                                                    onChange={e => {
+                                                        const student = students.find(s => s._id === e.target.value);
+                                                        if (student) handleAddTardiness(student);
+                                                    }}
+                                                >
+                                                    <option value="">-- Buscar Alumno --</option>
+                                                    {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(s => (
+                                                        <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-6 bg-rose-50 rounded-3xl border border-rose-100 text-rose-700">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest">Información Administrativa</label>
+                                            </div>
+                                            <p className="text-[10px] font-bold leading-relaxed">
+                                                Los atrasos registrados impactan automáticamente en el informe legal de asistencia mensual y se notifican al apoderado vía app.
                                             </p>
                                         </div>
                                     </div>
 
-                                    <div className="bg-white p-10 rounded-[3rem] shadow-xl border-4 border-slate-50 text-center">
-                                        <Clock size={80} className="mx-auto text-slate-200 mb-6" />
-                                        <h3 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter mb-2">Módulo en Desarrollo</h3>
-                                        <p className="text-slate-400 font-bold text-sm tracking-wide">
-                                            La visualización consolidada de atrasos del curso está siendo integrada.
-                                            Por favor, utiliza la vista principal de Atrasos en el menú para gestionar los ingresos.
-                                        </p>
-                                        <a href={`/atrasos?courseId=${selectedCourse}`} className="inline-block mt-8 bg-blue-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-blue-900/20">
-                                            Ir al Gestor Global de Atrasos
-                                        </a>
+                                    <div className="lg:col-span-2 space-y-4">
+                                        {tardinessLoading ? (
+                                            <div className="flex justify-center p-20"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose-600"></div></div>
+                                        ) : tardinessLogs.length === 0 ? (
+                                            <div className="bg-white rounded-[3rem] p-32 text-center border-4 border-dashed border-slate-100">
+                                                <Clock size={60} className="mx-auto text-slate-100 mb-6" />
+                                                <p className="text-slate-300 font-black uppercase text-xs tracking-[0.2em]">Sin atrasos registrados hoy</p>
+                                            </div>
+                                        ) : (
+                                            tardinessLogs.map(t => (
+                                                <div key={t._id} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-50 flex items-center justify-between hover:scale-[1.01] transition-all group">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="w-16 h-16 rounded-2xl bg-rose-50 flex flex-col items-center justify-center border border-rose-100">
+                                                            <span className="text-xl font-black text-rose-600 leading-none">{t.minutosAtraso}</span>
+                                                            <span className="text-[8px] font-black text-rose-400 uppercase">Min</span>
+                                                        </div>
+                                                        <div>
+                                                            <div className="font-black text-[#11355a] text-sm uppercase">{t.estudianteId?.apellidos}, {t.estudianteId?.nombres}</div>
+                                                            <div className="text-[10px] font-bold text-slate-400 uppercase mt-1 flex items-center gap-2">
+                                                                <span className="bg-slate-100 px-2 py-0.5 rounded-md">{t.bloque}</span>
+                                                                <span>•</span>
+                                                                <span>{new Date(t.fecha).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })} hrs</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleDeleteTardiness(t._id)}
+                                                        className="p-4 text-slate-200 hover:text-rose-600 hover:bg-rose-50 rounded-2xl transition-all"
+                                                    >
+                                                        <Trash2 size={20} />
+                                                    </button>
+                                                </div>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -780,18 +896,44 @@ const UnifiedClassBook = () => {
                             {/* TAB CONTEXT: LECCIONARIO */}
                             {activeTab === 'leccionario' && (
                                 <div className="space-y-8">
-                                    <div className="flex justify-between items-center px-4">
+                                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 px-4">
                                         <h2 className="text-2xl font-black text-[#11355a] uppercase tracking-tighter">Leccionario Digital (Firmado)</h2>
-                                        <div className="flex items-center gap-6">
-                                            <div className={`flex items-center gap-3 px-6 py-3 rounded-2xl border-2 transition-all ${isTimerRunning ? 'bg-blue-50 border-blue-200 animate-pulse' : 'bg-slate-50 border-slate-100'}`}>
-                                                <div className={`w-3 h-3 rounded-full ${isTimerRunning ? 'bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]' : 'bg-slate-300'}`}></div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Aula Efectiva</span>
-                                                    <span className={`text-xl font-black tabular-nums transition-colors ${isTimerRunning ? 'text-blue-600' : 'text-slate-400'}`}>
+                                        
+                                        <div className="flex flex-wrap items-center gap-4">
+                                            {/* MANUAL TIMER CONTROLS */}
+                                            <div className="flex bg-slate-50 p-2 rounded-2xl border-2 border-slate-100 items-center gap-2">
+                                                {!isTimerRunning ? (
+                                                    <button 
+                                                        onClick={() => { setIsTimerRunning(true); setIsTimerPaused(false); }}
+                                                        className="px-6 py-2 bg-emerald-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-emerald-900/20 flex items-center gap-2"
+                                                    >
+                                                        <Clock size={16} /> Iniciar Clase
+                                                    </button>
+                                                ) : (
+                                                    <>
+                                                        <button 
+                                                            onClick={() => setIsTimerPaused(!isTimerPaused)}
+                                                            className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${isTimerPaused ? 'bg-amber-500 text-white shadow-amber-900/20' : 'bg-slate-200 text-slate-600'} hover:scale-105`}
+                                                        >
+                                                            {isTimerPaused ? 'Reanudar' : 'Pausar'}
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => { setIsTimerRunning(false); setIsTimerPaused(false); setEffectiveDuration(0); }}
+                                                            className="px-6 py-2 bg-rose-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all"
+                                                        >
+                                                            Reset
+                                                        </button>
+                                                    </>
+                                                )}
+                                                
+                                                <div className="px-4 py-2 border-l-2 border-slate-200">
+                                                    <div className="text-[8px] font-black text-slate-400 uppercase leading-none mb-1">Aula Efectiva</div>
+                                                    <div className={`text-lg font-black tabular-nums ${isTimerRunning && !isTimerPaused ? 'text-blue-600 animate-pulse' : 'text-slate-400'}`}>
                                                         {Math.floor(effectiveDuration / 60)}m {effectiveDuration % 60}s
-                                                    </span>
+                                                    </div>
                                                 </div>
                                             </div>
+
                                             <button onClick={() => setShowLogForm(true)} disabled={!selectedSubject}
                                                 className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl disabled:opacity-50">NUEVA FIRMA DE CLASE</button>
                                         </div>
@@ -861,60 +1003,102 @@ const UnifiedClassBook = () => {
                                 </div>
                             )}
 
-                            {/* TAB CONTEXT: NOTAS */}
+                            {/* TAB CONTEXT: NOTAS (BULK MATRIX) */}
                             {activeTab === 'notas' && (
-                                <div className="space-y-6 bg-white p-8 rounded-2xl shadow-xl border border-slate-100">
-                                    <div className="flex justify-between items-center border-b border-slate-50 pb-6 mb-2">
-                                        <h2 className="text-xl font-black text-[#11355a] uppercase tracking-tighter">
-                                            Notas - {courses.find(c => c._id === selectedCourse)?.name || 'Seleccione Curso'}
-                                        </h2>
-                                        <div className="px-4 py-2 bg-amber-50 rounded-lg border border-amber-100">
-                                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">Decreto 67</span>
+                                <div className="space-y-8 animate-in fade-in duration-500">
+                                    <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
+                                        <div className="flex-1">
+                                            <h3 className="text-2xl font-black text-[#11355a] tracking-tighter uppercase">Matriz de Calificaciones Global</h3>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Decreto 67</span>
+                                                <span className="text-slate-400 font-bold text-[10px]">Ingreso de Alto Rendimiento • Máx 10 Columnas</span>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 w-full xl:w-auto">
+                                            <button 
+                                                onClick={handleBulkGradeSave}
+                                                disabled={isSavingMatrix || !selectedSubject}
+                                                className="flex-1 xl:flex-none bg-emerald-600 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
+                                            >
+                                                {isSavingMatrix ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div> : <Save size={20}/>}
+                                                GUARDAR CAMBIOS MATRIZ
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="flex justify-end items-center px-4">
-                                        <button onClick={() => setShowGradeModal(true)} className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl">INGRESAR NOTA</button>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full text-left min-w-[800px]">
-                                            <thead>
-                                                <tr className="border-b-2 border-slate-50">
-                                                    <th className="pb-8 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">Estudiante</th>
-                                                    {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => (
-                                                        <th key={ev._id} className="pb-8 px-4 text-center">
-                                                            <div className="text-[10px] font-black text-blue-600 uppercase tracking-widest truncate max-w-[100px]">{ev.title}</div>
-                                                            <div className="text-[8px] font-bold text-slate-300">{ev.date ? new Date(ev.date).toLocaleDateString() : 'S/F'}</div>
-                                                        </th>
-                                                    ))}
-                                                    <th className="pb-8 px-8 text-center text-[10px] font-black text-slate-900 uppercase tracking-widest">P. Final</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-slate-50">
-                                                {(Array.isArray(students) ? students : []).map((s: any) => {
-                                                    const sGrades = (Array.isArray(grades) ? grades : []).filter((g: any) => (g.estudianteId?._id || g.estudianteId) === s._id);
-                                                    const total = sGrades.reduce((acc, curr) => acc + (curr.score || 0), 0);
-                                                    const avg = sGrades.length > 0 ? (total / sGrades.length).toFixed(1) : '-';
-                                                    return (
-                                                        <tr key={s._id} className="hover:bg-slate-50/50 transition-all">
-                                                            <td className="py-6 px-4 font-black text-[#11355a] text-sm uppercase">{s.apellidos}, {s.nombres}</td>
-                                                            {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => {
-                                                                const gradeItem = sGrades.find((g: any) => (g.evaluationId?._id || g.evaluationId) === ev._id);
-                                                                return (
-                                                                    <td key={ev._id} className="py-6 px-4 text-center">
-                                                                        {gradeItem ? (
-                                                                            <span className={`w-12 py-2 inline-block rounded-xl font-black text-sm shadow-sm ${gradeItem.score >= 4 ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-rose-50 text-rose-600 border border-rose-100'}`}>{gradeItem.score.toFixed(1)}</span>
-                                                                        ) : <span className="text-slate-200">-</span>}
-                                                                    </td>
-                                                                );
-                                                            })}
-                                                            <td className="py-6 px-8 text-center">
-                                                                <div className={`text-lg font-black ${Number(avg) >= 4 ? 'text-blue-600' : Number(avg) < 4 ? 'text-rose-600' : 'text-slate-100'}`}>{avg}</div>
-                                                            </td>
+
+                                    <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
+                                        {!selectedSubject ? (
+                                            <div className="p-40 text-center space-y-6">
+                                                <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto text-slate-200">
+                                                    <ClipboardList size={40} />
+                                                </div>
+                                                <h3 className="text-xl font-black text-slate-300 uppercase tracking-tight">Seleccione una Asignatura para calificar</h3>
+                                            </div>
+                                        ) : (
+                                            <div className="overflow-x-auto">
+                                                <table className="w-full text-left border-collapse">
+                                                    <thead>
+                                                        <tr className="bg-slate-50/50">
+                                                            <th className="p-8 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50/80 backdrop-blur-md z-10 w-80 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.1)]">Alumno / Estudiante</th>
+                                                            {evaluations.map(ev => (
+                                                                <th key={ev._id} className="p-8 border-b text-center min-w-[140px] group">
+                                                                    <div className="text-[10px] font-black text-[#11355a] uppercase tracking-tight truncate max-w-[120px] mx-auto mb-1" title={ev.title}>{ev.title}</div>
+                                                                    <div className="text-[8px] font-bold text-slate-300 uppercase">{new Date(ev.date).toLocaleDateString()}</div>
+                                                                </th>
+                                                            ))}
+                                                            {/* Empty slots for consistency */}
+                                                            {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => (
+                                                                <th key={`empty-h-${i}`} className="p-8 border-b text-center min-w-[140px] opacity-10">
+                                                                    <div className="text-[10px] font-black text-slate-200 uppercase">Filtro {evaluations.length + i + 1}</div>
+                                                                </th>
+                                                            ))}
                                                         </tr>
-                                                    );
-                                                })}
-                                            </tbody>
-                                        </table>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-50">
+                                                        {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => (
+                                                            <tr key={student._id} className="hover:bg-blue-50/20 transition-all group">
+                                                                <td className="p-8 font-black text-[#11355a] text-sm uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300 text-[10px] group-hover:bg-blue-500 group-hover:text-white transition-all">
+                                                                            {student.apellidos[0]}{student.nombres[0]}
+                                                                        </div>
+                                                                        <div className="truncate w-56">{student.apellidos}, {student.nombres}</div>
+                                                                    </div>
+                                                                </td>
+                                                                {evaluations.map(ev => (
+                                                                    <td key={ev._id} className="p-6 text-center">
+                                                                        <input 
+                                                                            type="number" 
+                                                                            min="1" max="7" step="0.1"
+                                                                            placeholder="--"
+                                                                            className={`w-16 h-14 text-center rounded-2xl border-2 font-black text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all ${
+                                                                                parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') >= 4 ? 'bg-emerald-50 border-emerald-100 text-emerald-700 focus:border-emerald-500' : 
+                                                                                parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') > 0 ? 'bg-rose-50 border-rose-100 text-rose-600 focus:border-rose-500' :
+                                                                                'bg-slate-50 border-slate-100 text-slate-300 focus:bg-white focus:border-blue-300 focus:text-blue-600'
+                                                                            }`}
+                                                                            value={gradeMatrix[student._id]?.[ev._id] || ''}
+                                                                            onChange={e => setGradeMatrix({
+                                                                                ...gradeMatrix,
+                                                                                [student._id]: {
+                                                                                    ...(gradeMatrix[student._id] || {}),
+                                                                                    [ev._id]: e.target.value
+                                                                                }
+                                                                            })}
+                                                                        />
+                                                                    </td>
+                                                                ))}
+                                                                {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => (
+                                                                    <td key={`empty-td-${i}`} className="p-6 text-center opacity-5">
+                                                                        <div className="w-16 h-14 mx-auto bg-slate-100 rounded-2xl"></div>
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -1239,60 +1423,6 @@ const UnifiedClassBook = () => {
                     )}
                 </div>
 
-                {/* MODALS Area (Minimal Placeholders) */}
-                {
-                    showGradeModal && (
-                        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-                            <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl overflow-hidden animate-in zoom-in-95">
-                                <div className="bg-[#11355a] p-8 text-white flex justify-between items-center">
-                                    <h2 className="text-xl font-bold flex items-center gap-3"><GraduationCap size={24} /> Ingresar Calificación</h2>
-                                    <button onClick={() => setShowGradeModal(false)} className="text-white/40 hover:text-white transition-colors"><X size={32} /></button>
-                                </div>
-                                <form onSubmit={handleSaveGrade} className="p-10 space-y-6">
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Estudiante</label>
-                                        <select required
-                                            value={gradeFormData.estudianteId}
-                                            onChange={e => setGradeFormData({ ...gradeFormData, estudianteId: e.target.value })}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
-                                        >
-                                            <option value="">Seleccionar Estudiante</option>
-                                            {(Array.isArray(students) ? students : []).map((s: any) => (
-                                                <option key={s._id} value={s._id}>{s.apellidos}, {s.nombres}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Evaluación</label>
-                                        <select required
-                                            value={gradeFormData.evaluationId}
-                                            onChange={e => setGradeFormData({ ...gradeFormData, evaluationId: e.target.value })}
-                                            className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold outline-none focus:border-blue-500 transition-all"
-                                        >
-                                            <option value="">Seleccionar Evaluación</option>
-                                            {(Array.isArray(evaluations) ? evaluations : []).map((ev: any) => (
-                                                <option key={ev._id} value={ev._id}>{ev.title}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">Nota</label>
-                                            <input required type="number" step="0.1" min="1" max="7"
-                                                value={gradeFormData.score}
-                                                onChange={e => setGradeFormData({ ...gradeFormData, score: parseFloat(e.target.value) })}
-                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-2xl text-center text-[#11355a] outline-none focus:border-blue-500 transition-all"
-                                            />
-                                        </div>
-                                    </div>
-                                    <button type="submit" className="w-full py-6 bg-[#11355a] text-white rounded-3xl font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-900/20 hover:scale-[1.02] transition-all">
-                                        GUARDAR CALIFICACIÓN
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    )
-                }
 
                 {/* Signature PIN Modal */}
                 {
