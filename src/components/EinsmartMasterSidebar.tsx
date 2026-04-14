@@ -5,11 +5,10 @@ interface EinsmartMasterSidebarProps {
     isCollapsed: boolean;
     setIsCollapsed: (v: boolean) => void;
     user: any;
-    tenant: any;
     handleLogout: () => void;
 }
 
-export default function EinsmartMasterSidebar({ isCollapsed, setIsCollapsed, user, tenant, handleLogout }: EinsmartMasterSidebarProps) {
+export default function EinsmartMasterSidebar({ isCollapsed, setIsCollapsed, user, handleLogout }: EinsmartMasterSidebarProps) {
     const location = useLocation();
 
     const NavLink = ({ to, icon: Icon, children }: any) => {

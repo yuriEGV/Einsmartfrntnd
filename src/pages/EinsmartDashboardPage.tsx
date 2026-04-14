@@ -5,7 +5,6 @@ import { Activity, School, Users, Server, ShieldCheck, Box, Cpu, HardDrive, BarC
 export default function EinsmartDashboardPage({ stats }: { stats: any }) {
     const [health, setHealth] = useState<any>(null);
     const [trends, setTrends] = useState<any[]>([]);
-    const [loadingHealth, setLoadingHealth] = useState(true);
 
     useEffect(() => {
         fetchHealth();
@@ -20,8 +19,6 @@ export default function EinsmartDashboardPage({ stats }: { stats: any }) {
             setHealth(res.data);
         } catch (e) {
             console.error(e);
-        } finally {
-            setLoadingHealth(false);
         }
     };
 

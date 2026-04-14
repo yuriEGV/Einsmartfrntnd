@@ -168,7 +168,6 @@ const Layout = () => {
                     isCollapsed={isCollapsed}
                     setIsCollapsed={setIsCollapsed}
                     user={user}
-                    tenant={tenant}
                     handleLogout={handleLogout}
                 />
             ) : (
