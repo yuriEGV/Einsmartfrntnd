@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../services/api';
-import { usePermissions } from '../hooks/usePermissions';
 import {
     BookOpen, CheckCircle, Clock, ShieldCheck,
-    Save, Calendar as CalendarIcon,
-    AlertCircle, FileText, Target, X, Search,
-    UserCheck, UserX, BarChart3, Info,
+    Calendar as CalendarIcon,
+    AlertCircle, FileText, X, Search,
+    Info,
     Play, Square, Timer as TimerIcon, Plus,
     Table as TableIcon, Edit3, Trash2, SaveAll
 } from 'lucide-react';
@@ -28,7 +27,6 @@ interface ClassLog {
 }
 
 const ClassBookPage = () => {
-    const permissions = usePermissions();
     const [activeTab, setActiveTab] = useState<'leccionario' | 'asistencia' | 'calificaciones' | 'atrasos'>('leccionario');
     const [logs, setLogs] = useState<ClassLog[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
@@ -43,7 +41,6 @@ const ClassBookPage = () => {
     // Attendance Integration
     const [classStudents, setClassStudents] = useState<any[]>([]);
     const [attendanceMap, setAttendanceMap] = useState<Record<string, string>>({});
-    const [fetchingStudents, setFetchingStudents] = useState(false);
 
     // Grades Matrix
     const [evaluations, setEvaluations] = useState<any[]>([]);
@@ -118,7 +115,6 @@ const ClassBookPage = () => {
         const cid = courseIdOverride || formData.courseId || selectedCourse;
         if (!cid) return;
 
-        setFetchingStudents(true);
         try {
             const res = await api.get(`/estudiantes?cursoId=${cid}`);
             setClassStudents(res.data);
@@ -127,8 +123,6 @@ const ClassBookPage = () => {
             setAttendanceMap(initialAtt);
         } catch (error) {
             console.error("Error fetching students:", error);
-        } finally {
-            setFetchingStudents(false);
         }
     };
 
