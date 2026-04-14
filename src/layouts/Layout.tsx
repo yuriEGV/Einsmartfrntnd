@@ -296,6 +296,7 @@ const Layout = () => {
                     )}
 
                     <NavLink to="/events" icon={Calendar}>{!isCollapsed && "Eventos"}</NavLink>
+                    <NavLink to="/schedules" icon={Clock}>{!isCollapsed && "Horarios"}</NavLink>
 
                     <div className="pt-6 mb-4 px-2">
                         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
