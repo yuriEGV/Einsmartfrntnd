@@ -446,96 +446,386 @@ const UnifiedClassBook = () => {
     const handlePrintStudent = async (studentId: string, printImmediately: boolean = false) => {
         try {
             const response = await api.get(`/reports/student/${studentId}`);
-            const data = response.data;
+            const d = response.data;
+            const s = d.student;
+            const school = d.school || {};
+
+            const calcAge = (dob: string) => {
+                if (!dob) return '--';
+                const diff = new Date().getTime() - new Date(dob).getTime();
+                return Math.floor(diff / (1000 * 60 * 60 * 24 * 365.25));
+            };
+
+            const fmt = (date: string) => date ? new Date(date).toLocaleDateString('es-CL') : '--';
+            const scoreColor = (score: number) => score >= 4 ? '#065f46' : '#9f1239';
+            const scoreBg = (score: number) => score >= 4 ? '#d1fae5' : '#ffe4e6';
+
+            const logoHtml = school.logoUrl
+                ? `<img src="${school.logoUrl}" alt="Logo" style="height:70px; object-fit:contain; max-width:180px;" />`
+                : `<div style="width:70px;height:70px;background:#11355a;border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:1.6rem;font-weight:900;">${school.name?.charAt(0) || 'E'}</div>`;
+
+            const gradesBySubjectHtml = (d.gradesBySubject || []).map((sub: any) => `
+                <div style="margin-bottom:20px; border:1px solid #e2e8f0; border-radius:10px; overflow:hidden; page-break-inside:avoid;">
+                    <div style="background:#11355a; color:white; padding:10px 16px; display:flex; justify-content:space-between; align-items:center;">
+                        <span style="font-weight:900; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em;">${sub.subject}</span>
+                        <span style="font-size:1.1rem; font-weight:900; padding:4px 12px; border-radius:999px; background:${scoreBg(sub.average)}; color:${scoreColor(sub.average)};">
+                            Promedio: ${sub.average ?? '--'}
+                        </span>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
+                            <tr style="background:#f8fafc;">
+                                <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#475569;border-bottom:1px solid #e2e8f0;">Evaluación</th>
+                                <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#475569;border-bottom:1px solid #e2e8f0;">Nota</th>
+                                <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#475569;border-bottom:1px solid #e2e8f0;">Fecha</th>
+                                <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#475569;border-bottom:1px solid #e2e8f0;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${sub.grades.map((g: any, i: number) => `
+                                <tr style="background:${i % 2 === 0 ? '#fff' : '#f8fafc'};">
+                                    <td style="padding:8px 12px;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${g.title}</td>
+                                    <td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f1f5f9;">
+                                        <span style="font-weight:900;font-size:1rem;color:${scoreColor(g.score)};background:${scoreBg(g.score)};padding:2px 10px;border-radius:999px;">${g.score?.toFixed(1)}</span>
+                                    </td>
+                                    <td style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#64748b;border-bottom:1px solid #f1f5f9;">${fmt(g.date)}</td>
+                                    <td style="padding:8px 12px;text-align:center;font-size:0.75rem;border-bottom:1px solid #f1f5f9;">
+                                        <span style="padding:2px 8px;border-radius:999px;background:${g.status === 'justified' ? '#fef9c3' : '#f0f9ff'};color:${g.status === 'justified' ? '#854d0e' : '#0369a1'};">${g.status === 'justified' ? 'Justificada' : 'Calificada'}</span>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `).join('') || '<p style="color:#94a3b8;font-style:italic;padding:20px 0;">Sin registros de calificaciones este período.</p>';
+
+            const annotationsHtml = (d.annotations || []).map((a: any) => `
+                <div style="margin-bottom:12px;padding:12px 16px;border-left:4px solid ${a.tipo === 'positiva' ? '#10b981' : a.tipo === 'negativa' ? '#ef4444' : '#f59e0b'};background:#f8fafc;border-radius:0 8px 8px 0;page-break-inside:avoid;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                        <strong style="font-size:0.9rem;color:#1e293b;">${a.titulo || 'Sin título'}</strong>
+                        <span style="font-size:0.7rem;font-weight:900;padding:3px 10px;border-radius:999px;background:${a.tipo === 'positiva' ? '#d1fae5' : a.tipo === 'negativa' ? '#ffe4e6' : '#fef9c3'};color:${a.tipo === 'positiva' ? '#065f46' : a.tipo === 'negativa' ? '#9f1239' : '#854d0e'};">${(a.tipo || 'neutra').toUpperCase()}</span>
+                    </div>
+                    <p style="margin:0;font-size:0.85rem;color:#475569;">${a.descripcion || ''}</p>
+                    <div style="margin-top:6px;font-size:0.75rem;color:#94a3b8;">Fecha: ${fmt(a.fecha)} • Autor: ${a.autor || 'Sistema'}</div>
+                </div>
+            `).join('') || '<p style="color:#94a3b8;font-style:italic;">No registra anotaciones en el período.</p>';
+
+            const licensesHtml = (d.licenses || []).length > 0 ? `
+                <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+                    <thead>
+                        <tr style="background:#fef9c3;">
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#854d0e;border-bottom:1px solid #fde047;">Tipo</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#854d0e;border-bottom:1px solid #fde047;">Inicio</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#854d0e;border-bottom:1px solid #fde047;">Fin</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#854d0e;border-bottom:1px solid #fde047;">Días</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#854d0e;border-bottom:1px solid #fde047;">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(d.licenses || []).map((l: any, i: number) => `
+                            <tr style="background:${i % 2 === 0 ? '#fff' : '#fffbeb'};">
+                                <td style="padding:8px 12px;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${l.tipo || 'Médica'} ${l.esElectronica ? '(Elec.)' : ''}</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${fmt(l.fechaInicio)}</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${fmt(l.fechaFin)}</td>
+                                <td style="padding:8px 12px;text-align:center;font-weight:900;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${l.diasReposo || '--'}</td>
+                                <td style="padding:8px 12px;text-align:center;border-bottom:1px solid #f1f5f9;">
+                                    <span style="padding:2px 8px;border-radius:999px;font-size:0.75rem;background:#d1fae5;color:#065f46;">${l.estado || 'Aprobado'}</span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<p style="color:#94a3b8;font-style:italic;">Sin licencias médicas registradas.</p>';
+
+            const atrasosHtml = (d.atrasos || []).length > 0 ? `
+                <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+                    <thead>
+                        <tr style="background:#fff7ed;">
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#9a3412;border-bottom:1px solid #fed7aa;">Fecha</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#9a3412;border-bottom:1px solid #fed7aa;">Bloque</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#9a3412;border-bottom:1px solid #fed7aa;">Min. Atraso</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#9a3412;border-bottom:1px solid #fed7aa;">Min. Legales</th>
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#9a3412;border-bottom:1px solid #fed7aa;">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(d.atrasos || []).slice(0, 20).map((a: any, i: number) => `
+                            <tr style="background:${i % 2 === 0 ? '#fff' : '#fff7ed'};">
+                                <td style="padding:8px 12px;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${fmt(a.fecha)}</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${a.bloque || '--'}</td>
+                                <td style="padding:8px 12px;text-align:center;font-weight:900;color:#ea580c;font-size:0.85rem;border-bottom:1px solid #f1f5f9;">${a.minutosAtraso} min</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.85rem;color:#64748b;border-bottom:1px solid #f1f5f9;">${a.minutosLegales} min</td>
+                                <td style="padding:8px 12px;font-size:0.8rem;color:#475569;border-bottom:1px solid #f1f5f9;">${a.motivo || '--'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<p style="color:#94a3b8;font-style:italic;">Sin registros de atrasos.</p>';
+
+            const classLogsHtml = (d.classLogs || []).length > 0 ? `
+                <table style="width:100%;border-collapse:collapse;margin-top:8px;">
+                    <thead>
+                        <tr style="background:#eff6ff;">
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#1e40af;border-bottom:1px solid #bfdbfe;">Fecha</th>
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#1e40af;border-bottom:1px solid #bfdbfe;">Asignatura</th>
+                            <th style="padding:8px 12px;text-align:left;font-size:0.8rem;color:#1e40af;border-bottom:1px solid #bfdbfe;">Contenido / OA</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#1e40af;border-bottom:1px solid #bfdbfe;">Profesor</th>
+                            <th style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#1e40af;border-bottom:1px solid #bfdbfe;">Hrs. Efectivas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${(d.classLogs || []).map((log: any, i: number) => `
+                            <tr style="background:${i % 2 === 0 ? '#fff' : '#f0f9ff'};">
+                                <td style="padding:8px 12px;font-size:0.8rem;border-bottom:1px solid #f1f5f9;">${fmt(log.date)}</td>
+                                <td style="padding:8px 12px;font-size:0.8rem;font-weight:700;color:#1e40af;border-bottom:1px solid #f1f5f9;">${log.subject || '--'}</td>
+                                <td style="padding:8px 12px;font-size:0.8rem;border-bottom:1px solid #f1f5f9;">${log.topic}</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.8rem;color:#64748b;border-bottom:1px solid #f1f5f9;">${log.teacher || '--'}</td>
+                                <td style="padding:8px 12px;text-align:center;font-size:0.8rem;font-weight:700;border-bottom:1px solid #f1f5f9;">${log.effectiveDuration ? (log.effectiveDuration / 60).toFixed(1) + ' h' : '--'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            ` : '<p style="color:#94a3b8;font-style:italic;">Sin registros de leccionario.</p>';
 
             const printWindow = window.open('', '_blank');
             if (printWindow) {
                 printWindow.document.write(`
-                    <html>
-                        <head>
-                            <title>Ficha - ${data.student.nombres}</title>
-                            <style>
-                                body { font-family: 'Segoe UI', sans-serif; padding: 40px; color: #333; }
-                                .header { border-bottom: 2px solid #11355a; margin-bottom: 30px; padding-bottom: 20px; display: flex; justify-content: space-between; }
-                                h1 { color: #11355a; margin: 0; }
-                                .section { margin-bottom: 30px; }
-                                h2 { font-size: 1.2rem; color: #1e40af; border-left: 4px solid #1e40af; padding-left: 10px; margin-bottom: 15px; }
-                                table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                                th, td { border: 1px solid #eee; padding: 10px; text-align: left; font-size: 0.9rem; }
-                                th { background: #f8fafc; font-weight: bold; color: #475569; }
-                                .tag { padding: 4px 8px; border-radius: 999px; font-size: 0.7em; font-weight: bold; }
-                                .tag.positiva { background: #d1fae5; color: #065f46; }
-                                .tag.negativa { background: #ffe4e6; color: #9f1239; }
-                                @media print { .no-print { display: none; } }
-                            </style>
-                        </head>
-                        <body>
-                            <div class="header">
-                                <div>
-                                    <h1>Ficha Estudiantil</h1>
-                                    <p style="font-size: 1.2rem; font-weight: bold; margin: 5px 0;">${data.student.nombres} ${data.student.apellidos}</p>
-                                </div>
-                                <div style="text-align: right; font-size: 0.9rem; color: #666;">
-                                    <p>RUT: ${data.student.rut || 'N/A'}</p>
-                                    <p>Curso: ${data.student.grado || 'Generado por Sistema'}</p>
-                                    <p>Fecha Emisión: ${new Date().toLocaleDateString()}</p>
-                                </div>
-                            </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Reporte SIGE - ${s.apellidos}, ${s.nombres}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; font-size: 13px; }
+        .page { max-width: 900px; margin: 0 auto; padding: 40px; background: white; }
+        /* --- HEADER --- */
+        .report-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 24px; border-bottom: 3px solid #11355a; margin-bottom: 28px; }
+        .school-info h1 { font-size: 1.4rem; font-weight: 900; color: #11355a; text-transform: uppercase; letter-spacing: -0.02em; }
+        .school-info p { font-size: 0.78rem; color: #64748b; margin-top: 3px; }
+        .report-meta { text-align: right; }
+        .report-meta .doc-type { font-size: 0.65rem; font-weight: 900; letter-spacing: 0.15em; color: #64748b; text-transform: uppercase; background: #f1f5f9; padding: 4px 12px; border-radius: 999px; }
+        .report-meta .issue-date { font-size: 0.75rem; color: #94a3b8; margin-top: 6px; }
+        /* --- STUDENT CARD --- */
+        .student-card { display: grid; grid-template-columns: auto 1fr; gap: 20px; background: linear-gradient(135deg, #11355a 0%, #1e40af 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 28px; }
+        .student-avatar { width: 80px; height: 80px; border-radius: 12px; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; overflow: hidden; flex-shrink: 0; }
+        .student-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .student-info h2 { font-size: 1.4rem; font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; }
+        .student-info .student-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px; }
+        .student-info .meta-item { background: rgba(255,255,255,0.1); padding: 8px 12px; border-radius: 8px; }
+        .student-info .meta-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; }
+        .student-info .meta-value { font-size: 0.85rem; font-weight: 700; margin-top: 2px; }
+        /* --- SUMMARY STATS --- */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+        .stat-box { padding: 16px; border-radius: 12px; text-align: center; border: 2px solid; }
+        .stat-box .stat-value { font-size: 1.8rem; font-weight: 900; line-height: 1; }
+        .stat-box .stat-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+        .stat-promedio { border-color: ${d.overallAverage >= 4 ? '#10b981' : '#ef4444'}; color: ${d.overallAverage >= 4 ? '#065f46' : '#9f1239'}; background: ${d.overallAverage >= 4 ? '#d1fae5' : '#ffe4e6'}; }
+        .stat-asistencia { border-color: #3b82f6; color: #1e40af; background: #eff6ff; }
+        .stat-anotaciones { border-color: #f59e0b; color: #854d0e; background: #fef9c3; }
+        .stat-atrasos { border-color: #f97316; color: #9a3412; background: #fff7ed; }
+        /* --- SECTIONS --- */
+        .section { margin-bottom: 28px; page-break-inside: avoid; }
+        .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+        .section-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+        .section-header h2 { font-size: 1rem; font-weight: 900; color: #11355a; text-transform: uppercase; letter-spacing: 0.05em; }
+        .section-badge { margin-left: auto; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+        /* --- GUARDIAN --- */
+        .guardian-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+        .guardian-field .field-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.08em; }
+        .guardian-field .field-value { font-size: 0.85rem; font-weight: 600; color: #1e293b; margin-top: 2px; }
+        /* --- FOOTER --- */
+        .report-footer { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; display: flex; justify-content: space-between; align-items: flex-end; }
+        .footer-left { font-size: 0.7rem; color: #94a3b8; max-width: 400px; line-height: 1.6; }
+        .signature-area { text-align: center; }
+        .signature-line { width: 200px; border-top: 1px solid #334155; margin: 0 auto 6px; }
+        .signature-label { font-size: 0.7rem; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        /* --- PRINT --- */
+        @media print {
+            body { background: white; }
+            .page { padding: 20px; max-width: 100%; }
+            .no-print { display: none !important; }
+            .section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
 
-                            <div class="section">
-                                <h2>Historial Académico (Calificaciones)</h2>
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Asignatura</th>
-                                            <th>Evaluación</th>
-                                            <th>Nota</th>
-                                            <th>Fecha</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${data.grades.length ? data.grades.map((g: any) => `
-                                            <tr>
-                                                <td style="font-weight: bold; color: #1e40af;">${g.subjectName}</td>
-                                                <td>${g.title}</td>
-                                                <td style="font-weight: bold;">${g.score.toFixed(1)}</td>
-                                                <td>${new Date(g.date).toLocaleDateString()}</td>
-                                            </tr>
-                                        `).join('') : '<tr><td colspan="4" style="text-align:center; padding: 20px;">Sin registros de calificaciones</td></tr>'}
-                                    </tbody>
-                                </table>
-                            </div>
+    <!-- HEADER -->
+    <div class="report-header">
+        <div style="display:flex;align-items:center;gap:16px;">
+            ${logoHtml}
+            <div class="school-info">
+                <h1>${school.name || 'Establecimiento'}</h1>
+                <p>${school.address || ''}</p>
+                <p>${school.phone ? 'Tel: ' + school.phone : ''} ${school.contactEmail ? '• ' + school.contactEmail : ''}</p>
+            </div>
+        </div>
+        <div class="report-meta">
+            <div class="doc-type">Reporte SIGE Oficial</div>
+            <div class="issue-date">Año Académico ${school.academicYear || new Date().getFullYear()}</div>
+            <div class="issue-date">Emitido: ${new Date().toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })}</div>
+        </div>
+    </div>
 
-                            <div class="section">
-                                <h2>Registro de Anotaciones</h2>
-                                ${data.annotations.length ? data.annotations.map((a: any) => `
-                                    <div style="margin-bottom: 15px; padding: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
-                                        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                            <strong style="color: #11355a;">${a.titulo}</strong>
-                                            <span class="tag ${a.tipo}">${a.tipo.toUpperCase()}</span>
-                                        </div>
-                                        <p style="margin:5px 0; color:#475569; font-size: 0.9rem;">${a.descripcion}</p>
-                                        <div style="display: flex; justify-content: space-between; border-top: 1px dashed #cbd5e1; margin-top: 10px; pt: 5px;">
-                                            <small style="color:#94a3b8;">Fecha: ${new Date(a.fecha).toLocaleDateString()}</small>
-                                            <small style="color:#94a3b8;">Autor: ${a.autor || 'Sistema'}</small>
-                                        </div>
-                                    </div>
-                                `).join('') : '<p style="color: #94a3b8; font-style: italic;">No registra anotaciones a la fecha.</p>'}
-                            </div>
+    <!-- STUDENT CARD -->
+    <div class="student-card">
+        <div class="student-avatar">
+            ${s.fotoUrl ? `<img src="${s.fotoUrl}" alt="foto" />` : `${(s.nombres||'?')[0]}${(s.apellidos||'?')[0]}`}
+        </div>
+        <div class="student-info">
+            <h2>${s.apellidos}, ${s.nombres}</h2>
+            <div class="student-meta">
+                <div class="meta-item"><div class="meta-label">RUT</div><div class="meta-value">${s.rut || 'Sin Registro'}</div></div>
+                <div class="meta-item"><div class="meta-label">Curso</div><div class="meta-value">${s.grado || '--'}</div></div>
+                <div class="meta-item"><div class="meta-label">Edad</div><div class="meta-value">${calcAge(s.fechaNacimiento)} años</div></div>
+                <div class="meta-item"><div class="meta-label">Nacimiento</div><div class="meta-value">${fmt(s.fechaNacimiento)}</div></div>
+                <div class="meta-item"><div class="meta-label">Nacionalidad</div><div class="meta-value">${s.nacionalidad || 'Chilena'}</div></div>
+                <div class="meta-item"><div class="meta-label">Previsión Salud</div><div class="meta-value">${s.salud || 'Sin Registro'}</div></div>
+                ${s.direccion ? `<div class="meta-item" style="grid-column:span 2;"><div class="meta-label">Dirección</div><div class="meta-value">${s.direccion}</div></div>` : ''}
+                ${s.email ? `<div class="meta-item"><div class="meta-label">Email</div><div class="meta-value">${s.email}</div></div>` : ''}
+            </div>
+        </div>
+    </div>
 
-                            ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1000); }</script>` : `<button class="no-print" onclick="window.print()" style="padding:10px 20px; background:#11355a; color:white; border:none; border-radius:5px; cursor:pointer; margin-top:20px;">Imprimir Documento Oficial</button>`}
-                        </body>
-                    </html>
+    <!-- SUMMARY STATS -->
+    <div class="stats-grid">
+        <div class="stat-box stat-promedio">
+            <div class="stat-value">${d.overallAverage ?? '--'}</div>
+            <div class="stat-label">Promedio General</div>
+        </div>
+        <div class="stat-box stat-asistencia">
+            <div class="stat-value">${d.attendance?.percent ?? '--'}%</div>
+            <div class="stat-label">Asistencia (${d.attendance?.present ?? 0}/${d.attendance?.total ?? 0})</div>
+        </div>
+        <div class="stat-box stat-anotaciones">
+            <div class="stat-value">${d.annotations?.length ?? 0}</div>
+            <div class="stat-label">Anotaciones</div>
+        </div>
+        <div class="stat-box stat-atrasos">
+            <div class="stat-value">${d.atrasos?.length ?? 0}</div>
+            <div class="stat-label">Atrasos</div>
+        </div>
+    </div>
+
+    <!-- APODERADO -->
+    ${d.guardian ? `
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#eff6ff;">👨‍👩‍👦</div>
+            <h2>Apoderado / Tutor Legal</h2>
+        </div>
+        <div class="guardian-card">
+            <div class="guardian-field"><div class="field-label">Nombre Completo</div><div class="field-value">${(d.guardian.nombre || '') + ' ' + (d.guardian.apellidos || '')}</div></div>
+            <div class="guardian-field"><div class="field-label">RUT</div><div class="field-value">${d.guardian.rut || '--'}</div></div>
+            <div class="guardian-field"><div class="field-label">Parentesco</div><div class="field-value">${d.guardian.parentesco || '--'}</div></div>
+            <div class="guardian-field"><div class="field-label">Teléfono</div><div class="field-value">${d.guardian.telefono || '--'}</div></div>
+            <div class="guardian-field"><div class="field-label">Email</div><div class="field-value">${d.guardian.email || '--'}</div></div>
+        </div>
+    </div>
+    ` : ''}
+
+    <!-- CALIFICACIONES POR RAMO -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#d1fae5;">📊</div>
+            <h2>Situación Académica por Asignatura</h2>
+            <span class="section-badge" style="background:#d1fae5;color:#065f46;">${d.grades?.length ?? 0} evaluaciones</span>
+        </div>
+        ${gradesBySubjectHtml}
+    </div>
+
+    <!-- ASISTENCIA -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#eff6ff;">📋</div>
+            <h2>Registro de Asistencia</h2>
+            <span class="section-badge" style="background:#eff6ff;color:#1e40af;">${d.attendance?.percent ?? 100}% de asistencia</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px;background:#f8fafc;border-radius:10px;border:1px solid #e2e8f0;">
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:#10b981;">${d.attendance?.present ?? 0}</div><div style="font-size:0.7rem;color:#64748b;font-weight:700;text-transform:uppercase;">Presentes</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:#ef4444;">${d.attendance?.absent ?? 0}</div><div style="font-size:0.7rem;color:#64748b;font-weight:700;text-transform:uppercase;">Ausencias</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:#f59e0b;">${d.attendance?.tardinessAtt ?? 0}</div><div style="font-size:0.7rem;color:#64748b;font-weight:700;text-transform:uppercase;">Atrasos S.Att</div></div>
+            <div style="text-align:center;"><div style="font-size:1.5rem;font-weight:900;color:#1e40af;">${d.attendance?.total ?? 0}</div><div style="font-size:0.7rem;color:#64748b;font-weight:700;text-transform:uppercase;">Total Registros</div></div>
+        </div>
+    </div>
+
+    <!-- LECCIONARIO -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#eff6ff;">📚</div>
+            <h2>Resumen Leccionario</h2>
+            <span class="section-badge" style="background:#eff6ff;color:#1e40af;">${d.classLogs?.length ?? 0} clases firmadas</span>
+        </div>
+        ${classLogsHtml}
+    </div>
+
+    <!-- ANOTACIONES -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#fef9c3;">📝</div>
+            <h2>Registro de Anotaciones</h2>
+            <span class="section-badge" style="background:#fef9c3;color:#854d0e;">${d.annotations?.length ?? 0} registros</span>
+        </div>
+        ${annotationsHtml}
+    </div>
+
+    <!-- LICENCIAS MÉDICAS -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#fef9c3;">🏥</div>
+            <h2>Licencias Médicas</h2>
+            <span class="section-badge" style="background:#fef9c3;color:#854d0e;">${d.licenses?.length ?? 0} licencias</span>
+        </div>
+        ${licensesHtml}
+    </div>
+
+    <!-- ATRASOS -->
+    <div class="section">
+        <div class="section-header">
+            <div class="section-icon" style="background:#fff7ed;">⏱️</div>
+            <h2>Control de Atrasos</h2>
+            <span class="section-badge" style="background:#fff7ed;color:#9a3412;">${d.atrasos?.length ?? 0} registros</span>
+        </div>
+        ${atrasosHtml}
+    </div>
+
+    <!-- FOOTER -->
+    <div class="report-footer">
+        <div class="footer-left">
+            <p style="font-weight:700;color:#475569;margin-bottom:4px;">Declaración de autenticidad</p>
+            <p>El presente reporte ha sido generado automáticamente por el sistema EinSmart con datos auditables. Documento emitido el ${new Date().toLocaleDateString('es-CL')} para uso exclusivo de la institución educativa.</p>
+        </div>
+        <div class="signature-area">
+            <div class="signature-line"></div>
+            <div class="signature-label">Firma Director(a)</div>
+        </div>
+    </div>
+
+    <!-- PRINT BUTTON -->
+    <div class="no-print" style="margin-top:30px;display:flex;gap:12px;justify-content:center;">
+        <button onclick="window.print()" style="padding:12px 32px;background:#11355a;color:white;border:none;border-radius:10px;font-weight:900;font-size:0.9rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.05em;">🖨️ Imprimir Reporte SIGE</button>
+        <button onclick="window.close()" style="padding:12px 24px;background:#f1f5f9;color:#475569;border:none;border-radius:10px;font-weight:700;font-size:0.9rem;cursor:pointer;">Cerrar</button>
+    </div>
+
+</div>
+${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout(() => window.close(), 1500); }<\/script>` : ''}
+</body>
+</html>
                 `);
                 printWindow.document.close();
             }
         } catch (err) {
             console.error(err);
-            alert('Error al generar la ficha.');
+            alert('Error al generar el reporte SIGE. Verifique la conexión.');
         }
     };
 
-    const filteredSubjects = selectedCourse ? subjects.filter(s => (s.courseId?._id || s.courseId) === selectedCourse) : [];
+
+    const filteredSubjects = selectedCourse ? subjects.filter((s: any) => (s.courseId?._id || s.courseId) === selectedCourse) : [];
+
 
     // -------------------------------------------------------------------------
     // Render
