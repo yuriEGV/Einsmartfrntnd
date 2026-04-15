@@ -88,6 +88,17 @@ const UnifiedClassBook = () => {
         fecha: new Date().toISOString().split('T')[0]
     });
 
+    // Evaluation State
+    const [showEvaluationModal, setShowEvaluationModal] = useState(false);
+    const [evaluationFormData, setEvaluationFormData] = useState({
+        title: '',
+        date: new Date().toISOString().split('T')[0],
+        weight: 1,
+        description: '',
+        type: 'test',
+        category: 'planned'
+    });
+
     useEffect(() => {
         let interval: any;
         if (isTimerRunning && !isTimerPaused) {
@@ -294,6 +305,29 @@ const UnifiedClassBook = () => {
             logAccess();
         }
     }, [selectedCourse, activeTab]);
+
+    const handleCreateEvaluation = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await api.post('/evaluations', {
+                ...evaluationFormData,
+                courseId: selectedCourse,
+                subjectId: selectedSubject
+            });
+            setShowEvaluationModal(false);
+            refreshTabContent();
+            setEvaluationFormData({
+                title: '',
+                date: new Date().toISOString().split('T')[0],
+                weight: 1,
+                description: '',
+                type: 'test',
+                category: 'planned'
+            });
+        } catch (err: any) {
+            alert(err.response?.data?.message || 'Error al crear la evaluación.');
+        }
+    };
 
     // -------------------------------------------------------------------------
     // Handlers
@@ -1307,6 +1341,14 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
 
                                         <div className="flex items-center gap-4 w-full xl:w-auto">
                                             <button 
+                                                onClick={() => setShowEvaluationModal(true)}
+                                                disabled={!selectedSubject}
+                                                className="flex-1 xl:flex-none bg-[#11355a] text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
+                                            >
+                                                <UserPlus size={20}/>
+                                                NUEVA EVALUACIÓN
+                                            </button>
+                                            <button 
                                                 onClick={handleBulkGradeSave}
                                                 disabled={isSavingMatrix || !selectedSubject}
                                                 className="flex-1 xl:flex-none bg-emerald-600 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
@@ -1864,6 +1906,79 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                     )
                 }
             </div>
+            {showEvaluationModal && (
+                <div className="fixed inset-0 bg-[#0a192f]/80 backdrop-blur-xl z-[60] flex items-center justify-center p-6 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-2xl rounded-[3.5rem] p-12 shadow-2xl border border-white/20 relative overflow-hidden group">
+                        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-indigo-600"></div>
+                        
+                        <div className="flex justify-between items-start mb-10">
+                            <div>
+                                <h3 className="text-3xl font-black text-[#11355a] tracking-tight uppercase">Nueva Evaluación</h3>
+                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest mt-2 flex items-center gap-2">
+                                    <ShieldCheck size={14} className="text-blue-500" /> Registro Oficial Legislativo
+                                </p>
+                            </div>
+                            <button onClick={() => setShowEvaluationModal(false)} className="p-4 hover:bg-slate-50 rounded-2xl text-slate-300 hover:text-rose-500 transition-all">
+                                <X size={28} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateEvaluation} className="space-y-8">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Título de la Evaluación</label>
+                                <input 
+                                    required 
+                                    className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold text-slate-700 focus:border-blue-500 focus:bg-white outline-none transition-all shadow-sm"
+                                    placeholder="Ej: Prueba Parcial N°1"
+                                    value={evaluationFormData.title}
+                                    onChange={e => setEvaluationFormData({...evaluationFormData, title: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Fecha Aplicación</label>
+                                    <input 
+                                        type="date"
+                                        required 
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                        value={evaluationFormData.date}
+                                        onChange={e => setEvaluationFormData({...evaluationFormData, date: e.target.value})}
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Ponderado (%)</label>
+                                    <input 
+                                        type="number"
+                                        required
+                                        min="1" max="100"
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                        value={evaluationFormData.weight}
+                                        onChange={e => setEvaluationFormData({...evaluationFormData, weight: parseInt(e.target.value)})}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Descripción / Temario (Opcional)</label>
+                                <textarea 
+                                    rows={4}
+                                    className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all resize-none"
+                                    placeholder="Contenidos que se evaluarán..."
+                                    value={evaluationFormData.description}
+                                    onChange={e => setEvaluationFormData({...evaluationFormData, description: e.target.value})}
+                                />
+                            </div>
+
+                            <div className="pt-6">
+                                <button type="submit" className="w-full py-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-900/30 hover:scale-[1.02] active:scale-95 transition-all">
+                                    CREAR EVALUACIÓN E INICIAR REGISTRO
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
