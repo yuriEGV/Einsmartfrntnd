@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
 import { Library, Plus, Search, Trash2, Edit2, X } from 'lucide-react';
@@ -16,7 +15,6 @@ interface Subject {
 }
 
 export default function SubjectsPage() {
-    const { user } = useAuth();
     const permissions = usePermissions();
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [courses, setCourses] = useState<any[]>([]);
@@ -144,7 +142,7 @@ export default function SubjectsPage() {
                     </h1>
                     <p className="text-slate-500 font-bold text-sm tracking-wide mt-2">Crea, modifica y vincula las asignaturas a cursos y docentes.</p>
                 </div>
-                {(permissions.isAdmin || permissions.isSuperAdmin || user?.role === 'director' || user?.role === 'utp') && (
+                {permissions.canManageSubjects && (
                     <button
                         onClick={() => { resetForm(); setIsModalOpen(true); }}
                         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-blue-600/20 hover:shadow-blue-600/40 hover:-translate-y-1"

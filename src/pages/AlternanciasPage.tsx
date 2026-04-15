@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
 import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2 } from 'lucide-react';
@@ -41,7 +40,6 @@ interface Alternancia {
 }
 
 export default function AlternanciasPage() {
-    const { user } = useAuth();
     const permissions = usePermissions();
     
     // Core Data States
@@ -249,7 +247,7 @@ export default function AlternanciasPage() {
                         Sistema unificado Mineduc: Prácticas, Seguros Escolares y Validaciones
                     </p>
                 </div>
-                {(permissions.isAdmin || permissions.isSuperAdmin || user?.role === 'director' || user?.role === 'UTP' || user?.role === 'teacher') && (
+                {permissions.canManageAlternancias && (
                     <button
                         onClick={() => {
                             setEditingId(null);
@@ -349,7 +347,7 @@ export default function AlternanciasPage() {
                                                 >
                                                     <BookOpen size={18} />
                                                 </button>
-                                                {(permissions.isAdmin || permissions.isSuperAdmin || user?.role === 'director' || user?.role === 'teacher' || user?.role === 'UTP') && (
+                                                {permissions.canManageAlternancias && (
                                                     <>
                                                         <button
                                                             onClick={() => handleEdit(alt)}

@@ -3,11 +3,13 @@ import api from '../services/api';
 import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
+import { usePermissions } from '../hooks/usePermissions';
 import { useReactToPrint } from 'react-to-print';
 
 const UnifiedClassBook = () => {
     const { tenant } = useTenant();
     const { user } = useAuth();
+    const permissions = usePermissions();
     const printRef = useRef<HTMLDivElement>(null);
     const actaPrintRef = useRef<HTMLDivElement>(null);
 
@@ -174,7 +176,7 @@ const UnifiedClassBook = () => {
         const fetchInitial = async () => {
             try {
                 // [FIX] Directors and specialized roles should see ALL courses
-                const endpoint = (user?.role === 'director' || user?.role === 'utp' || user?.role === 'admin' || user?.role === 'sostenedor')
+                const endpoint = (permissions.canViewSensitiveData || permissions.isAdmin)
                     ? '/courses?all=true'
                     : '/courses';
 

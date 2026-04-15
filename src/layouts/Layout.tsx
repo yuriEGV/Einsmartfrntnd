@@ -231,16 +231,16 @@ const Layout = () => {
                         <NavLink to="/courses" icon={GraduationCap}>{!isCollapsed && "Cursos"}</NavLink>
                     )}
 
-                    {(permissions.canManageSubjects || user?.role === 'admin' || user?.role === 'utp' || user?.role === 'director' || permissions.isSuperAdmin) && (
+                    {permissions.canManageSubjects && (
                         <NavLink to="/subjects" icon={Library}>{!isCollapsed && "Asignaturas"}</NavLink>
                     )}
 
-                    {(permissions.canManageSubjects || user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp' || user?.role === 'inspector_general' || user?.role === 'sostenedor') && (
+                    {permissions.isStaff && (
                         <NavLink to="/class-book" icon={BookOpen}>{!isCollapsed && "Libro de Clases"}</NavLink>
                     )}
 
                     {/* Centro Académico Submenu */}
-                    {(user?.role === 'teacher' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                    {permissions.canApprovePlanning && (
                         <div className="space-y-1">
                             <button
                                 onClick={() => {
@@ -279,19 +279,19 @@ const Layout = () => {
                     )}
 
                     {/* Redundant links hidden for teachers to favor unified dashboard, EXCEPT alternancias which is TP specific */}
-                    {(user?.role !== 'teacher') && (
+                    {!permissions.isTeacher && !permissions.isStudent && !permissions.isApoderado && (
                         <>
                             <NavLink to="/grades" icon={ClipboardList}>{!isCollapsed && "Notas Globales"}</NavLink>
                             <NavLink to="/attendance" icon={CheckCircle2}>{!isCollapsed && "Asistencia Global"}</NavLink>
                         </>
                     )}
 
-                    {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'director' || user?.role === 'utp' || user?.role === 'sostenedor') && (
+                    {permissions.canManageAlternancias && (
                         <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
                     )}
 
                     {/* Redefine messages visibility: Only staff */}
-                    {(user?.role === 'admin' || user?.role === 'teacher' || user?.role === 'sostenedor' || user?.role === 'director') && (
+                    {permissions.isStaff && (
                         <NavLink to="/messages" icon={FileText}>{!isCollapsed && "Mensajes"}</NavLink>
                     )}
 
@@ -312,7 +312,7 @@ const Layout = () => {
                             <NavLink to="/admin-days" icon={Clock}>{!isCollapsed && "Días Administrativos"}</NavLink>
                         )}
 
-                        {(permissions.isAdmin || user?.role === 'director' || user?.role === 'sostenedor' || user?.role === 'utp') && (
+                        {permissions.canViewSensitiveData && (
                             <NavLink to="/medical-licenses" icon={ShieldCheck}>{!isCollapsed && "Licencias Médicas"}</NavLink>
                         )}
 
@@ -327,7 +327,7 @@ const Layout = () => {
                             <NavLink to="/analytics" icon={TrendingUp}>{!isCollapsed && "Reportes"}</NavLink>
                         )}
                         
-                        {(permissions.isAdmin || permissions.isDirector || user?.role === 'inspector_general' || user?.role === 'sostenedor' || user?.role === 'utp') && (
+                        {permissions.canViewSensitiveData && (
                             <>
                                 <NavLink to="/teacher-time-report" icon={Clock}>{!isCollapsed && "Horas Profesores"}</NavLink>
                                 <NavLink to="/classroom-efficiency" icon={TrendingUp}>{!isCollapsed && "Eficiencia en Aula"}</NavLink>
@@ -376,7 +376,9 @@ const Layout = () => {
                         {!isCollapsed && (
                             <div className="min-w-0 overflow-hidden">
                                 <span className="text-sm font-black text-white truncate leading-tight block">{user?.name || 'Invitado'}</span>
-                                <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block truncate max-w-full">{user?.role}</div>
+                                <div className="text-[9px] text-blue-300 font-black uppercase tracking-widest mt-1 opacity-60 bg-white/5 px-2 py-0.5 rounded-full inline-block truncate max-w-full">
+                                    {permissions.isUTP ? 'UTP' : user?.role}
+                                </div>
                             </div>
                         )}
                     </div>

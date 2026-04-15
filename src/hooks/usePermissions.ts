@@ -25,14 +25,17 @@ export interface Permissions {
     isApoderado: boolean;
     isInspectorGeneral: boolean;
     canApprovePlanning: boolean;
+    canManageAlternancias: boolean;
+    canManageEvents: boolean;
 }
 
 export const usePermissions = (): Permissions => {
     const { user } = useAuth();
-    const role = user?.role || 'guest';
+    // Normalize role to lowercase for consistency and regularization
+    const role = (user?.role || 'guest').toLowerCase();
 
-    const isStaff = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'teacher' || role === 'psicologo' || role === 'orientador' || role === 'asistente_aula' || role === 'secretario' || role === 'utp' || role === 'inspector_general';
-    const isAdmin = role === 'admin' || role === 'sostenedor' || role === 'director' || role === 'inspector_general';
+    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'utp', 'inspector_general'].includes(role);
+    const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general'].includes(role);
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
@@ -56,6 +59,8 @@ export const usePermissions = (): Permissions => {
         canManageCourses: isAdmin || isUTP,
         // New permissions
         canManageSubjects: isAdmin || isTeacher || isUTP,
+        canManageAlternancias: isAdmin || isUTP || isTeacher,
+        canManageEvents: isAdmin || isTeacher || isDirector || isSostenedor || isUTP,
         isTeacher,
         isSostenedor,
         isDirector,
