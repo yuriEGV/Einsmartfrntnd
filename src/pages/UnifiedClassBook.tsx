@@ -421,17 +421,60 @@ const UnifiedClassBook = () => {
     const handleBulkGradeSave = async () => {
         setIsSavingMatrix(true);
         try {
+            // 1. Identify which virtual columns have data
+            const virtualIdsToCreate: string[] = [];
+            Object.values(gradeMatrix).forEach(studentEvals => {
+                Object.entries(studentEvals).forEach(([key, val]) => {
+                    if (key.startsWith('virtual_') && val && !virtualIdsToCreate.includes(key)) {
+                        virtualIdsToCreate.push(key);
+                    }
+                });
+            });
+
+            // 2. Create real evaluations for those virtual columns
+            const virtualToRealMap: Record<string, string> = {};
+            for (const vId of virtualIdsToCreate) {
+                const colNumber = vId.split('_')[1];
+                const res = await api.post('/evaluations', {
+                    title: `Nota ${colNumber}`,
+                    date: new Date().toISOString().split('T')[0],
+                    weight: 10,
+                    type: 'test',
+                    category: 'planned',
+                    courseId: selectedCourse,
+                    subjectId: selectedSubject
+                });
+                virtualToRealMap[vId] = res.data._id;
+            }
+
+            // 3. Prepare final bulk payload
             const gradesPayload: any[] = [];
             Object.entries(gradeMatrix).forEach(([estId, evals]) => {
                 Object.entries(evals).forEach(([evId, score]) => {
-                    if (score) gradesPayload.push({ estudianteId: estId, evaluationId: evId, score });
+                    if (score) {
+                        const finalEvId = evId.startsWith('virtual_') ? virtualToRealMap[evId] : evId;
+                        if (finalEvId) {
+                            gradesPayload.push({
+                                estudianteId: estId,
+                                evaluationId: finalEvId,
+                                score: parseFloat(score)
+                            });
+                        }
+                    }
                 });
             });
+
+            if (gradesPayload.length === 0) {
+                alert('No hay notas nuevas para guardar.');
+                return;
+            }
+
             await api.post('/grades/bulk', { grades: gradesPayload });
-            alert('Matriz de calificaciones actualizada.');
+            alert('Matriz de calificaciones actualizada exitosamente.');
             refreshTabContent();
         } catch (error: any) {
-            alert(error.response?.data?.message || 'Error al guardar calificaciones');
+            console.error('SAVE ERROR:', error);
+            alert(error.response?.data?.message || 'Error al guardar calificaciones masivamente');
         } finally {
             setIsSavingMatrix(false);
         }
@@ -1373,18 +1416,24 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     <thead>
                                                         <tr className="bg-slate-50/50">
                                                             <th className="p-8 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50/80 backdrop-blur-md z-10 w-80 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.1)]">Alumno / Estudiante</th>
+                                                            {/* Render real evaluations first */}
                                                             {evaluations.map(ev => (
-                                                                <th key={ev._id} className="p-8 border-b text-center min-w-[140px] group">
+                                                                <th key={ev._id} className="p-8 border-b text-center min-w-[140px] group transition-all hover:bg-slate-100/50">
                                                                     <div className="text-[10px] font-black text-[#11355a] uppercase tracking-tight truncate max-w-[120px] mx-auto mb-1" title={ev.title}>{ev.title}</div>
                                                                     <div className="text-[8px] font-bold text-slate-300 uppercase">{new Date(ev.date).toLocaleDateString()}</div>
+                                                                    <div className="text-[8px] font-black text-blue-500 mt-1">{ev.weight}%</div>
                                                                 </th>
                                                             ))}
-                                                            {/* Empty slots for consistency */}
-                                                            {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => (
-                                                                <th key={`empty-h-${i}`} className="p-8 border-b text-center min-w-[140px] opacity-10">
-                                                                    <div className="text-[10px] font-black text-slate-200 uppercase">Filtro {evaluations.length + i + 1}</div>
-                                                                </th>
-                                                            ))}
+                                                            {/* Render virtual slots for the remainder up to 10 */}
+                                                            {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => {
+                                                                const virtualId = `virtual_${evaluations.length + i + 1}`;
+                                                                return (
+                                                                    <th key={virtualId} className="p-8 border-b text-center min-w-[140px] bg-slate-50/30 group">
+                                                                        <div className="text-[10px] font-black text-slate-300 uppercase italic">Nota {evaluations.length + i + 1}</div>
+                                                                        <div className="text-[8px] font-bold text-slate-200 uppercase mt-1">Disp. para ingreso</div>
+                                                                    </th>
+                                                                );
+                                                            })}
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
@@ -1398,6 +1447,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                         <div className="truncate w-56">{student.apellidos}, {student.nombres}</div>
                                                                     </div>
                                                                 </td>
+                                                                {/* Real Evaluations Inputs */}
                                                                 {evaluations.map(ev => (
                                                                     <td key={ev._id} className="p-6 text-center">
                                                                         <input 
@@ -1407,7 +1457,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                             className={`w-16 h-14 text-center rounded-2xl border-2 font-black text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all ${
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') >= 4 ? 'bg-emerald-50 border-emerald-100 text-emerald-700 focus:border-emerald-500' : 
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') > 0 ? 'bg-rose-50 border-rose-100 text-rose-600 focus:border-rose-500' :
-                                                                                'bg-slate-50 border-slate-100 text-slate-300 focus:bg-white focus:border-blue-300 focus:text-blue-600'
+                                                                                'bg-white border-slate-100 text-slate-300 focus:bg-white focus:border-blue-300 focus:text-blue-600'
                                                                             }`}
                                                                             value={gradeMatrix[student._id]?.[ev._id] || ''}
                                                                             onChange={e => setGradeMatrix({
@@ -1420,11 +1470,33 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                         />
                                                                     </td>
                                                                 ))}
-                                                                {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => (
-                                                                    <td key={`empty-td-${i}`} className="p-6 text-center opacity-5">
-                                                                        <div className="w-16 h-14 mx-auto bg-slate-100 rounded-2xl"></div>
-                                                                    </td>
-                                                                ))}
+                                                                {/* Virtual Slots Inputs */}
+                                                                {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => {
+                                                                    const virtualKey = `virtual_${evaluations.length + i + 1}`;
+                                                                    const val = gradeMatrix[student._id]?.[virtualKey] || '';
+                                                                    return (
+                                                                        <td key={virtualKey} className="p-6 text-center bg-slate-50/10">
+                                                                            <input 
+                                                                                type="number" 
+                                                                                min="1" max="7" step="0.1"
+                                                                                placeholder="..."
+                                                                                className={`w-16 h-14 text-center rounded-2xl border-2 border-dashed font-black text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all ${
+                                                                                    parseFloat(val) >= 4 ? 'bg-emerald-50/50 border-emerald-200 text-emerald-700' : 
+                                                                                    parseFloat(val) > 0 ? 'bg-rose-50/50 border-rose-200 text-rose-600' :
+                                                                                    'bg-transparent border-slate-200 text-slate-400 focus:bg-white focus:border-blue-300 focus:border-solid'
+                                                                                }`}
+                                                                                value={val}
+                                                                                onChange={e => setGradeMatrix({
+                                                                                    ...gradeMatrix,
+                                                                                    [student._id]: {
+                                                                                        ...(gradeMatrix[student._id] || {}),
+                                                                                        [virtualKey]: e.target.value
+                                                                                    }
+                                                                                })}
+                                                                            />
+                                                                        </td>
+                                                                    );
+                                                                })}
                                                             </tr>
                                                         ))}
                                                     </tbody>
