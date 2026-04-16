@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Trash2, Calendar, Save, ShieldAlert, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Calendar, Save, ShieldAlert, Loader2, Briefcase, User } from 'lucide-react';
 
 interface Schedule {
     _id: string;
@@ -12,6 +12,7 @@ interface Schedule {
     dayOfWeek: number;
     startTime: string;
     endTime: string;
+    isDual?: boolean;
 }
 
 interface Course {
@@ -53,6 +54,7 @@ const ScheduleManagementPage = () => {
     const [subjects, setSubjects] = useState<Subject[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<string>('');
+    const [alternancias, setAlternancias] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
@@ -61,7 +63,8 @@ const ScheduleManagementPage = () => {
         subjectId: '',
         teacherId: '',
         dayOfWeek: 1,
-        blockId: 1
+        blockId: 1,
+        isDual: false
     });
 
     useEffect(() => {
@@ -98,6 +101,13 @@ const ScheduleManagementPage = () => {
             if (selectedCourse) url += `&courseId=${selectedCourse}`;
             
             const res = await api.get(url);
+            
+            // Fetch Alternancias for Dual Modules integration
+            const altRes = await api.get('/alternancias');
+            const courseAlts = selectedCourse 
+                ? altRes.data.filter((a: any) => a.careerId?._id === selectedCourse || a.courseId === selectedCourse) 
+                : altRes.data;
+            setAlternancias(courseAlts);
             
             // Polymorphic structure support (Handles {schedules, events} vs [schedules])
             if (res.data && res.data.schedules) {
@@ -212,7 +222,8 @@ const ScheduleManagementPage = () => {
                                         subjectId: '',
                                         teacherId: '',
                                         dayOfWeek: 1,
-                                        blockId: 1
+                                        blockId: 1,
+                                        isDual: false
                                     });
                                     fetchSubjects(selectedCourse);
                                     setShowModal(true);
@@ -263,15 +274,21 @@ const ScheduleManagementPage = () => {
                                                     <div className="group relative bg-blue-50/50 p-4 rounded-2xl border-2 border-blue-100 hover:border-blue-400 hover:bg-white hover:shadow-xl transition-all h-full min-h-[100px] flex flex-col justify-between">
                                                         <div>
                                                             <div className="flex justify-between items-start mb-2">
-                                                                <span className="bg-blue-600 text-[8px] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest">{item.courseId.name}</span>
+                                                                <span className={`text-[8px] text-white px-2 py-0.5 rounded-full font-black uppercase tracking-widest ${item.isDual ? 'bg-[#2DAAB8]' : 'bg-blue-600'}`}>
+                                                                    {item.isDual ? 'FORMACIÓN DUAL' : item.courseId.name}
+                                                                </span>
                                                                 {canEdit && (
                                                                     <button onClick={() => handleDelete(item._id)} className="text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                         <Trash2 size={12} />
                                                                     </button>
                                                                 )}
                                                             </div>
-                                                            <h4 className="font-black text-slate-800 text-xs uppercase leading-tight">{item.subjectId?.name}</h4>
-                                                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 truncate">{item.teacherId?.name}</p>
+                                                            <h4 className={`font-black text-xs uppercase leading-tight ${item.isDual ? 'text-[#002447]' : 'text-slate-800'}`}>
+                                                                {item.subjectId?.name}
+                                                            </h4>
+                                                            <p className="text-[10px] text-slate-400 font-bold uppercase mt-1 truncate">
+                                                                {item.isDual ? 'ENTORNO EMPRESA' : item.teacherId?.name}
+                                                            </p>
                                                         </div>
                                                         
                                                         {dayEvents.length > 0 && block.id === 1 && (
@@ -299,24 +316,61 @@ const ScheduleManagementPage = () => {
             </div>
 
             {/* Event Markers Section */}
-            {events.length > 0 && (
-                <div className="bg-amber-50 rounded-[2rem] p-8 border border-amber-100 animate-in slide-in-from-bottom duration-700">
-                    <h3 className="text-amber-900 font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
-                        <Calendar size={18} /> Eventos y Evaluaciones de la Semana
-                    </h3>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {events.map((e, idx) => (
-                            <div key={idx} className="bg-white p-4 rounded-2xl shadow-sm border border-amber-100 flex items-center gap-4">
-                                <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
-                                    <span className="font-black text-sm">{new Date(e.date).getDate()}</span>
-                                </div>
-                                <div className="min-w-0">
-                                    <p className="font-black text-slate-800 uppercase text-[10px] truncate">{e.title}</p>
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase">{e.type}</p>
-                                </div>
+            {(events.length > 0 || alternancias.length > 0) && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {events.length > 0 && (
+                        <div className="bg-amber-50 rounded-[2rem] p-8 border border-amber-100 animate-in slide-in-from-bottom duration-700">
+                            <h3 className="text-amber-900 font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
+                                <Calendar size={18} /> Eventos y Evaluaciones de la Semana
+                            </h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {events.map((e, idx) => (
+                                    <div key={idx} className="bg-white p-4 rounded-2xl shadow-sm border border-amber-100 flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                                            <span className="font-black text-sm">{new Date(e.date).getDate()}</span>
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-black text-slate-800 uppercase text-[10px] truncate">{e.title}</p>
+                                            <p className="text-[9px] text-slate-400 font-bold uppercase">{e.type}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    )}
+
+                    {alternancias.length > 0 && (
+                        <div className="bg-[#2DAAB8]/5 rounded-[2rem] p-8 border border-[#2DAAB8]/10 animate-in slide-in-from-bottom duration-700 delay-100">
+                            <h3 className="text-[#002447] font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
+                                <Briefcase size={18} className="text-[#2DAAB8]" /> Monitor de Formación Dual Activa
+                            </h3>
+                            <div className="space-y-3">
+                                {alternancias.slice(0, 4).map((alt, idx) => (
+                                    <div key={idx} className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-white flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 bg-[#002447] rounded-xl flex items-center justify-center text-white overflow-hidden border-2 border-white">
+                                                {alt.estudianteId?.photoUrl ? (
+                                                    <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <User size={18} />
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className="font-black text-[#002447] uppercase text-[10px]">{alt.estudianteId?.firstName} {alt.estudianteId?.lastName}</p>
+                                                <p className="text-[9px] text-[#2DAAB8] font-bold uppercase tracking-wider">{alt.empresa?.razonSocial || 'Empresa por asignar'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[8px] font-black uppercase">{alt.tipo}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                                {alternancias.length > 4 && (
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase text-center mt-2 italic">And {alternancias.length - 4} more students in alternation</p>
+                                )}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -383,6 +437,18 @@ const ScheduleManagementPage = () => {
                                             <option key={b.id} value={b.id}>{b.id}º ({b.start} - {b.end})</option>
                                         ))}
                                     </select>
+                                </div>
+                                <div className="col-span-2 flex items-center gap-4 bg-slate-50 p-4 rounded-2xl border-2 border-slate-100">
+                                    <input 
+                                        type="checkbox" 
+                                        id="isDual"
+                                        className="w-5 h-5 accent-[#2DAAB8]"
+                                        checked={formData.isDual}
+                                        onChange={e => setFormData({ ...formData, isDual: e.target.checked })}
+                                    />
+                                    <label htmlFor="isDual" className="text-[10px] font-black text-[#002447] uppercase tracking-widest cursor-pointer">
+                                        Bloque de Formación Dual (En Empresa)
+                                    </label>
                                 </div>
                             </div>
                             <div className="pt-6 flex gap-4">

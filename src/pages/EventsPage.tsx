@@ -11,7 +11,7 @@ interface SchoolEvent {
     date: string;
     endDate?: string;
     location: string;
-    type: 'evento' | 'reunion' | 'otro' | 'licencia' | 'alternancia';
+    type: 'evento' | 'reunion' | 'otro' | 'licencia' | 'alternancia' | 'examen_dual';
     colorHex?: string;
     isLicencia?: boolean;
 }
@@ -112,9 +112,12 @@ const EventsPage = () => {
                                     isLicencia ? 'bg-red-200 text-red-800' :
                                     event.type === 'reunion' ? 'bg-orange-100 text-orange-800' : 
                                     event.type === 'alternancia' ? 'bg-purple-100 text-purple-800' :
+                                    event.type === 'examen_dual' ? 'bg-[#2DAAB8] text-white shadow-sm' :
                                     'bg-blue-100 text-blue-800'
                                 }`}>
-                                    {isLicencia ? '🏥 Licencia Médica' : event.type}
+                                    {isLicencia ? '🏥 Licencia Médica' : 
+                                     event.type === 'examen_dual' ? '📊 Examen Dual Marítimo' : 
+                                     event.type}
                                 </span>
                                 {permissions.isAdmin && (
                                     <button onClick={() => handleDelete(event._id)} className="text-gray-400 hover:text-red-500">
@@ -169,6 +172,7 @@ const EventsPage = () => {
                                         onChange={e => setNewEvent({ ...newEvent, type: e.target.value as any })}>
                                         <option value="evento">Evento</option>
                                         <option value="reunion">Reunión de Apoderados</option>
+                                        <option value="examen_dual">Examen Formación Dual</option>
                                         <option value="otro">Otro</option>
                                     </select>
                                 </div>

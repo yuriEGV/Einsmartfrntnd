@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { validarRUT, formatearRUT } from '../utils/rutValidator';
 
@@ -16,7 +16,13 @@ interface Empresa {
 
 interface Alternancia {
     _id: string;
-    estudianteId: { _id: string; firstName: string; lastName: string; rut: string };
+    estudianteId: { 
+        _id: string; 
+        firstName: string; 
+        lastName: string; 
+        rut: string;
+        photoUrl?: string; 
+    };
     careerId: { _id: string; name: string };
     empresa: { _id: string; razonSocial: string; rut: string; emailContacto: string };
     tipo: string;
@@ -35,6 +41,7 @@ interface Alternancia {
         cargo: string;
         email: string;
         telefono: string;
+        firma?: string;
     };
     modulosDual?: Array<{
         subjectId: { _id: string; name: string } | string;
@@ -49,13 +56,24 @@ interface Alternancia {
         asistencia: number;
         comentarios: string;
         tutorFirma: boolean;
+        signature?: string;
     }>;
     observaciones: string;
     bitacora?: Array<{
+        _id?: string;
         fecha: string;
         horasCronologicas: number;
         actividadRealizada: string;
+        observaciones?: string;
         firmadoTutor: boolean;
+        firmaEstudiante?: string;
+        firmaTutorContenido?: string;
+        gpsLocation?: {
+            lat: number;
+            lng: number;
+            accuracy?: number;
+            timestamp?: string;
+        };
     }>;
 }
 
@@ -355,8 +373,12 @@ export default function AlternanciasPage() {
                             {/* Student Header */}
                             <div className="flex items-start justify-between mb-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-[#002447] to-[#004080] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#002447]/20">
-                                        <User size={28} />
+                                    <div className="w-14 h-14 bg-gradient-to-br from-[#002447] to-[#004080] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#002447]/20 overflow-hidden border-2 border-white/20">
+                                        {alt.estudianteId?.photoUrl ? (
+                                            <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User size={28} />
+                                        )}
                                     </div>
                                     <div>
                                         <h3 className="font-black text-[#002447] uppercase leading-tight tracking-tighter text-lg">
@@ -865,50 +887,119 @@ export default function AlternanciasPage() {
                 </div>
             )}
             
-            {/* Modal de Interfaz Temporal: Bitácoras (Placeholder For Next Upgrade) */}
+            {/* Modal de Bitácora: Registro de Actividades y Seguimiento GPS/Firma */}
             {isBitacoraModalOpen && selectedAlt && (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#002447]/90 backdrop-blur-xl p-4">
-                    <div className="bg-white/95 backdrop-blur-2xl rounded-[4rem] w-full max-w-2xl p-12 text-center shadow-2xl relative overflow-hidden border-8 border-white scale-in-center">
-                        <button onClick={() => setIsBitacoraModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-slate-100 rounded-2xl transition-all">
-                            <X size={24} className="text-slate-400" />
-                        </button>
-                        
-                        <div className="w-24 h-24 bg-[#2DAAB8]/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
-                            <BookOpen size={48} className="text-[#2DAAB8]" />
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#002447]/95 backdrop-blur-2xl p-4 animate-in fade-in duration-300">
+                    <div className="bg-white rounded-[3.5rem] w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden shadow-[0_0_100px_rgba(45,170,184,0.2)] border-8 border-white scale-in-center">
+                        {/* Header */}
+                        <div className="p-10 bg-gradient-to-br from-[#002447] to-[#004080] text-white flex justify-between items-center relative">
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 bg-white/10 rounded-[2rem] flex items-center justify-center backdrop-blur-md border border-white/20">
+                                    {selectedAlt.estudianteId?.photoUrl ? (
+                                        <img src={selectedAlt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover rounded-[1.8rem]" />
+                                    ) : (
+                                        <BookOpen size={40} className="text-[#2DAAB8]" />
+                                    )}
+                                </div>
+                                <div>
+                                    <h2 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">Bitácora de Alternancia</h2>
+                                    <p className="text-[10px] font-bold text-[#2DAAB8] uppercase tracking-[0.3em]">
+                                        Expediente Dual: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                                    </p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsBitacoraModalOpen(false)} className="p-4 hover:bg-white/10 rounded-3xl transition-all">
+                                <X size={28} />
+                            </button>
                         </div>
-                        
-                        <h2 className="text-4xl font-black text-[#002447] uppercase tracking-tighter mb-2 italic">Bitácora Dual</h2>
-                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">
-                            Expediente: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
-                        </p>
-                        
-                        <div className="bg-slate-50/80 p-10 rounded-[3rem] border-2 border-slate-100 mb-10 shadow-sm">
-                            <h3 className="font-black text-[#002447] text-xs uppercase tracking-widest mb-6">Estado de Formación Dual</h3>
-                            <div className="grid grid-cols-2 gap-8 text-left">
-                                <div className="space-y-1">
-                                    <span className="block text-[9px] text-slate-400 uppercase font-black tracking-widest">Horas en Empresa</span>
-                                    <span className="text-3xl font-black text-[#2DAAB8] tracking-tighter">{selectedAlt.planFormativo?.totalHoras || 0} <span className="text-xs uppercase ml-1">hrs</span></span>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar bg-slate-50/50">
+                            {/* Stats Summary */}
+                            <div className="grid grid-cols-3 gap-6">
+                                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Horas en Liceo</p>
+                                    <p className="text-2xl font-black text-[#002447]">{selectedAlt.modulosDual?.reduce((acc, m) => acc + m.horasLiceo, 0) || 0}h</p>
                                 </div>
-                                <div className="space-y-1">
-                                    <span className="block text-[9px] text-slate-400 uppercase font-black tracking-widest">Sesiones Validadas</span>
-                                    <span className="text-3xl font-black text-[#002447] tracking-tighter">{selectedAlt.bitacora?.length || 0}</span>
+                                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Horas en Empresa</p>
+                                    <p className="text-2xl font-black text-[#2DAAB8]">{selectedAlt.bitacora?.reduce((acc, b) => acc + b.horasCronologicas, 0) || 0}h</p>
                                 </div>
+                                <div className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Total Planificado</p>
+                                    <p className="text-2xl font-black text-slate-800">{selectedAlt.planFormativo?.totalHoras || 0}h</p>
+                                </div>
+                            </div>
+
+                            {/* Entries List */}
+                            <div className="space-y-4">
+                                <h3 className="text-xs font-black text-[#002447] uppercase tracking-widest ml-4 mb-6 flex items-center gap-2">
+                                    <Calendar size={16} className="text-[#2DAAB8]" /> Cronograma de Actividades Recientes
+                                </h3>
+                                
+                                {selectedAlt.bitacora && selectedAlt.bitacora.length > 0 ? (
+                                    selectedAlt.bitacora.map((entry, eIdx) => (
+                                        <div key={entry._id || eIdx} className="bg-white p-6 rounded-[2.5rem] shadow-sm border border-slate-100 hover:border-[#2DAAB8]/30 transition-all group">
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-4 py-2 rounded-2xl font-black text-xs">
+                                                        {new Date(entry.fecha).toLocaleDateString('es-CL')}
+                                                    </div>
+                                                    <div className="bg-slate-100 text-slate-600 px-4 py-2 rounded-2xl font-black text-xs">
+                                                        {entry.horasCronologicas} HORAS
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    {entry.gpsLocation && (
+                                                        <a 
+                                                            href={`https://www.google.com/maps?q=${entry.gpsLocation.lat},${entry.gpsLocation.lng}`} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="p-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm flex items-center gap-1 font-bold text-[9px] uppercase"
+                                                            title="Ver ubicación en GPS"
+                                                        >
+                                                            <MapPin size={14} /> GPS Verificado
+                                                        </a>
+                                                    )}
+                                                    {entry.firmadoTutor && (
+                                                        <div className="p-2 bg-[#002447]/5 text-[#002447] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase">
+                                                            <PenTool size={14} className="text-[#2DAAB8]" /> Firmado por Tutor
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <p className="text-sm font-bold text-[#002447]/80 leading-relaxed bg-slate-50/50 p-5 rounded-3xl group-hover:bg-white transition-colors">
+                                                {entry.actividadRealizada}
+                                            </p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center py-20 bg-slate-50/50 rounded-[3rem] border-4 border-dashed border-slate-100">
+                                        <AlertCircle size={48} className="mx-auto text-slate-200 mb-4" />
+                                        <p className="text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">No se registran actividades en el expediente actual</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
 
-                        <div className="p-6 bg-[#002447]/5 rounded-3xl border border-[#002447]/10 flex items-center gap-4 text-left">
-                            <AlertCircle size={24} className="text-[#2DAAB8] shrink-0" />
-                            <p className="text-[11px] font-black text-[#002447]/70 uppercase leading-relaxed tracking-wider">
-                                La funcionalidad de firma digital y registro cronológico por GPS está siendo configurada para su despliegue en la App Móvil Marítima.
-                            </p>
+                        {/* Footer */}
+                        <div className="p-10 bg-slate-50 flex justify-between items-center border-t border-slate-100">
+                            <div className="flex items-center gap-4 text-left">
+                                <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm">
+                                    <ShieldCheck size={24} className="text-[#2DAAB8]" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-[#002447] uppercase tracking-widest">Validación de Integridad</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase">Los registros incluyen marcaje GPS y firma digital biométrica</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setIsBitacoraModalOpen(false)}
+                                className="px-10 py-5 bg-[#002447] hover:bg-[#003666] text-white rounded-[1.8rem] font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl shadow-[#002447]/20 active:scale-95 transition-all"
+                            >
+                                Cerrar Registro
+                            </button>
                         </div>
-                        
-                        <button 
-                            onClick={() => setIsBitacoraModalOpen(false)}
-                            className="mt-8 w-full py-4 bg-slate-800 hover:bg-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px]"
-                        >
-                            Comprendido, retornar
-                        </button>
                     </div>
                 </div>
             )}
