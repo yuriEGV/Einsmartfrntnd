@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2, User, Star } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { validarRUT, formatearRUT } from '../utils/rutValidator';
 
@@ -293,16 +293,18 @@ export default function AlternanciasPage() {
     return (
         <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
             {/* Header Module */}
+            {/* Header Module */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800 uppercase tracking-tighter flex items-center gap-3">
-                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl">
+                    <h1 className="text-3xl font-black text-[#002447] uppercase tracking-tighter flex items-center gap-3">
+                        <div className="p-3 bg-[#002447]/5 text-[#2DAAB8] rounded-2xl">
                             <Briefcase size={28} />
                         </div>
-                        Alternancias TP Central
+                        Gestión de Alternancia Dual
                     </h1>
-                    <p className="text-slate-500 font-bold text-sm tracking-wide mt-2">
-                        Sistema unificado Mineduc: Prácticas, Seguros Escolares y Validaciones
+                    <p className="text-slate-500 font-bold text-sm tracking-wide mt-2 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-[#2DAAB8] animate-pulse"></span>
+                        Instituto Marítimo: Supervisión Profesional y Formación en Empresa
                     </p>
                 </div>
                 {permissions.canManageAlternancias && (
@@ -312,171 +314,187 @@ export default function AlternanciasPage() {
                             setFormData(initialAltForm);
                             setIsModalOpen(true);
                         }}
-                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-4 rounded-2xl flex items-center gap-3 font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-emerald-600/20 active:scale-95"
+                        className="bg-[#002447] hover:bg-[#003666] text-white px-8 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-2xl shadow-[#002447]/30 active:scale-95 border-b-4 border-[#00152b]"
                     >
-                        <Plus size={18} /> Inscribir Nueva
+                        <Plus size={18} /> Inscribir Nueva Alternancia
                     </button>
                 )}
             </div>
 
             {/* Smart Search */}
-            <div className="bg-white rounded-3xl p-3 shadow-xl shadow-emerald-900/5 border border-slate-100 flex items-center gap-3 focus-within:ring-4 ring-emerald-50 transition-all">
-                <Search className="text-emerald-400 ml-3" size={24} />
+            <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-2 shadow-2xl shadow-[#002447]/5 border border-white/80 flex items-center gap-3 focus-within:ring-4 ring-[#2DAAB8]/10 transition-all">
+                <div className="p-3 bg-[#002447] rounded-2xl text-[#2DAAB8]">
+                    <Search size={22} />
+                </div>
                 <input
                     type="text"
-                    placeholder="Escanear y filtrar por Alumno, RUT, o Especialidad / Empresa..."
+                    placeholder="Filtrar por Estudiante, RUT, Especialidad o Empresa asignada..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full py-3 bg-transparent focus:outline-none text-base font-bold text-slate-700 placeholder:text-slate-300"
+                    className="w-full py-4 bg-transparent focus:outline-none text-base font-black text-[#002447] placeholder:text-slate-300"
                 />
             </div>
 
-            {/* Table */}
+            {/* Cards Grid */}
             {loading ? (
                 <div className="py-20 text-center animate-pulse flex flex-col items-center">
-                    <div className="w-16 h-16 border-4 border-emerald-100 border-t-emerald-500 rounded-full animate-spin"></div>
-                    <p className="text-slate-400 font-bold mt-4 uppercase tracking-widest text-xs">Conectando Red Curricular...</p>
+                    <div className="w-16 h-16 border-4 border-slate-100 border-t-[#2DAAB8] rounded-full animate-spin"></div>
+                    <p className="text-slate-400 font-bold mt-4 uppercase tracking-widest text-[10px]">Sincronizando Expedientes Académicos...</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-[2rem] shadow-xl shadow-slate-200/40 border border-slate-100 overflow-hidden">
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="bg-slate-50/50">
-                                    <th className="px-6 py-5 font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Estudiante Experto</th>
-                                    <th className="px-6 py-5 font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Organización Receptora</th>
-                                    <th className="px-6 py-5 font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Especialidad TP</th>
-                                    <th className="px-6 py-5 font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Métricas Status</th>
-                                    <th className="px-6 py-5 font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Seguro</th>
-                                    <th className="px-6 py-5 text-right font-black text-[10px] text-slate-400 tracking-[0.2em] uppercase">Consola de Mando</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-50">
-                                {filteredAlternancias.map(alt => (
-                                    <tr key={alt._id} className="hover:bg-slate-50/80 transition-colors group">
-                                        <td className="px-6 py-5">
-                                            <p className="font-black text-slate-700 text-sm">{alt.estudianteId?.firstName} {alt.estudianteId?.lastName}</p>
-                                            <p className="text-xs font-bold text-slate-400 tracking-wide mt-1">{alt.estudianteId?.rut}</p>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2">
-                                                <Building2 size={14} className="text-emerald-500" />
-                                                <p className="font-bold text-slate-800 text-sm">{alt.empresa?.razonSocial}</p>
-                                            </div>
-                                            <p className="text-[10px] font-black tracking-widest uppercase text-emerald-600 bg-emerald-50 inline-block px-2 py-1 rounded-md mt-2">
-                                                {alt.tipo}
-                                            </p>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <p className="font-bold text-blue-900 text-xs py-1 px-3 bg-blue-50 rounded-lg inline-block border border-blue-100">
-                                                {alt.careerId?.name || 'S/E'}
-                                            </p>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <div className="flex flex-col gap-1">
-                                                <span className={`font-black text-[9px] tracking-widest uppercase px-3 py-1.5 rounded-xl w-fit
-                                                    ${alt.estado === 'Activa' ? 'bg-emerald-100 text-emerald-700' :
-                                                        alt.estado === 'Finalizada' ? 'bg-indigo-100 text-indigo-700' :
-                                                        alt.estado === 'Borrador' ? 'bg-slate-100 text-slate-600' :
-                                                        'bg-rose-100 text-rose-700'}`}>
-                                                    {alt.estado}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase">
-                                                    Horas: {alt.planFormativo?.totalHoras || 0} hrs.
-                                                </span>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            {alt.seguroEscolar ? 
-                                                <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 py-1 px-2 rounded-lg w-fit border border-emerald-100">
-                                                    <ShieldCheck size={14} /> <span className="font-black text-[9px] tracking-widest uppercase">Activo</span>
-                                                </div> :
-                                                <div className="flex items-center gap-1 text-rose-500 bg-rose-50 py-1 px-2 rounded-lg w-fit border border-rose-100">
-                                                    <AlertCircle size={14} /> <span className="font-black text-[9px] tracking-widest uppercase">Ausente</span>
-                                                </div>
-                                            }
-                                        </td>
-                                        <td className="px-6 py-5 text-right">
-                                            <div className="flex justify-end gap-2 pr-2">
-                                                <button
-                                                    onClick={() => { setSelectedAlt(alt); setIsBitacoraModalOpen(true); }}
-                                                    className="p-2.5 text-indigo-400 hover:text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors"
-                                                    title="Bitácora Diaria"
-                                                >
-                                                    <BookOpen size={18} />
-                                                </button>
-                                                <button
-                                                    onClick={() => { setSelectedAlt(alt); setIsEvalModalOpen(true); }}
-                                                    className="p-2.5 text-amber-500 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors"
-                                                    title="Evaluación Maestro Guía"
-                                                >
-                                                    <Star size={18} />
-                                                </button>
-                                                {permissions.canManageAlternancias && (
-                                                    <>
-                                                        <button
-                                                            onClick={() => handleEdit(alt)}
-                                                            className="p-2.5 text-blue-400 hover:text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-xl transition-colors"
-                                                            title="Editar Master"
-                                                        >
-                                                            <Edit size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(alt._id)}
-                                                            className="p-2.5 text-rose-400 hover:text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors"
-                                                            title="Eliminar Registro"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                                {filteredAlternancias.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="py-16 text-center">
-                                            <FileText size={48} className="mx-auto text-slate-200 mb-4" />
-                                            <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No hay expedientes activos</p>
-                                        </td>
-                                    </tr>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {filteredAlternancias.map((alt, idx) => (
+                        <div 
+                            key={alt._id} 
+                            style={{ animationDelay: `${idx * 100}ms` }}
+                            className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white p-6 shadow-2xl shadow-[#002447]/5 hover:shadow-[#002447]/10 transition-all hover:-translate-y-2 group relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500"
+                        >
+                            {/* Card Background Accent */}
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#2DAAB8]/5 rounded-full blur-3xl group-hover:bg-[#2DAAB8]/15 transition-colors"></div>
+                            
+                            {/* Student Header */}
+                            <div className="flex items-start justify-between mb-6">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 bg-gradient-to-br from-[#002447] to-[#004080] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#002447]/20">
+                                        <User size={28} />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-[#002447] uppercase leading-tight tracking-tighter text-lg">
+                                            {alt.estudianteId?.firstName} <br/> {alt.estudianteId?.lastName}
+                                        </h3>
+                                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
+                                    </div>
+                                </div>
+                                <div className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm
+                                    ${alt.estado === 'Activa' ? 'bg-[#2DAAB8] text-white' :
+                                      alt.estado === 'Finalizada' ? 'bg-[#002447] text-white' :
+                                      'bg-slate-100 text-slate-400'}`}>
+                                    {alt.estado}
+                                </div>
+                            </div>
+
+                            {/* Info Rows */}
+                            <div className="space-y-4 mb-8">
+                                <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
+                                    <div className="flex items-center gap-3 mb-2 text-[#002447]">
+                                        <Building2 size={16} className="text-[#2DAAB8]" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Empresa Asignada</span>
+                                    </div>
+                                    <p className="font-black text-slate-800 text-sm pl-7">{alt.empresa?.razonSocial}</p>
+                                    <p className="text-[9px] font-bold text-[#2DAAB8] pl-7 mt-1 uppercase italic">{alt.tipo}</p>
+                                </div>
+
+                                <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
+                                    <div className="flex items-center gap-3 mb-2 text-[#002447]">
+                                        <BookOpen size={16} className="text-[#2DAAB8]" />
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Especialidad</span>
+                                    </div>
+                                    <p className="font-black text-slate-800 text-sm pl-7">{alt.careerId?.name || 'Formación Técnica'}</p>
+                                </div>
+                            </div>
+
+                            {/* Stats */}
+                            <div className="flex items-center justify-between px-2 mb-8">
+                                <div className="text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Horas Totales</p>
+                                    <p className="text-lg font-black text-[#002447]">{alt.planFormativo?.totalHoras || 0}</p>
+                                </div>
+                                <div className="h-8 w-px bg-slate-100"></div>
+                                <div className="text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Evaluaciones</p>
+                                    <p className="text-lg font-black text-[#2DAAB8]">{alt.evaluacionesPeriodicas?.length || 0}</p>
+                                </div>
+                                <div className="h-8 w-px bg-slate-100"></div>
+                                <div className="text-center">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Seguro</p>
+                                    {alt.seguroEscolar ? <ShieldCheck className="text-emerald-500 mx-auto" size={22} /> : <AlertCircle className="text-rose-400 mx-auto" size={22} />}
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => { setSelectedAlt(alt); setIsBitacoraModalOpen(true); }}
+                                    className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                >
+                                    <FileText size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Bitácora</span>
+                                </button>
+                                <button
+                                    onClick={() => { setSelectedAlt(alt); setIsEvalModalOpen(true); }}
+                                    className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                >
+                                    <Star size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Evaluar</span>
+                                </button>
+                                
+                                {permissions.canManageAlternancias && (
+                                    <>
+                                        <button
+                                            onClick={() => handleEdit(alt)}
+                                            className="bg-[#2DAAB8]/5 hover:bg-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn2"
+                                        >
+                                            <Edit size={20} className="text-[#2DAAB8] group-hover/btn2:text-white transition-colors" />
+                                            <span className="text-[9px] font-black text-[#2DAAB8] group-hover/btn2:text-white uppercase tracking-widest">Ajustes</span>
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(alt._id)}
+                                            className="bg-rose-50 hover:bg-rose-500 p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn3 text-rose-500 hover:text-white"
+                                        >
+                                            <Trash2 size={20} />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">Eliminar</span>
+                                        </button>
+                                    </>
                                 )}
-                            </tbody>
-                        </table>
-                    </div>
+                            </div>
+                        </div>
+                    ))}
+                    {filteredAlternancias.length === 0 && (
+                        <div className="col-span-full py-20 bg-white/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
+                            <FileText size={64} className="mx-auto text-slate-200 mb-4" />
+                            <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No se encontraron expedientes activos para esta búsqueda</p>
+                        </div>
+                    )}
                 </div>
             )}
 
             {/* Alternancia Main Modal */}
             {isModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-                            <div>
-                                <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-800 flex items-center gap-3">
-                                    {editingId ? 'Resolución de Expediente' : 'Apertura de Expediente'}
-                                </h2>
-                                <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mt-1">Configuración Administrativa Mineduc</p>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
+                    <div className="bg-white/95 backdrop-blur-2xl rounded-[3rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border-4 border-white scale-in-center">
+                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white shrink-0">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-[#2DAAB8] rounded-2xl shadow-lg shadow-[#2DAAB8]/20">
+                                    <Building2 size={24} />
+                                </div>
+                                <div>
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter">
+                                        {editingId ? 'Actualización de Expediente' : 'Apertura de Alternancia Dual'}
+                                    </h2>
+                                    <p className="text-[10px] font-bold text-white/50 tracking-[0.2em] uppercase mt-1">Sincronización Curricular Marítima</p>
+                                </div>
                             </div>
-                            <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-slate-200 rounded-full transition-colors bg-white shadow-sm">
-                                <X size={20} className="text-slate-500" />
+                            <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-white/10 rounded-full transition-colors text-white">
+                                <X size={24} />
                             </button>
                         </div>
                         
-                        <div className="overflow-y-auto p-8 custom-scrollbar">
-                            <form id="altForm" onSubmit={handleSubmit} className="space-y-8">
+                        <div className="overflow-y-auto p-10 custom-scrollbar scroll-smooth">
+                            <form id="altForm" onSubmit={handleSubmit} className="space-y-12">
                                 {/* Bloque Identidad */}
-                                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 space-y-5">
-                                    <h3 className="font-black text-slate-700 uppercase tracking-widest text-[10px] mb-2">1. Eje de Vinculación y Actores</h3>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Alumno Residente</label>
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b-2 border-slate-50 pb-4">
+                                        <User className="text-[#2DAAB8]" size={20} />
+                                        <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Información del Estudiante y Empresa</h3>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Alumno / Residente</label>
                                             <select
                                                 required
                                                 value={formData.estudianteId}
                                                 onChange={(e) => setFormData({ ...formData, estudianteId: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
                                                 <option value="">Selección de Padrón...</option>
                                                 {students.map(s => (
@@ -484,51 +502,52 @@ export default function AlternanciasPage() {
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Especialidad TP</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Especialidad TP</label>
                                             <select
                                                 required
                                                 value={formData.careerId}
                                                 onChange={(e) => setFormData({ ...formData, careerId: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
-                                                <option value="">Cruzar con Carrera...</option>
+                                                <option value="">Asignar Carrera...</option>
                                                 {careers.map(c => (
                                                     <option key={c._id} value={c._id}>{c.name}</option>
                                                 ))}
                                             </select>
                                         </div>
                                     </div>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 flex justify-between items-center">
-                                                <span>Organización Colaboradora</span>
+                                    
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between items-center">
+                                                <span>Entidad Receptora</span>
                                                 <button 
                                                     type="button" 
                                                     onClick={() => setIsEmpresaModalOpen(true)}
-                                                    className="text-emerald-600 hover:text-emerald-700 flex items-center gap-1 bg-emerald-50 px-2 py-1 rounded-lg"
+                                                    className="text-[#2DAAB8] hover:text-[#002447] flex items-center gap-1 font-black text-[9px] uppercase tracking-widest"
                                                 >
-                                                    <Plus size={12}/> Agregar Nueva
+                                                    <Plus size={12}/> Nueva Empresa
                                                 </button>
                                             </label>
                                             <select
                                                 required
                                                 value={formData.empresa}
                                                 onChange={(e) => setFormData({ ...formData, empresa: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-emerald-100 focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none text-emerald-900"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#2DAAB8] text-sm shadow-inner outline-none transition-all"
                                             >
-                                                <option value="">Seleccione Entidad Receptora...</option>
+                                                <option value="">Seleccione Organización...</option>
                                                 {empresas.map(emp => (
                                                     <option key={emp._id} value={emp._id}>{emp.razonSocial} (RUT: {formatearRUT(emp.rut)})</option>
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Modalidad</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Modalidad de Alternancia</label>
                                             <select
                                                 value={formData.tipo}
                                                 onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
                                                 <option value="Práctica Profesional">Práctica Profesional Dual / Tradicional</option>
                                                 <option value="Pasantía">Pasantía Inicial / Observación</option>
@@ -539,176 +558,169 @@ export default function AlternanciasPage() {
                                     </div>
                                 </div>
 
-                                {/* Bloque Legalidad */}
-                                <div className="grid md:grid-cols-2 gap-6">
-                                    <div className="bg-rose-50/50 p-6 rounded-3xl border border-rose-100 flex flex-col justify-center">
-                                        <label className="flex items-start gap-4 cursor-pointer group">
-                                            <div className="relative flex items-center justify-center shrink-0 mt-1">
+                                {/* Bloque Temporalidad y Seguro */}
+                                <div className="grid md:grid-cols-3 gap-8 items-end">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Inicio</label>
+                                        <input
+                                            type="date"
+                                            required
+                                            value={formData.fechaInicio}
+                                            onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })}
+                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm outline-none"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Término</label>
+                                        <input
+                                            type="date"
+                                            value={formData.fechaTermino}
+                                            onChange={(e) => setFormData({ ...formData, fechaTermino: e.target.value })}
+                                            className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm outline-none"
+                                        />
+                                    </div>
+                                    <div className="bg-[#2DAAB8]/5 p-5 rounded-2xl border border-[#2DAAB8]/10">
+                                        <label className="flex items-center gap-4 cursor-pointer group">
+                                            <div className="relative flex items-center justify-center shrink-0">
                                                 <input 
                                                     type="checkbox" 
                                                     checked={formData.seguroEscolar}
                                                     onChange={(e) => setFormData({ ...formData, seguroEscolar: e.target.checked })}
-                                                    className="w-6 h-6 border-2 border-rose-300 rounded appearance-none checked:bg-rose-500 checked:border-rose-500 transition-all cursor-pointer peer"
+                                                    className="w-6 h-6 border-2 border-[#2DAAB8]/30 rounded-xl appearance-none checked:bg-[#2DAAB8] checked:border-[#2DAAB8] transition-all cursor-pointer peer"
                                                 />
                                                 <ShieldCheck size={16} className="absolute text-white opacity-0 peer-checked:opacity-100 pointer-events-none transition-all" />
                                             </div>
                                             <div>
-                                                <p className="font-black text-rose-800 text-sm">Validar Póliza / Seguro Escolar</p>
-                                                <p className="text-[10px] font-bold text-rose-500/80 uppercase tracking-widest mt-1 leading-relaxed">
-                                                    Imprescindible para certificar cobertura de salud o accidentes del Estado durante horas de desempeño externo.
-                                                </p>
+                                                <p className="font-black text-[#002447] text-[11px] uppercase tracking-widest">Seguro Escolar Activo</p>
+                                                <p className="text-[9px] font-bold text-[#2DAAB8] uppercase mt-1">Cobertura Mineduc</p>
                                             </div>
                                         </label>
                                     </div>
-                                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 flex flex-col gap-4">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Fecha de Despliegue (Inicio)</label>
-                                            <input
-                                                type="date"
-                                                required
-                                                value={formData.fechaInicio}
-                                                onChange={(e) => setFormData({ ...formData, fechaInicio: e.target.value })}
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Cierre Proyectado</label>
-                                            <input
-                                                type="date"
-                                                value={formData.fechaTermino}
-                                                onChange={(e) => setFormData({ ...formData, fechaTermino: e.target.value })}
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none"
-                                            />
-                                        </div>
-                                    </div>
                                 </div>
 
-                                {/* Bloque Maestro Guía (Empresa) */}
-                                <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100/50 space-y-5">
-                                    <h3 className="font-black text-emerald-800 uppercase tracking-widest text-[10px] mb-2 flex items-center gap-2">
-                                        <User size={14} /> 2. Maestro Guía (Tutor Empresa)
-                                    </h3>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Nombre Completo</label>
+                                {/* Bloque Maestro Guía */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b-2 border-slate-50 pb-4">
+                                        <Building2 size={20} className="text-[#2DAAB8]" />
+                                        <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Datos del Maestro Guía (Empresa)</h3>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Nombre del Tutor</label>
                                             <input
                                                 type="text"
                                                 value={formData.maestroGuiaNombre}
                                                 onChange={(e) => setFormData({ ...formData, maestroGuiaNombre: e.target.value })}
-                                                placeholder="Ej: Ing. Juan Pérez"
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                placeholder="Nombre Completo"
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Cargo / Especialidad</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Cargo Directo</label>
                                             <input
                                                 type="text"
                                                 value={formData.maestroGuiaCargo}
                                                 onChange={(e) => setFormData({ ...formData, maestroGuiaCargo: e.target.value })}
-                                                placeholder="Ej: Jefe de Laboratorio"
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                placeholder="Jefe de Operaciones"
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
                                             />
                                         </div>
-                                    </div>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Email de Coordinación</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Email Corporativo</label>
                                             <input
                                                 type="email"
                                                 value={formData.maestroGuiaEmail}
                                                 onChange={(e) => setFormData({ ...formData, maestroGuiaEmail: e.target.value })}
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                placeholder="ejemplo@empresa.com"
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
                                             />
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Teléfono Directo</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Teléfono</label>
                                             <input
                                                 type="text"
                                                 value={formData.maestroGuiaTelefono}
                                                 onChange={(e) => setFormData({ ...formData, maestroGuiaTelefono: e.target.value })}
-                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                placeholder="+56 9..."
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
                                             />
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Bloque Carga Dual Académica */}
-                                <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50 space-y-5">
-                                    <h3 className="font-black text-indigo-800 uppercase tracking-widest text-[10px] mb-2 flex justify-between items-center">
-                                        <span className="flex items-center gap-2"><BookOpen size={14} /> 3. Distribución Dual (Liceo vs Empresa)</span>
+                                {/* Bloque Carga Dual */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center justify-between border-b-2 border-slate-50 pb-4">
+                                        <div className="flex items-center gap-3">
+                                            <Star size={20} className="text-[#2DAAB8]" />
+                                            <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Módulos Técnicos y Carga Dual</h3>
+                                        </div>
                                         <button 
                                             type="button"
-                                            onClick={() => {
-                                                const newMods = [...formData.modulosDual, { subjectId: '', horasLiceo: 0, horasEmpresa: 0, actividades: '' }];
-                                                setFormData({ ...formData, modulosDual: newMods });
-                                            }}
-                                            className="text-[10px] bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all font-black"
+                                            onClick={() => setFormData({ ...formData, modulosDual: [...formData.modulosDual, { subjectId: '', horasLiceo: 0, horasEmpresa: 0, actividades: '' }] })}
+                                            className="bg-[#2DAAB8] hover:bg-[#258a96] text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-[#2DAAB8]/20 transition-all active:scale-95"
                                         >
-                                            + Agregar Módulo
+                                            + Vincular Módulo
                                         </button>
-                                    </h3>
+                                    </div>
                                     
-                                    <div className="space-y-4">
+                                    <div className="grid grid-cols-1 gap-4">
                                         {formData.modulosDual?.map((mod: any, index: number) => (
-                                            <div key={index} className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm space-y-4 relative">
+                                            <div key={index} className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-100 flex flex-col md:flex-row gap-6 relative group">
                                                 <button 
                                                     type="button"
                                                     onClick={() => {
                                                         const newMods = formData.modulosDual.filter((_: any, i: number) => i !== index);
                                                         setFormData({ ...formData, modulosDual: newMods });
                                                     }}
-                                                    className="absolute top-4 right-4 text-rose-400 hover:text-rose-600 p-1"
+                                                    className="absolute -top-2 -right-2 w-8 h-8 bg-white text-rose-500 rounded-full shadow-lg flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
                                                 >
-                                                    <Trash2 size={16} />
+                                                    <X size={14} />
                                                 </button>
                                                 
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="md:col-span-1">
-                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Módulo / Asignatura</label>
-                                                        <select
-                                                            value={typeof mod.subjectId === 'object' ? mod.subjectId?._id : mod.subjectId}
-                                                            onChange={(e) => {
-                                                                const newMods = [...formData.modulosDual];
-                                                                newMods[index].subjectId = e.target.value;
-                                                                setFormData({ ...formData, modulosDual: newMods });
-                                                            }}
-                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none focus:border-indigo-500"
-                                                        >
-                                                            <option value="">Selección...</option>
-                                                            {subjects.map(s => (
-                                                                <option key={s._id} value={s._id}>{s.name}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Hrs Liceo</label>
-                                                        <input 
-                                                            type="number"
-                                                            value={mod.horasLiceo}
-                                                            onChange={(e) => {
-                                                                const newMods = [...formData.modulosDual];
-                                                                newMods[index].horasLiceo = Number(e.target.value);
-                                                                setFormData({ ...formData, modulosDual: newMods });
-                                                            }}
-                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Hrs Empresa</label>
-                                                        <input 
-                                                            type="number"
-                                                            value={mod.horasEmpresa}
-                                                            onChange={(e) => {
-                                                                const newMods = [...formData.modulosDual];
-                                                                newMods[index].horasEmpresa = Number(e.target.value);
-                                                                setFormData({ ...formData, modulosDual: newMods });
-                                                            }}
-                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none text-emerald-600"
-                                                        />
-                                                    </div>
+                                                <div className="flex-1 space-y-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Asignatura del Mineduc</label>
+                                                    <select
+                                                        value={typeof mod.subjectId === 'object' ? mod.subjectId?._id : mod.subjectId}
+                                                        onChange={(e) => {
+                                                            const newMods = [...formData.modulosDual];
+                                                            newMods[index].subjectId = e.target.value;
+                                                            setFormData({ ...formData, modulosDual: newMods });
+                                                        }}
+                                                        className="w-full px-5 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs"
+                                                    >
+                                                        <option value="">Seleccione Módulo...</option>
+                                                        {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                                    </select>
                                                 </div>
-                                                <div>
-                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Actividades de Aprendizaje Definidas</label>
+                                                <div className="w-full md:w-32 space-y-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Hrs Liceo</label>
+                                                    <input 
+                                                        type="number"
+                                                        value={mod.horasLiceo}
+                                                        onChange={(e) => {
+                                                            const newMods = [...formData.modulosDual];
+                                                            newMods[index].horasLiceo = Number(e.target.value);
+                                                            setFormData({ ...formData, modulosDual: newMods });
+                                                        }}
+                                                        className="w-full px-5 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs"
+                                                    />
+                                                </div>
+                                                <div className="w-full md:w-32 space-y-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Hrs Empresa</label>
+                                                    <input 
+                                                        type="number"
+                                                        value={mod.horasEmpresa}
+                                                        onChange={(e) => {
+                                                            const newMods = [...formData.modulosDual];
+                                                            newMods[index].horasEmpresa = Number(e.target.value);
+                                                            setFormData({ ...formData, modulosDual: newMods });
+                                                        }}
+                                                        className="w-full px-5 py-3 bg-white rounded-xl border border-[#2DAAB8]/30 font-bold text-xs text-[#2DAAB8]"
+                                                    />
+                                                </div>
+                                                <div className="flex-[1.5] space-y-2">
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Actividades Profesionales</label>
                                                     <input 
                                                         type="text"
                                                         value={mod.actividades}
@@ -717,74 +729,45 @@ export default function AlternanciasPage() {
                                                             newMods[index].actividades = e.target.value;
                                                             setFormData({ ...formData, modulosDual: newMods });
                                                         }}
-                                                        placeholder="Ej: Análisis sensorial de muestras..."
-                                                        className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none"
+                                                        placeholder="Descripción breve..."
+                                                        className="w-full px-5 py-3 bg-white rounded-xl border border-slate-200 font-bold text-xs"
                                                     />
                                                 </div>
                                             </div>
                                         ))}
-                                        
-                                        {(!formData.modulosDual || formData.modulosDual.length === 0) && (
-                                            <div className="text-center py-6 border-2 border-dashed border-indigo-100 rounded-2xl">
-                                                <AlertCircle size={32} className="mx-auto text-indigo-200 mb-2" />
-                                                <p className="text-[10px] font-bold text-indigo-300 uppercase italic">Favor declarar módulos y distribución horaria</p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
 
-                                {/* Bloque Plan Académico (Objetivos) */}
-                                <div className="bg-blue-50/40 p-6 rounded-3xl border border-blue-100/50 space-y-5">
-                                    <h3 className="font-black text-blue-800 uppercase tracking-widest text-[10px] mb-2 flex items-center gap-2">
-                                        <FileCheck size={14} /> 4. Objetivos y Supervisión Docente
-                                    </h3>
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-1">Objetivos de Aprendizaje (OAs)</label>
-                                            <textarea
-                                                value={formData.planFormativoDetalle}
-                                                onChange={(e) => setFormData({ ...formData, planFormativoDetalle: e.target.value })}
-                                                placeholder="Ej: OA1 Leer e interpretar planos eléctricos...\nOA2 Conocer normativas vigentes...\n(Ingrese uno por línea)"
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-white focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none min-h-[120px]"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-1">Rubrica de Actividades Core</label>
-                                            <textarea
-                                                value={formData.actividadesDetalle}
-                                                onChange={(e) => setFormData({ ...formData, actividadesDetalle: e.target.value })}
-                                                placeholder="- Uso de osciloscopio en motores.\n- Programación PLC básico.\n(Ingrese uno por línea)"
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-white focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none min-h-[120px]"
-                                            />
-                                        </div>
+                                {/* Bloque Validaciones Finales */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b-2 border-slate-50 pb-4">
+                                        <AlertCircle size={20} className="text-[#2DAAB8]" />
+                                        <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Cierre y Asignación de Supervisión</h3>
                                     </div>
-                                    
-                                    <div className="grid md:grid-cols-2 gap-6 mt-4 pt-4 border-t border-blue-100">
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-1">Supervisor de Plantel Docente</label>
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Profesor Supervisor (Liceo)</label>
                                             <select
                                                 required
                                                 value={formData.profesorSupervisor}
                                                 onChange={(e) => setFormData({ ...formData, profesorSupervisor: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-blue-100 focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none text-blue-900"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
-                                                <option value="">Seleccione Profesor Jefe / Tutor...</option>
-                                                {users.filter(u => u.role === 'teacher').map(u => (
-                                                    <option key={u._id} value={u._id}>{u.name}</option>
-                                                ))}
+                                                <option value="">Seleccionar Docente...</option>
+                                                {users.filter(u => u.role === 'teacher').map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 ml-1">Status Interno de Validación</label>
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado Administrativo</label>
                                             <select
                                                 value={formData.estado}
                                                 onChange={(e) => setFormData({ ...formData, estado: e.target.value })}
-                                                className="w-full px-5 py-4 rounded-xl border-2 border-blue-100 focus:border-blue-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
-                                                <option value="Borrador">Borrador (Configurando Perfil)</option>
-                                                <option value="Activa">Activa (Ejecutando en Empresa)</option>
-                                                <option value="Finalizada">Finalizada (Cerrada Satisfactoriamente)</option>
-                                                <option value="Cancelada">Cancelada (N/A o Fuerza Mayor)</option>
+                                                <option value="Borrador">Borrador (Ficha Interna)</option>
+                                                <option value="Activa">Activa (En Proceso)</option>
+                                                <option value="Finalizada">Finalizada (Certificada)</option>
+                                                <option value="Cancelada">Cancelada</option>
                                             </select>
                                         </div>
                                     </div>
@@ -792,12 +775,13 @@ export default function AlternanciasPage() {
                             </form>
                         </div>
                         
-                        <div className="p-6 border-t border-slate-100 flex flex-col md:flex-row gap-4 bg-white shrink-0">
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 text-slate-500 font-bold hover:bg-slate-50 rounded-2xl transition-colors uppercase tracking-widest text-xs border border-slate-200">
-                                Abortar y Salir
+                        <div className="p-10 border-t border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50/50 shrink-0">
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 text-[#002447] font-black hover:bg-slate-100 rounded-3xl transition-all uppercase tracking-[0.2em] text-[10px] border-2 border-slate-100">
+                                Descartar Cambios
                             </button>
-                            <button form="altForm" type="submit" className="flex-[2] py-5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black shadow-xl shadow-emerald-600/20 transition-all uppercase tracking-widest text-xs flex justify-center items-center gap-2">
-                                <CheckCircle2 size={18} /> {editingId ? 'Cerrar y Actualizar Firmas' : 'Constituir y Desplegar Alternancia'}
+                            <button form="altForm" type="submit" className="flex-[2] py-5 bg-[#002447] hover:bg-[#003666] text-white rounded-3xl font-black shadow-2xl shadow-[#002447]/30 transition-all uppercase tracking-[0.2em] text-[10px] flex justify-center items-center gap-2 border-b-4 border-[#00152b]">
+                                <CheckCircle2 size={18} className="text-[#2DAAB8]" /> 
+                                {editingId ? 'Confirmar Actualización de Expediente' : 'Generar y Activar Expediente Dual'}
                             </button>
                         </div>
                     </div>
@@ -806,23 +790,25 @@ export default function AlternanciasPage() {
 
             {/* Sub-Modal: Create Empresa (Inline) */}
             {isEmpresaModalOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/80 backdrop-blur-md p-4 animate-in zoom-in-95">
-                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-[0_0_90px_rgba(30,200,100,0.2)] flex flex-col overflow-hidden">
-                        <div className="p-6 bg-emerald-600 text-white relative flex justify-between items-center">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#002447]/80 backdrop-blur-xl p-4 animate-in zoom-in-95">
+                    <div className="bg-white/95 backdrop-blur-2xl rounded-[3rem] w-full max-w-lg shadow-[0_0_100px_rgba(45,170,184,0.3)] flex flex-col overflow-hidden border-4 border-white">
+                        <div className="p-10 bg-gradient-to-br from-[#2DAAB8] to-[#258a96] text-white relative flex justify-between items-center">
                             <div>
-                                <h3 className="font-black uppercase tracking-tighter text-xl">Integración de Empresa</h3>
-                                <p className="text-[10px] uppercase tracking-widest font-bold text-emerald-200 mt-1">Registrando receptores locales</p>
+                                <h3 className="font-black uppercase tracking-tighter text-2xl flex items-center gap-3">
+                                    <Building2 size={24} /> Registro de Empresa
+                                </h3>
+                                <p className="text-[10px] uppercase tracking-widest font-bold text-white/70 mt-1">Vinculación con el Sector Productivo</p>
                             </div>
-                            <button type="button" onClick={() => { setIsEmpresaModalOpen(false); setRutFeedback(null); }} className="p-2 hover:bg-emerald-500 rounded-full">
-                                <X size={20} />
+                            <button type="button" onClick={() => { setIsEmpresaModalOpen(false); setRutFeedback(null); }} className="p-3 hover:bg-white/10 rounded-2xl transition-all">
+                                <X size={24} />
                             </button>
                         </div>
-                        <form onSubmit={handleEmpresaSubmit} className="p-8 space-y-6">
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 flex justify-between">
+                        <form onSubmit={handleEmpresaSubmit} className="p-10 space-y-8">
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex justify-between">
                                     <span>Identificador Fiscal / RUT Empresa</span>
                                     {rutFeedback && (
-                                        <span className={`text-[10px] ${rutFeedback.isValid ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                        <span className={`text-[10px] font-black ${rutFeedback.isValid ? 'text-[#2DAAB8]' : 'text-rose-500'}`}>
                                             {rutFeedback.message}
                                         </span>
                                     )}
@@ -833,44 +819,46 @@ export default function AlternanciasPage() {
                                     value={empresaForm.rut}
                                     onChange={handleEmpresaRutChange}
                                     placeholder="Ej: 76.123.456-K"
-                                    className={`w-full px-5 py-4 rounded-xl border-2 outline-none font-bold text-sm shadow-sm transition-all focus:border-emerald-500 ${rutFeedback?.isValid === false ? 'border-rose-300 bg-rose-50 text-rose-700' : 'border-slate-200 bg-slate-50'}`}
+                                    className={`w-full px-6 py-5 rounded-2xl border-2 outline-none font-black text-sm shadow-inner transition-all focus:border-[#2DAAB8] ${rutFeedback?.isValid === false ? 'border-rose-100 bg-rose-50 text-rose-700' : 'border-slate-50 bg-slate-50/50'}`}
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Razón Social o Nombre Legal</label>
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Razón Social o Nombre Legal</label>
                                 <input
                                     type="text"
                                     required
                                     value={empresaForm.razonSocial}
                                     onChange={e => setEmpresaForm({ ...empresaForm, razonSocial: e.target.value })}
-                                    placeholder="Ej: Maestranza Metalmecánica SpA"
-                                    className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                    placeholder="Ej: Maestranza Marítima SpA"
+                                    className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-sm shadow-inner outline-none transition-all"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Correo Directo Contacto</label>
-                                <input
-                                    type="email"
-                                    value={empresaForm.emailContacto}
-                                    onChange={e => setEmpresaForm({ ...empresaForm, emailContacto: e.target.value })}
-                                    className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Rubro General</label>
-                                <input
-                                    type="text"
-                                    value={empresaForm.rubro}
-                                    onChange={e => setEmpresaForm({ ...empresaForm, rubro: e.target.value })}
-                                    className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
-                                />
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Corporativo</label>
+                                    <input
+                                        type="email"
+                                        value={empresaForm.emailContacto}
+                                        onChange={e => setEmpresaForm({ ...empresaForm, emailContacto: e.target.value })}
+                                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-xs"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Rubro Industrial</label>
+                                    <input
+                                        type="text"
+                                        value={empresaForm.rubro}
+                                        onChange={e => setEmpresaForm({ ...empresaForm, rubro: e.target.value })}
+                                        className="w-full px-6 py-4 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-xs"
+                                    />
+                                </div>
                             </div>
                             <button 
                                 type="submit" 
                                 disabled={rutFeedback?.isValid === false}
-                                className="w-full py-5 mt-4 bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-colors shadow-lg"
+                                className="w-full py-6 mt-4 bg-[#002447] hover:bg-[#003666] disabled:bg-slate-200 disabled:cursor-not-allowed text-white rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-2xl shadow-[#002447]/30 border-b-4 border-[#00152b] active:scale-95 flex justify-center items-center gap-3"
                             >
-                                Validar e Indexar Empresa
+                                <CheckCircle2 size={18} className="text-[#2DAAB8]" /> Validar e Indexar Entidad
                             </button>
                         </form>
                     </div>
@@ -879,33 +867,41 @@ export default function AlternanciasPage() {
             
             {/* Modal de Interfaz Temporal: Bitácoras (Placeholder For Next Upgrade) */}
             {isBitacoraModalOpen && selectedAlt && (
-                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-slate-900/70 backdrop-blur p-4">
-                    <div className="bg-white rounded-3xl w-full max-w-xl p-8 text-center shadow-2xl relative overflow-hidden">
-                        <button onClick={() => setIsBitacoraModalOpen(false)} className="absolute top-4 right-4 p-2 hover:bg-slate-100 rounded-full">
-                            <X size={20} className="text-slate-400" />
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#002447]/90 backdrop-blur-xl p-4">
+                    <div className="bg-white/95 backdrop-blur-2xl rounded-[4rem] w-full max-w-2xl p-12 text-center shadow-2xl relative overflow-hidden border-8 border-white scale-in-center">
+                        <button onClick={() => setIsBitacoraModalOpen(false)} className="absolute top-8 right-8 p-3 hover:bg-slate-100 rounded-2xl transition-all">
+                            <X size={24} className="text-slate-400" />
                         </button>
                         
-                        <BookOpen size={64} className="mx-auto text-indigo-200 mb-6" />
-                        <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter mb-2">Libro de Actividades</h2>
-                        <p className="text-sm font-bold text-slate-500 mb-6">Aluminado: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}</p>
+                        <div className="w-24 h-24 bg-[#2DAAB8]/10 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner">
+                            <BookOpen size={48} className="text-[#2DAAB8]" />
+                        </div>
                         
-                        <div className="bg-indigo-50 p-6 rounded-2xl border border-indigo-100 mb-6">
-                            <h3 className="font-extrabold text-indigo-800 text-sm">Resumen Operativo</h3>
-                            <div className="mt-4 grid grid-cols-2 gap-4 text-left">
-                                <div>
-                                    <span className="block text-[10px] text-indigo-400 uppercase font-black tracking-widest">Horas Cumplidas</span>
-                                    <span className="text-xl font-black text-indigo-600">{selectedAlt.planFormativo?.totalHoras || 0} hrs</span>
+                        <h2 className="text-4xl font-black text-[#002447] uppercase tracking-tighter mb-2 italic">Bitácora Dual</h2>
+                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-10">
+                            Expediente: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                        </p>
+                        
+                        <div className="bg-slate-50/80 p-10 rounded-[3rem] border-2 border-slate-100 mb-10 shadow-sm">
+                            <h3 className="font-black text-[#002447] text-xs uppercase tracking-widest mb-6">Estado de Formación Dual</h3>
+                            <div className="grid grid-cols-2 gap-8 text-left">
+                                <div className="space-y-1">
+                                    <span className="block text-[9px] text-slate-400 uppercase font-black tracking-widest">Horas en Empresa</span>
+                                    <span className="text-3xl font-black text-[#2DAAB8] tracking-tighter">{selectedAlt.planFormativo?.totalHoras || 0} <span className="text-xs uppercase ml-1">hrs</span></span>
                                 </div>
-                                <div>
-                                    <span className="block text-[10px] text-indigo-400 uppercase font-black tracking-widest">Registros de Jornada</span>
-                                    <span className="text-xl font-black text-indigo-600">{selectedAlt.bitacora?.length || 0}</span>
+                                <div className="space-y-1">
+                                    <span className="block text-[9px] text-slate-400 uppercase font-black tracking-widest">Sesiones Validadas</span>
+                                    <span className="text-3xl font-black text-[#002447] tracking-tighter">{selectedAlt.bitacora?.length || 0}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <p className="text-xs font-bold text-slate-400">
-                            La funcionalidad completa de carga cronológica diaria por parte del Estudiante y validación perimetral de Profesores está en fase de despliegue inminente.
-                        </p>
+                        <div className="p-6 bg-[#002447]/5 rounded-3xl border border-[#002447]/10 flex items-center gap-4 text-left">
+                            <AlertCircle size={24} className="text-[#2DAAB8] shrink-0" />
+                            <p className="text-[11px] font-black text-[#002447]/70 uppercase leading-relaxed tracking-wider">
+                                La funcionalidad de firma digital y registro cronológico por GPS está siendo configurada para su despliegue en la App Móvil Marítima.
+                            </p>
+                        </div>
                         
                         <button 
                             onClick={() => setIsBitacoraModalOpen(false)}
@@ -918,81 +914,83 @@ export default function AlternanciasPage() {
             )}
             {/* Periodic Evaluation Modal */}
             {isEvalModalOpen && selectedAlt && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in">
-                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col scale-in-center">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
+                    <div className="bg-white/90 backdrop-blur-2xl rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col scale-in-center border-4 border-white">
+                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white">
                             <div>
-                                <h2 className="text-xl font-black uppercase tracking-tighter text-indigo-900 flex items-center gap-3">
-                                    <Star className="text-amber-500" size={24} /> Rúbrica Maestro Guía
+                                <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                    <Star className="text-[#2DAAB8]" size={24} fill="currentColor" /> Rúbrica de Especialidad
                                 </h2>
-                                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">
-                                    Evaluación Técnica Estudiante: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                                <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
+                                    Evaluación Dual: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
                                 </p>
                             </div>
-                            <button onClick={() => setIsEvalModalOpen(false)} className="bg-white p-2 rounded-xl text-slate-400 hover:text-slate-600 transition-colors shadow-sm focus:ring-2 ring-indigo-100">
+                            <button onClick={() => setIsEvalModalOpen(false)} className="bg-white/10 p-2 rounded-xl text-white hover:bg-white/20 transition-colors shadow-sm focus:ring-2 ring-[#2DAAB8]">
                                 <X size={20} />
                             </button>
                         </div>
 
-                        <form onSubmit={handleAddEvaluation} className="p-8 space-y-8 overflow-y-auto">
-                            {/* Score Matrix */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <form onSubmit={handleAddEvaluation} className="p-8 space-y-8 overflow-y-auto custom-scrollbar scroll-smooth">
+                            {/* Score Matrix with Progress Bars */}
+                            <div className="space-y-6">
                                 {[
-                                    { label: 'Desempeño Técnico', key: 'desempeñoTecnico' },
-                                    { label: 'Habilidades Lab.', key: 'habilidadesLaborales' },
-                                    { label: 'Asistencia / Punt.', key: 'asistencia' }
+                                    { label: 'Desempeño Técnico y Aplicación', key: 'desempeñoTecnico' },
+                                    { label: 'Habilidades Socio-Laborales', key: 'habilidadesLaborales' },
+                                    { label: 'Asistencia, Puntualidad y Compromiso', key: 'asistencia' }
                                 ].map((field) => (
-                                    <div key={field.key} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
-                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">{field.label}</label>
-                                        <div className="text-center">
+                                    <div key={field.key} className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-200/50 group/row">
+                                        <div className="flex justify-between items-center mb-4">
+                                            <label className="block text-[11px] font-black text-[#002447] uppercase tracking-widest">{field.label}</label>
+                                            <span className="text-xl font-black text-[#2DAAB8]">{(evalForm as any)[field.key]}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
                                             <input 
-                                                type="number" 
+                                                type="range" 
                                                 min="1" max="7" step="0.1"
                                                 value={(evalForm as any)[field.key]}
                                                 onChange={(e) => setEvalForm({ ...evalForm, [field.key]: Number(e.target.value) })}
-                                                className="w-20 text-center bg-white border-2 border-indigo-100 rounded-xl py-2 text-xl font-black text-indigo-600 focus:border-indigo-500 outline-none"
+                                                className="flex-1 accent-[#2DAAB8] h-2 bg-slate-200 rounded-full appearance-none cursor-pointer"
                                             />
-                                            <div className="mt-2 text-[9px] font-bold text-slate-400 italic">Escala 1.0 - 7.0</div>
+                                            <div className="w-12 text-center text-[9px] font-black text-slate-400">1.0 - 7.0</div>
+                                        </div>
+                                        {/* Dynamic Bar Background */}
+                                        <div className="mt-2 h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-gradient-to-r from-[#2DAAB8] to-[#002447] transition-all duration-500 rounded-full"
+                                                style={{ width: `${((evalForm as any)[field.key] / 7) * 100}%` }}
+                                            ></div>
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Observations */}
-                            <div>
-                                <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
-                                    <FileText size={14} /> Observaciones Cualitativas y Feedback
+                            <div className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-200/50">
+                                <label className="block text-[11px] font-black text-[#002447] uppercase tracking-widest mb-4 flex items-center gap-2">
+                                    <FileText size={16} className="text-[#2DAAB8]" /> Comentario Maestro Guía / Feedback
                                 </label>
                                 <textarea
                                     value={evalForm.comentarios}
                                     onChange={(e) => setEvalForm({ ...evalForm, comentarios: e.target.value })}
-                                    rows={4}
+                                    rows={3}
                                     placeholder="Describa el progreso del estudiante en el entorno real de trabajo..."
-                                    className="w-full px-5 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 font-bold text-sm shadow-inner outline-none transition-all resize-none"
+                                    className="w-full px-5 py-4 rounded-2xl border-2 border-white focus:border-[#2DAAB8] bg-white font-bold text-sm shadow-sm outline-none transition-all resize-none"
                                 />
-                            </div>
-
-                            {/* Warning Note */}
-                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
-                                <AlertCircle className="text-amber-500 shrink-0" size={20} />
-                                <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase italic">
-                                    Nota: Esta evaluación quedará registrada permanentemente en el expediente del alumno y será visible para UTP y el Profesor Supervisor del Liceo Marítimo.
-                                </p>
                             </div>
 
                             <div className="pt-4 flex gap-4">
                                 <button
                                     type="button"
                                     onClick={() => setIsEvalModalOpen(false)}
-                                    className="flex-1 px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest text-slate-400 hover:bg-slate-50 transition-all active:scale-95"
+                                    className="flex-1 px-6 py-5 rounded-2xl font-black uppercase text-xs tracking-widest text-slate-400 hover:bg-slate-100 transition-all active:scale-95 border-2 border-transparent"
                                 >
                                     Cancelar
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-3 border-b-4 border-indigo-800"
+                                    className="flex-[2] bg-[#002447] hover:bg-[#003666] text-white px-6 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] transition-all shadow-2xl shadow-[#002447]/30 active:scale-95 flex items-center justify-center gap-3 border-b-4 border-[#00152b]"
                                 >
-                                    <CheckCircle2 size={18} /> Registrar Evaluación Dual
+                                    <CheckCircle2 size={18} className="text-[#2DAAB8]" /> Finalizar Evaluación Dual
                                 </button>
                             </div>
                         </form>
