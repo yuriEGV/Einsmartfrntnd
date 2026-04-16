@@ -36,7 +36,7 @@ export const usePermissions = (): Permissions => {
     const role = (user?.role || 'guest').toLowerCase();
 
     const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'utp', 'inspector_general'].includes(role);
-    const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general'].includes(role);
+    const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
@@ -66,7 +66,7 @@ export const usePermissions = (): Permissions => {
         isSostenedor,
         isDirector,
         isUTP,
-        canManagePayments: isSostenedor || isDirector,
+        canManagePayments: isSostenedor || isDirector || isUTP,
         isAdmin,
         isStudent,
         isApoderado,

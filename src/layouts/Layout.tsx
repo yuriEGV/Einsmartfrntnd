@@ -304,7 +304,7 @@ const Layout = () => {
                             <div className={`h-[1px] bg-white/5 ${isCollapsed ? 'w-4' : 'flex-1 ml-4'}`}></div>
                         </div>
 
-                        {(user?.role === 'sostenedor' || permissions.isSuperAdmin || permissions.isDirector || permissions.isTeacher) && (
+                        {(permissions.isAdmin || permissions.isSuperAdmin || permissions.isTeacher) && (
                             <NavLink to="/students" icon={Users}>{!isCollapsed && "Comunidad Escolar"}</NavLink>
                         )}
 
