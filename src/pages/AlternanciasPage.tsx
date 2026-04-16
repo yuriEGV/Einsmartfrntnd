@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2 } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2, User, Star, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { validarRUT, formatearRUT } from '../utils/rutValidator';
 
@@ -30,6 +30,26 @@ interface Alternancia {
         actividades: string[];
         totalHoras: number;
     };
+    maestroGuia?: {
+        nombre: string;
+        cargo: string;
+        email: string;
+        telefono: string;
+    };
+    modulosDual?: Array<{
+        subjectId: { _id: string; name: string } | string;
+        horasLiceo: number;
+        horasEmpresa: number;
+        actividades: string;
+    }>;
+    evaluacionesPeriodicas?: Array<{
+        fecha: string;
+        desempeñoTecnico: number;
+        habilidadesLaborales: number;
+        asistencia: number;
+        comentarios: string;
+        tutorFirma: boolean;
+    }>;
     observaciones: string;
     bitacora?: Array<{
         fecha: string;
@@ -48,6 +68,7 @@ export default function AlternanciasPage() {
     const [careers, setCareers] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
     
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -56,6 +77,7 @@ export default function AlternanciasPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEmpresaModalOpen, setIsEmpresaModalOpen] = useState(false);
     const [isBitacoraModalOpen, setIsBitacoraModalOpen] = useState(false);
+    const [isEvalModalOpen, setIsEvalModalOpen] = useState(false);
     
     // Selections
     const [editingId, setEditingId] = useState<string | null>(null);
@@ -77,7 +99,13 @@ export default function AlternanciasPage() {
         profesorSupervisor: '',
         planFormativoDetalle: '',
         actividadesDetalle: '',
-        observaciones: ''
+        observaciones: '',
+        // Dual Pro
+        maestroGuiaNombre: '',
+        maestroGuiaCargo: '',
+        maestroGuiaEmail: '',
+        maestroGuiaTelefono: '',
+        modulosDual: [] as any[]
     };
 
     const initialEmpresaForm = {
@@ -89,24 +117,32 @@ export default function AlternanciasPage() {
         rubro: ''
     };
 
-    const [formData, setFormData] = useState(initialAltForm);
+    const [formData, setFormData] = useState<any>(initialAltForm);
     const [empresaForm, setEmpresaForm] = useState(initialEmpresaForm);
+    const [evalForm, setEvalForm] = useState({
+        desempeñoTecnico: 7,
+        habilidadesLaborales: 7,
+        asistencia: 7,
+        comentarios: ''
+    });
 
     const loadData = async () => {
         try {
             setLoading(true);
-            const [altsRes, stdRes, carRes, usersRes, empRes] = await Promise.all([
+            const [altsRes, stdRes, carRes, usersRes, empRes, subjectsRes] = await Promise.all([
                 api.get('/alternancias').catch(() => ({ data: [] })),
                 api.get('/estudiantes').catch(() => ({ data: [] })),
                 api.get('/careers').catch(() => ({ data: [] })),
                 api.get('/users').catch(() => ({ data: [] })),
-                api.get('/empresas').catch(() => ({ data: [] }))
+                api.get('/empresas').catch(() => ({ data: [] })),
+                api.get('/subjects').catch(() => ({ data: [] }))
             ]);
             setAlternancias(altsRes.data);
             setStudents(stdRes.data);
             setCareers(carRes.data);
             setUsers(usersRes.data);
             setEmpresas(empRes.data);
+            setSubjects(subjectsRes.data);
         } catch (error) {
             console.error('Error loading data:', error);
             toast.error('Error al cargar datos core de Alternancias');
@@ -146,18 +182,18 @@ export default function AlternanciasPage() {
     // ALTERNANCIA SUBMIT
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (['Pasantía', 'Práctica Profesional'].includes(formData.tipo) && !formData.seguroEscolar) {
-            toast.error('El Seguro Escolar es obligatorio y dictaminado por Mineduc para Prácticas y Pasantías');
-            return;
-        }
-
         const payload = {
             ...formData,
+            maestroGuia: {
+                nombre: formData.maestroGuiaNombre,
+                cargo: formData.maestroGuiaCargo,
+                email: formData.maestroGuiaEmail,
+                telefono: formData.maestroGuiaTelefono
+            },
             planFormativo: {
                 objetivosAprendizaje: formData.planFormativoDetalle ? formData.planFormativoDetalle.split('\n').filter(Boolean) : [],
                 actividades: formData.actividadesDetalle ? formData.actividadesDetalle.split('\n').filter(Boolean) : [],
-                totalHoras: 0
+                totalHoras: formData.modulosDual?.reduce((acc: number, m: any) => acc + (Number(m.horasEmpresa) || 0), 0) || 0
             }
         };
 
@@ -192,7 +228,12 @@ export default function AlternanciasPage() {
             profesorSupervisor: alt.profesorSupervisor?._id || '',
             planFormativoDetalle: alt.planFormativo?.objetivosAprendizaje?.join('\n') || '',
             actividadesDetalle: alt.planFormativo?.actividades?.join('\n') || '',
-            observaciones: alt.observaciones || ''
+            observaciones: alt.observaciones || '',
+            maestroGuiaNombre: alt.maestroGuia?.nombre || '',
+            maestroGuiaCargo: alt.maestroGuia?.cargo || '',
+            maestroGuiaEmail: alt.maestroGuia?.email || '',
+            maestroGuiaTelefono: alt.maestroGuia?.telefono || '',
+            modulosDual: alt.modulosDual || []
         });
         setEditingId(alt._id);
         setIsModalOpen(true);
@@ -207,6 +248,23 @@ export default function AlternanciasPage() {
         } catch (error) {
             console.error(error);
             toast.error('Error al eliminar');
+        }
+    };
+
+    const handleAddEvaluation = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedAlt) return;
+
+        try {
+            const newEvals = [...(selectedAlt.evaluacionesPeriodicas || []), { ...evalForm, fecha: new Date().toISOString() }];
+            await api.put(`/alternancias/${selectedAlt._id}`, { evaluacionesPeriodicas: newEvals });
+            toast.success('Rúbrica de evaluación guardada con éxito');
+            setIsEvalModalOpen(false);
+            setEvalForm({ desempeñoTecnico: 7, habilidadesLaborales: 7, asistencia: 7, comentarios: '' });
+            loadData();
+        } catch (error) {
+            console.error(error);
+            toast.error('Error al registrar la evaluación');
         }
     };
 
@@ -346,6 +404,13 @@ export default function AlternanciasPage() {
                                                     title="Bitácora Diaria"
                                                 >
                                                     <BookOpen size={18} />
+                                                </button>
+                                                <button
+                                                    onClick={() => { setSelectedAlt(alt); setIsEvalModalOpen(true); }}
+                                                    className="p-2.5 text-amber-500 hover:text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-xl transition-colors"
+                                                    title="Evaluación Maestro Guía"
+                                                >
+                                                    <Star size={18} />
                                                 </button>
                                                 {permissions.canManageAlternancias && (
                                                     <>
@@ -518,10 +583,160 @@ export default function AlternanciasPage() {
                                     </div>
                                 </div>
 
-                                {/* Bloque Plan Académico */}
+                                {/* Bloque Maestro Guía (Empresa) */}
+                                <div className="bg-emerald-50/50 p-6 rounded-3xl border border-emerald-100/50 space-y-5">
+                                    <h3 className="font-black text-emerald-800 uppercase tracking-widest text-[10px] mb-2 flex items-center gap-2">
+                                        <User size={14} /> 2. Maestro Guía (Tutor Empresa)
+                                    </h3>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Nombre Completo</label>
+                                            <input
+                                                type="text"
+                                                value={formData.maestroGuiaNombre}
+                                                onChange={(e) => setFormData({ ...formData, maestroGuiaNombre: e.target.value })}
+                                                placeholder="Ej: Ing. Juan Pérez"
+                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Cargo / Especialidad</label>
+                                            <input
+                                                type="text"
+                                                value={formData.maestroGuiaCargo}
+                                                onChange={(e) => setFormData({ ...formData, maestroGuiaCargo: e.target.value })}
+                                                placeholder="Ej: Jefe de Laboratorio"
+                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Email de Coordinación</label>
+                                            <input
+                                                type="email"
+                                                value={formData.maestroGuiaEmail}
+                                                onChange={(e) => setFormData({ ...formData, maestroGuiaEmail: e.target.value })}
+                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2 ml-1">Teléfono Directo</label>
+                                            <input
+                                                type="text"
+                                                value={formData.maestroGuiaTelefono}
+                                                onChange={(e) => setFormData({ ...formData, maestroGuiaTelefono: e.target.value })}
+                                                className="w-full px-5 py-3.5 rounded-xl border-2 border-white focus:border-emerald-500 bg-white font-bold text-sm shadow-sm outline-none"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Bloque Carga Dual Académica */}
+                                <div className="bg-indigo-50/50 p-6 rounded-3xl border border-indigo-100/50 space-y-5">
+                                    <h3 className="font-black text-indigo-800 uppercase tracking-widest text-[10px] mb-2 flex justify-between items-center">
+                                        <span className="flex items-center gap-2"><BookOpen size={14} /> 3. Distribución Dual (Liceo vs Empresa)</span>
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const newMods = [...formData.modulosDual, { subjectId: '', horasLiceo: 0, horasEmpresa: 0, actividades: '' }];
+                                                setFormData({ ...formData, modulosDual: newMods });
+                                            }}
+                                            className="text-[10px] bg-indigo-600 text-white px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-all font-black"
+                                        >
+                                            + Agregar Módulo
+                                        </button>
+                                    </h3>
+                                    
+                                    <div className="space-y-4">
+                                        {formData.modulosDual?.map((mod: any, index: number) => (
+                                            <div key={index} className="bg-white p-5 rounded-2xl border border-indigo-100 shadow-sm space-y-4 relative">
+                                                <button 
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newMods = formData.modulosDual.filter((_: any, i: number) => i !== index);
+                                                        setFormData({ ...formData, modulosDual: newMods });
+                                                    }}
+                                                    className="absolute top-4 right-4 text-rose-400 hover:text-rose-600 p-1"
+                                                >
+                                                    <Trash2 size={16} />
+                                                </button>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                                    <div className="md:col-span-1">
+                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Módulo / Asignatura</label>
+                                                        <select
+                                                            value={typeof mod.subjectId === 'object' ? mod.subjectId?._id : mod.subjectId}
+                                                            onChange={(e) => {
+                                                                const newMods = [...formData.modulosDual];
+                                                                newMods[index].subjectId = e.target.value;
+                                                                setFormData({ ...formData, modulosDual: newMods });
+                                                            }}
+                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none focus:border-indigo-500"
+                                                        >
+                                                            <option value="">Selección...</option>
+                                                            {subjects.map(s => (
+                                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Hrs Liceo</label>
+                                                        <input 
+                                                            type="number"
+                                                            value={mod.horasLiceo}
+                                                            onChange={(e) => {
+                                                                const newMods = [...formData.modulosDual];
+                                                                newMods[index].horasLiceo = Number(e.target.value);
+                                                                setFormData({ ...formData, modulosDual: newMods });
+                                                            }}
+                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none"
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Hrs Empresa</label>
+                                                        <input 
+                                                            type="number"
+                                                            value={mod.horasEmpresa}
+                                                            onChange={(e) => {
+                                                                const newMods = [...formData.modulosDual];
+                                                                newMods[index].horasEmpresa = Number(e.target.value);
+                                                                setFormData({ ...formData, modulosDual: newMods });
+                                                            }}
+                                                            className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none text-emerald-600"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[9px] font-black text-slate-400 uppercase mb-1">Actividades de Aprendizaje Definidas</label>
+                                                    <input 
+                                                        type="text"
+                                                        value={mod.actividades}
+                                                        onChange={(e) => {
+                                                            const newMods = [...formData.modulosDual];
+                                                            newMods[index].actividades = e.target.value;
+                                                            setFormData({ ...formData, modulosDual: newMods });
+                                                        }}
+                                                        placeholder="Ej: Análisis sensorial de muestras..."
+                                                        className="w-full px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 font-bold text-xs outline-none"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ))}
+                                        
+                                        {(!formData.modulosDual || formData.modulosDual.length === 0) && (
+                                            <div className="text-center py-6 border-2 border-dashed border-indigo-100 rounded-2xl">
+                                                <AlertCircle size={32} className="mx-auto text-indigo-200 mb-2" />
+                                                <p className="text-[10px] font-bold text-indigo-300 uppercase italic">Favor declarar módulos y distribución horaria</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Bloque Plan Académico (Objetivos) */}
                                 <div className="bg-blue-50/40 p-6 rounded-3xl border border-blue-100/50 space-y-5">
                                     <h3 className="font-black text-blue-800 uppercase tracking-widest text-[10px] mb-2 flex items-center gap-2">
-                                        <FileCheck size={14} /> 2. Plan Formativo de Especialidad
+                                        <FileCheck size={14} /> 4. Objetivos y Supervisión Docente
                                     </h3>
                                     <div className="grid md:grid-cols-2 gap-6">
                                         <div>
@@ -698,6 +913,89 @@ export default function AlternanciasPage() {
                         >
                             Comprendido, retornar
                         </button>
+                    </div>
+                </div>
+            )}
+            {/* Periodic Evaluation Modal */}
+            {isEvalModalOpen && selectedAlt && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col scale-in-center">
+                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-indigo-50/30">
+                            <div>
+                                <h2 className="text-xl font-black uppercase tracking-tighter text-indigo-900 flex items-center gap-3">
+                                    <Star className="text-amber-500" size={24} /> Rúbrica Maestro Guía
+                                </h2>
+                                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mt-1">
+                                    Evaluación Técnica Estudiante: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                                </p>
+                            </div>
+                            <button onClick={() => setIsEvalModalOpen(false)} className="bg-white p-2 rounded-xl text-slate-400 hover:text-slate-600 transition-colors shadow-sm focus:ring-2 ring-indigo-100">
+                                <X size={20} />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleAddEvaluation} className="p-8 space-y-8 overflow-y-auto">
+                            {/* Score Matrix */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                {[
+                                    { label: 'Desempeño Técnico', key: 'desempeñoTecnico' },
+                                    { label: 'Habilidades Lab.', key: 'habilidadesLaborales' },
+                                    { label: 'Asistencia / Punt.', key: 'asistencia' }
+                                ].map((field) => (
+                                    <div key={field.key} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest text-center">{field.label}</label>
+                                        <div className="text-center">
+                                            <input 
+                                                type="number" 
+                                                min="1" max="7" step="0.1"
+                                                value={(evalForm as any)[field.key]}
+                                                onChange={(e) => setEvalForm({ ...evalForm, [field.key]: Number(e.target.value) })}
+                                                className="w-20 text-center bg-white border-2 border-indigo-100 rounded-xl py-2 text-xl font-black text-indigo-600 focus:border-indigo-500 outline-none"
+                                            />
+                                            <div className="mt-2 text-[9px] font-bold text-slate-400 italic">Escala 1.0 - 7.0</div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Observations */}
+                            <div>
+                                <label className="block text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 ml-1 flex items-center gap-2">
+                                    <FileText size={14} /> Observaciones Cualitativas y Feedback
+                                </label>
+                                <textarea
+                                    value={evalForm.comentarios}
+                                    onChange={(e) => setEvalForm({ ...evalForm, comentarios: e.target.value })}
+                                    rows={4}
+                                    placeholder="Describa el progreso del estudiante en el entorno real de trabajo..."
+                                    className="w-full px-5 py-4 rounded-2xl border-2 border-slate-50 focus:border-indigo-400 bg-slate-50/50 font-bold text-sm shadow-inner outline-none transition-all resize-none"
+                                />
+                            </div>
+
+                            {/* Warning Note */}
+                            <div className="bg-amber-50 p-4 rounded-xl border border-amber-100 flex gap-3">
+                                <AlertCircle className="text-amber-500 shrink-0" size={20} />
+                                <p className="text-[10px] font-bold text-amber-700 leading-relaxed uppercase italic">
+                                    Nota: Esta evaluación quedará registrada permanentemente en el expediente del alumno y será visible para UTP y el Profesor Supervisor del Liceo Marítimo.
+                                </p>
+                            </div>
+
+                            <div className="pt-4 flex gap-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEvalModalOpen(false)}
+                                    className="flex-1 px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest text-slate-400 hover:bg-slate-50 transition-all active:scale-95"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-indigo-600/20 active:scale-95 flex items-center justify-center gap-3 border-b-4 border-indigo-800"
+                                >
+                                    <CheckCircle2 size={18} /> Registrar Evaluación Dual
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
