@@ -113,12 +113,12 @@ const CareersPage = () => {
         c.code?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (!permissions.isAdmin) {
+    if (!permissions.canManageCareers) {
         return (
             <div className="flex flex-col items-center justify-center h-full p-10 text-center">
                 <AlertCircle size={48} className="text-red-500 mb-4" />
                 <h2 className="text-2xl font-black text-slate-800 uppercase tracking-tighter">Acceso Denegado</h2>
-                <p className="text-slate-500 font-bold max-w-md mt-2">Solo administradores y directores pueden gestionar el catálogo de carreras.</p>
+                <p className="text-slate-500 font-bold max-w-md mt-2">Solo administradores y perfiles autorizados pueden gestionar el catálogo de carreras.</p>
             </div>
         );
     }

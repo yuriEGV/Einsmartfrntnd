@@ -27,6 +27,7 @@ export interface Permissions {
     canApprovePlanning: boolean;
     canManageAlternancias: boolean;
     canManageEvents: boolean;
+    canManageCareers: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -71,5 +72,6 @@ export const usePermissions = (): Permissions => {
         isApoderado,
         isInspectorGeneral,
         canApprovePlanning: isAdmin || isUTP,
+        canManageCareers: isAdmin || isUTP,
     };
 };
