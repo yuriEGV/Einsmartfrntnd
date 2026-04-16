@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2, User, Star, Clock } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, FileCheck, CheckCircle2, User, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { validarRUT, formatearRUT } from '../utils/rutValidator';
 
