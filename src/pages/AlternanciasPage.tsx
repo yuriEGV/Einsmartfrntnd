@@ -62,6 +62,12 @@ interface Alternancia {
         signature?: string;
     }>;
     observaciones: string;
+    dispositivoRastreo?: {
+        numeroChip: string;
+        imei: string;
+        modeloEquipo: string;
+        activo: boolean;
+    };
     bitacora?: Array<{
         _id?: string;
         fecha: string;
@@ -131,7 +137,8 @@ export default function AlternanciasPage() {
         maestroGuiaCargo: '',
         maestroGuiaEmail: '',
         maestroGuiaTelefono: '',
-        modulosDual: [] as any[]
+        modulosDual: [] as any[],
+        dispositivoRastreo: { numeroChip: '', imei: '', modeloEquipo: '', activo: true }
     };
 
     const initialEmpresaForm = {
@@ -259,7 +266,8 @@ export default function AlternanciasPage() {
             maestroGuiaCargo: alt.maestroGuia?.cargo || '',
             maestroGuiaEmail: alt.maestroGuia?.email || '',
             maestroGuiaTelefono: alt.maestroGuia?.telefono || '',
-            modulosDual: alt.modulosDual || []
+            modulosDual: alt.modulosDual || [],
+            dispositivoRastreo: alt.dispositivoRastreo || { numeroChip: '', imei: '', modeloEquipo: '', activo: true }
         });
         setEditingId(alt._id);
         setIsModalOpen(true);
@@ -635,6 +643,46 @@ export default function AlternanciasPage() {
                                                 <p className="text-[9px] font-bold text-[#2DAAB8] uppercase mt-1">Cobertura Mineduc</p>
                                             </div>
                                         </label>
+                                    </div>
+                                </div>
+
+                                {/* Bloque Dispositivo Móvil */}
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 border-b-2 border-slate-50 pb-4">
+                                        <MapPin size={20} className="text-[#2DAAB8]" />
+                                        <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Vincular Dispositivo de Rastreo GPS</h3>
+                                    </div>
+                                    <div className="grid md:grid-cols-3 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">N° Telefónico / Chip</label>
+                                            <input
+                                                type="text"
+                                                value={formData.dispositivoRastreo?.numeroChip || ''}
+                                                onChange={(e) => setFormData({ ...formData, dispositivoRastreo: { ...formData.dispositivoRastreo, numeroChip: e.target.value } })}
+                                                placeholder="+56 9..."
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Modelo de Equipo</label>
+                                            <input
+                                                type="text"
+                                                value={formData.dispositivoRastreo?.modeloEquipo || ''}
+                                                onChange={(e) => setFormData({ ...formData, dispositivoRastreo: { ...formData.dispositivoRastreo, modeloEquipo: e.target.value } })}
+                                                placeholder="Ej: Galaxy S21"
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">IMEI (Opcional)</label>
+                                            <input
+                                                type="text"
+                                                value={formData.dispositivoRastreo?.imei || ''}
+                                                onChange={(e) => setFormData({ ...formData, dispositivoRastreo: { ...formData.dispositivoRastreo, imei: e.target.value } })}
+                                                placeholder="15 dígitos"
+                                                className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 

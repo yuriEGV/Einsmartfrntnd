@@ -21,6 +21,7 @@ interface LocationData {
     lng: number;
     accuracy: number;
     timestamp: string;
+    numeroChip?: string;
     estudianteId?: { firstName: string, lastName: string, rut: string };
     empresa?: { razonSocial: string };
 }
@@ -88,6 +89,7 @@ export function GPSMonitor({ onClose }: { onClose: () => void }) {
                                         <p className="text-[10px] uppercase text-slate-500 font-bold mb-2">Rol: {loc.userId?.role}</p>
                                         {studentName && <p className="text-xs"><strong>Estudiante:</strong> {studentName}</p>}
                                         {corp && <p className="text-xs"><strong>Empresa:</strong> {corp}</p>}
+                                        {loc.numeroChip && <p className="text-xs text-[#2DAAB8] uppercase font-black tracking-widest mt-1"><strong>N° Chip:</strong> {loc.numeroChip}</p>}
                                         <p className="text-[#2DAAB8] font-bold text-xs mt-2">
                                             Actualizado: {new Date(loc.timestamp).toLocaleTimeString()}
                                         </p>
