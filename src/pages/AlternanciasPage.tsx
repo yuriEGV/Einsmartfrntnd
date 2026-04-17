@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar, KeyRound } from 'lucide-react';
+import { GPSMonitor } from '../components/Alternancia/GPSMonitor';
+import { AlternanciaSignatureModal } from '../components/Alternancia/AlternanciaSignatureModal';
+import { useGPSTracker } from '../hooks/useGPSTracker';
 import toast from 'react-hot-toast';
 import { validarRUT, formatearRUT } from '../utils/rutValidator';
 
@@ -96,10 +99,15 @@ export default function AlternanciasPage() {
     const [isEmpresaModalOpen, setIsEmpresaModalOpen] = useState(false);
     const [isBitacoraModalOpen, setIsBitacoraModalOpen] = useState(false);
     const [isEvalModalOpen, setIsEvalModalOpen] = useState(false);
+    const [isGPSMonitorOpen, setIsGPSMonitorOpen] = useState(false);
+    const [signatureTarget, setSignatureTarget] = useState<{alternanciaId: string, bitacoraId: string} | null>(null);
+    
     
     // Selections
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedAlt, setSelectedAlt] = useState<Alternancia | null>(null);
+    const { isTracking, toggleTracking } = useGPSTracker(selectedAlt?._id || null);
+    
     
     // Validation Feedback
     const [rutFeedback, setRutFeedback] = useState<{ isValid: boolean, message: string } | null>(null);
@@ -321,22 +329,32 @@ export default function AlternanciasPage() {
                         Gestión de Alternancia Dual
                     </h1>
                     <p className="text-slate-500 font-bold text-sm tracking-wide mt-2 flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-[#2DAAB8] animate-pulse"></span>
+                    <span className="w-2 h-2 rounded-full bg-[#2DAAB8] animate-pulse"></span>
                         Instituto Marítimo: Supervisión Profesional y Formación en Empresa
                     </p>
                 </div>
-                {permissions.canManageAlternancias && (
-                    <button
-                        onClick={() => {
-                            setEditingId(null);
-                            setFormData(initialAltForm);
-                            setIsModalOpen(true);
-                        }}
-                        className="bg-[#002447] hover:bg-[#003666] text-white px-8 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-2xl shadow-[#002447]/30 active:scale-95 border-b-4 border-[#00152b]"
-                    >
-                        <Plus size={18} /> Inscribir Nueva Alternancia
-                    </button>
-                )}
+                <div className="flex gap-4">
+                    {permissions.canManageAlternancias && (
+                        <button
+                            onClick={() => setIsGPSMonitorOpen(true)}
+                            className="bg-[#2DAAB8]/10 hover:bg-[#2DAAB8]/20 text-[#2DAAB8] px-6 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all border-b-4 border-[#2DAAB8]/30 active:scale-95"
+                        >
+                            <MapPin size={18} /> Monitor GPS
+                        </button>
+                    )}
+                    {permissions.canManageAlternancias && (
+                        <button
+                            onClick={() => {
+                                setEditingId(null);
+                                setFormData(initialAltForm);
+                                setIsModalOpen(true);
+                            }}
+                            className="bg-[#002447] hover:bg-[#003666] text-white px-8 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all shadow-2xl shadow-[#002447]/30 active:scale-95 border-b-4 border-[#00152b]"
+                        >
+                            <Plus size={18} /> Inscribir Nueva Alternancia
+                        </button>
+                    )}
+                </div>
             </div>
 
             {/* Smart Search */}
@@ -908,9 +926,21 @@ export default function AlternanciasPage() {
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={() => setIsBitacoraModalOpen(false)} className="p-4 hover:bg-white/10 rounded-3xl transition-all">
-                                <X size={28} />
-                            </button>
+                            <div className="flex gap-4 items-center">
+                                <button
+                                    onClick={toggleTracking}
+                                    className={`px-5 py-3 rounded-[1.2rem] flex items-center gap-2 font-black uppercase tracking-widest text-[10px] transition-all shadow-xl active:scale-95 ${
+                                        isTracking 
+                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30' 
+                                            : 'bg-white hover:bg-slate-50 text-[#002447] shadow-black/5'
+                                    }`}
+                                >
+                                    <MapPin size={16} /> {isTracking ? 'Rastreando Ubicación...' : 'Iniciar Tracker GPS'}
+                                </button>
+                                <button onClick={() => setIsBitacoraModalOpen(false)} className="p-4 hover:bg-white/10 rounded-3xl transition-all">
+                                    <X size={28} />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Content */}
@@ -965,6 +995,19 @@ export default function AlternanciasPage() {
                                                         <div className="p-2 bg-[#002447]/5 text-[#002447] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase">
                                                             <PenTool size={14} className="text-[#2DAAB8]" /> Firmado por Tutor
                                                         </div>
+                                                    )}
+                                                    {entry.firmaEstudiante && (
+                                                        <div className="p-2 bg-[#2DAAB8]/10 text-[#2DAAB8] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase">
+                                                            <CheckCircle2 size={14} /> Firmado (Estudiante)
+                                                        </div>
+                                                    )}
+                                                    {(!entry.firmadoTutor || !entry.firmaEstudiante) && (
+                                                        <button 
+                                                            onClick={() => setSignatureTarget({ alternanciaId: selectedAlt._id, bitacoraId: entry._id || '' })}
+                                                            className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl flex items-center gap-2 font-black text-[9px] uppercase transition-all shadow-sm"
+                                                        >
+                                                            <KeyRound size={14} /> Firmar (PIN)
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
@@ -1087,6 +1130,19 @@ export default function AlternanciasPage() {
                         </form>
                     </div>
                 </div>
+            )}
+            
+            {/* Monitor Sátelital */}
+            {isGPSMonitorOpen && <GPSMonitor onClose={() => setIsGPSMonitorOpen(false)} />}
+            
+            {/* Modal de Firma */}
+            {signatureTarget && (
+                <AlternanciaSignatureModal 
+                    alternanciaId={signatureTarget.alternanciaId} 
+                    bitacoraId={signatureTarget.bitacoraId} 
+                    onSuccess={() => { loadData(); setSignatureTarget(null); }} 
+                    onClose={() => setSignatureTarget(null)} 
+                />
             )}
         </div>
     );
