@@ -31,7 +31,11 @@ export function useGPSTracker(alternanciaId: string | null) {
                     (error) => {
                         console.error('Error obtaining location', error);
                         if (error.code === 1) {
-                            toast.error('Debe otorgar permisos de ubicación para rastrear Alternancia');
+                            if (error.message.includes('secure origins')) {
+                                toast.error('Geo tracking en red local requiere HTTPS o entrar por localhost.', { duration: 6000 });
+                            } else {
+                                toast.error('Debe otorgar permisos de ubicación para rastrear Alternancia');
+                            }
                             setIsTracking(false);
                         }
                     },

@@ -975,16 +975,26 @@ export default function AlternanciasPage() {
                                 </div>
                             </div>
                             <div className="flex gap-4 items-center">
-                                <button
-                                    onClick={toggleTracking}
-                                    className={`px-5 py-3 rounded-[1.2rem] flex items-center gap-2 font-black uppercase tracking-widest text-[10px] transition-all shadow-xl active:scale-95 ${
-                                        isTracking 
-                                            ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30' 
-                                            : 'bg-white hover:bg-slate-50 text-[#002447] shadow-black/5'
-                                    }`}
-                                >
-                                    <MapPin size={16} /> {isTracking ? 'Rastreando Ubicación...' : 'Iniciar Tracker GPS'}
-                                </button>
+                                <div className="flex flex-col items-end gap-1">
+                                    <button
+                                        onClick={toggleTracking}
+                                        className={`px-5 py-3 rounded-[1.2rem] flex items-center gap-2 font-black uppercase tracking-widest text-[10px] transition-all shadow-xl active:scale-95 ${
+                                            isTracking 
+                                                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30' 
+                                                : 'bg-white hover:bg-slate-50 text-[#002447] shadow-black/5'
+                                        }`}
+                                    >
+                                        <MapPin size={16} /> {isTracking ? 'Rastreando Ubicación...' : 'Iniciar Tracker GPS'}
+                                    </button>
+                                    {permissions.canManageAlternancias && (
+                                        <button 
+                                            onClick={() => { setIsBitacoraModalOpen(false); handleEdit(selectedAlt); }}
+                                            className="text-[#2DAAB8] hover:text-white font-bold text-[9px] uppercase transition-colors"
+                                        >
+                                            ⚙️ VINCULAR EQUIPO GPS
+                                        </button>
+                                    )}
+                                </div>
                                 <button onClick={() => setIsBitacoraModalOpen(false)} className="p-4 hover:bg-white/10 rounded-3xl transition-all">
                                     <X size={28} />
                                 </button>
