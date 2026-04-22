@@ -20,7 +20,7 @@ const TariffsPage = () => {
     const { tenant } = useTenant();
     const canManage = isSostenedor || isSuperAdmin || canManagePayments; // Or restricted to Sostenedor usually
 
-    if (tenant && tenant.paymentType !== 'paid') {
+    if (!tenant) {
         return <Navigate to="/" replace />;
     }
 

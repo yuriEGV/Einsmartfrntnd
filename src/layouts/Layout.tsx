@@ -358,7 +358,7 @@ const Layout = () => {
                             <NavLink to="/payroll" icon={DollarSign}>{!isCollapsed && "Nóminas"}</NavLink>
                         )}
 
-                        {(permissions.isSostenedor || permissions.isSuperAdmin) && tenant?.paymentType === 'paid' && (
+                        {(permissions.isSostenedor || permissions.isSuperAdmin || user?.role === 'secretario' || user?.role === 'admin') && (
                             <NavLink to="/tariffs" icon={CreditCard}>{!isCollapsed && "Configuración de Tarifas"}</NavLink>
                         )}
                     </div>
