@@ -646,25 +646,34 @@ export default function AlternanciasPage() {
                                     </div>
                                 </div>
 
-                                {/* Bloque Dispositivo Móvil */}
+                                {/* Bloque Dispositivo Móvil - PROFESOR SUPERVISOR */}
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 border-b-2 border-slate-50 pb-4">
                                         <MapPin size={20} className="text-[#2DAAB8]" />
-                                        <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">Vincular Dispositivo de Rastreo GPS</h3>
+                                        <div>
+                                            <h3 className="font-black text-[#002447] uppercase tracking-widest text-xs">GPS Del Profesor Supervisor (Visita a Empresa)</h3>
+                                            <p className="text-[9px] font-bold text-amber-600 mt-0.5 flex items-center gap-1">
+                                                ⚠️ Solo se rastrea al Profesor que sale del colegio. No se vinculan menores de edad.
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 text-[10px] font-bold text-amber-800">
+                                        📋 El dispositivo registrado debe pertenecer al <strong>Profesor/a Supervisor/a</strong> designado para esta alternancia.
+                                        Los estudiantes menores de edad no serán rastreados por razones de privacidad y ausencia de consentimiento parental.
                                     </div>
                                     <div className="grid md:grid-cols-3 gap-6">
                                         <div className="space-y-2">
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">N° Telefónico / Chip</label>
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">N° Telefónico del Profesor / Chip</label>
                                             <input
                                                 type="text"
                                                 value={formData.dispositivoRastreo?.numeroChip || ''}
                                                 onChange={(e) => setFormData({ ...formData, dispositivoRastreo: { ...formData.dispositivoRastreo, numeroChip: e.target.value } })}
-                                                placeholder="+56 9..."
+                                                placeholder="+56 9... (teléfono del profesor)"
                                                 className="w-full px-5 py-3.5 rounded-xl border border-slate-100 focus:border-[#2DAAB8] font-bold text-xs"
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Modelo de Equipo</label>
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">Modelo de Equipo del Profesor</label>
                                             <input
                                                 type="text"
                                                 value={formData.dispositivoRastreo?.modeloEquipo || ''}
@@ -674,7 +683,7 @@ export default function AlternanciasPage() {
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">IMEI (Opcional)</label>
+                                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-widest">IMEI del Equipo (Opcional)</label>
                                             <input
                                                 type="text"
                                                 value={formData.dispositivoRastreo?.imei || ''}
