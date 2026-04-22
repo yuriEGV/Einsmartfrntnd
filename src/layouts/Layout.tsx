@@ -342,7 +342,7 @@ const Layout = () => {
                             <NavLink to="/careers" icon={GraduationCap}>{!isCollapsed && "Gestión de Carreras"}</NavLink>
                         )}
 
-                        {(permissions.canManagePayments || permissions.isSuperAdmin || user?.role === 'secretario') && tenant?.paymentType === 'paid' && (
+                        {(permissions.canManagePayments || permissions.isSuperAdmin || user?.role === 'secretario') && (
                             <>
                                 <NavLink to="/payments" icon={DollarSign}>{!isCollapsed && "Pagos"}</NavLink>
                                 <NavLink to="/secretaria" icon={Building}>{!isCollapsed && "Oficina de Secretaría"}</NavLink>

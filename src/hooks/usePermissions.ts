@@ -66,7 +66,7 @@ export const usePermissions = (): Permissions => {
         isSostenedor,
         isDirector,
         isUTP,
-        canManagePayments: isSostenedor || isDirector || isUTP,
+        canManagePayments: isSostenedor || isDirector || isUTP || role === 'secretario',
         isAdmin,
         isStudent,
         isApoderado,

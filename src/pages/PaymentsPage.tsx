@@ -43,7 +43,7 @@ const PaymentsPage = () => {
         );
     }
 
-    if (!tenant || tenant.paymentType !== 'paid') {
+    if (!tenant) {
         return <Navigate to="/" replace />;
     }
 
@@ -68,6 +68,8 @@ const PaymentsPage = () => {
     const [formData, setFormData] = useState({
         estudianteId: '',
         tariffId: '',
+        manualConcept: '',
+        manualAmount: '',
     });
 
     useEffect(() => {
@@ -119,8 +121,13 @@ const PaymentsPage = () => {
         try {
             // This creates a pending payment (debt)
             await api.post('/payments', {
-                ...formData,
-                provider: 'manual' // Just creating the record first
+                estudianteId: formData.estudianteId,
+                tariffId: formData.tariffId || undefined,
+                provider: 'manual',
+                metadata: !formData.tariffId ? {
+                    concepto: formData.manualConcept,
+                    amount: parseInt(formData.manualAmount)
+                } : {}
             });
             setShowModal(false);
             fetchData();
@@ -176,8 +183,8 @@ const PaymentsPage = () => {
                     </button>
                     {permissions.user?.role !== 'student' && (
                         <button
-                            onClick={() => {
-                                setFormData({ estudianteId: '', tariffId: '' });
+                        onClick={() => {
+                                setFormData({ estudianteId: '', tariffId: '', manualConcept: '', manualAmount: '' });
                                 setShowModal(true);
                             }}
                             className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
@@ -341,18 +348,46 @@ const PaymentsPage = () => {
                                     value={formData.tariffId}
                                     onChange={e => setFormData({ ...formData, tariffId: e.target.value })}
                                 >
-                                    <option value="">-- Seleccionar --</option>
+                                    <option value="">-- Seleccionar Tarifa --</option>
                                     <optgroup label="Tarifas Configuradas">
-                                        {tariffs.filter(t => t.active ?? true).length > 0 ? (
-                                            tariffs.filter(t => t.active ?? true).map(t => (
+                                        {tariffs.filter(t => (t.active ?? true)).length > 0 ? (
+                                            tariffs.filter(t => (t.active ?? true)).map(t => (
                                                 <option key={t._id} value={t._id}>{t.name} (${t.amount.toLocaleString()})</option>
                                             ))
                                         ) : (
                                             <option disabled>No hay tarifas activas disponibles</option>
                                         )}
                                     </optgroup>
+                                    <option value="manual">-- OTRO CONCEPTO (MANUAL) --</option>
                                 </select>
                             </div>
+
+                            {(!formData.tariffId || formData.tariffId === 'manual') && (
+                                <div className="space-y-6 animate-in slide-in-from-top-4 duration-300">
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NOMBRE DEL CONCEPTO</label>
+                                        <input
+                                            required={!formData.tariffId || formData.tariffId === 'manual'}
+                                            type="text"
+                                            placeholder="Ej: Seguro Escolar, Uniforme, etc."
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            value={formData.manualConcept}
+                                            onChange={e => setFormData({ ...formData, manualConcept: e.target.value, tariffId: formData.tariffId === 'manual' ? 'manual' : '' })}
+                                        />
+                                    </div>
+                                    <div className="group">
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">MONTO A COBRAR ($)</label>
+                                        <input
+                                            required={!formData.tariffId || formData.tariffId === 'manual'}
+                                            type="number"
+                                            placeholder="0"
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700"
+                                            value={formData.manualAmount}
+                                            onChange={e => setFormData({ ...formData, manualAmount: e.target.value, tariffId: formData.tariffId === 'manual' ? 'manual' : '' })}
+                                        />
+                                    </div>
+                                </div>
+                            )}
 
                             <button type="submit" className="w-full bg-[#11355a] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl shadow-blue-900/20 hover:bg-blue-900 transition-all">
                                 GENERAR COBRO ELECTRÓNICO

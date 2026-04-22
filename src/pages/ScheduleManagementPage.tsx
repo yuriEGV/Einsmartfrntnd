@@ -47,7 +47,7 @@ const DAYS = [
 ];
 
 const ScheduleManagementPage = () => {
-    const { isAdmin, isUTP, isDirector, isStudent, isApoderado, isTeacher, user } = usePermissions();
+    const { isAdmin, isUTP, isDirector, isStudent, isApoderado, isTeacher, user, canViewSensitiveData } = usePermissions();
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -69,7 +69,7 @@ const ScheduleManagementPage = () => {
 
     useEffect(() => {
         fetchInitialData();
-        if (isStudent || isApoderado || isTeacher) {
+        if (isStudent || isApoderado || isTeacher || canViewSensitiveData) {
             fetchSchedules();
         }
     }, []);
@@ -168,7 +168,7 @@ const ScheduleManagementPage = () => {
         }
     };
 
-    const canEdit = isAdmin || isUTP || isDirector;
+    const canEdit = isAdmin || isUTP || isDirector || canViewSensitiveData;
 
     // Helper to get item in a specific cell
     const getCellContent = (day: number, blockId: number) => {
