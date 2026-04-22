@@ -1,11 +1,14 @@
 # Frontend — Dockerfile (multi-stage build)
 # Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Optimización de memoria para build
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN npm ci --quiet
 
 COPY . .
 
