@@ -35,7 +35,7 @@ export const usePermissions = (): Permissions => {
     // Normalize role to lowercase for consistency and regularization
     const role = (user?.role || 'guest').toLowerCase();
 
-    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'utp', 'inspector_general'].includes(role);
+    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'utp', 'inspector_general', 'paradocente'].includes(role);
     const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
