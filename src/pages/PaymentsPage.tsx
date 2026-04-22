@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
-import { DollarSign, Search, CreditCard, CheckCircle, Clock, AlertCircle, School } from 'lucide-react';
+import { DollarSign, Search, CheckCircle, Clock, AlertCircle, School, Plus, Settings } from 'lucide-react';
 
 interface Payment {
     _id: string;
@@ -182,16 +181,27 @@ const PaymentsPage = () => {
                         Calculadora de Deuda
                     </button>
                     {permissions.user?.role !== 'student' && (
-                        <button
-                        onClick={() => {
-                                setFormData({ estudianteId: '', tariffId: '', manualConcept: '', manualAmount: '' });
-                                setShowModal(true);
-                            }}
-                            className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
-                        >
-                            <CreditCard size={20} />
-                            Asignar Cobro
-                        </button>
+                        <div className="flex gap-3">
+                            {(permissions.isSostenedor || permissions.isSuperAdmin || permissions.user?.role === 'secretario' || permissions.user?.role === 'admin') && (
+                                <Link
+                                    to="/tariffs"
+                                    className="bg-white text-[#11355a] px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-50 transition-all border border-slate-200 shadow-sm"
+                                >
+                                    <Settings size={20} />
+                                    Gestionar Tarifas
+                                </Link>
+                            )}
+                            <button
+                                onClick={() => {
+                                    setFormData({ estudianteId: '', tariffId: '', manualConcept: '', manualAmount: '' });
+                                    setShowModal(true);
+                                }}
+                                className="bg-[#11355a] text-white px-6 py-2.5 rounded-xl font-bold flex items-center gap-2 hover:bg-blue-800 transition-all shadow-lg shadow-blue-900/20"
+                            >
+                                <Plus size={20} />
+                                Asignar Cobro
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
