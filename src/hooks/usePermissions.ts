@@ -54,7 +54,7 @@ export const usePermissions = (): Permissions => {
         canManageEnrollments: (isAdmin || isDirector || isSostenedor || isTeacher || isUTP || role === 'secretario' || role === 'asistente_aula' || role === 'inspector') && !isStudent && !isApoderado,
         canEditAnnotations: isStaff && !isStudent && !isApoderado,
         canEditGrades: (isStaff || isUTP) && !isStudent && !isApoderado,
-        canViewSensitiveData: isAdmin || isDirector || isUTP,
+        canViewSensitiveData: isAdmin || isDirector || isUTP || role === 'secretario' || role === 'paradocente',
         isSuperAdmin,
         isStaff,
         canManageCourses: isAdmin || isUTP,
