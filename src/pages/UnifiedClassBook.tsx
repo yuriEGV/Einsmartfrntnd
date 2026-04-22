@@ -421,6 +421,7 @@ const UnifiedClassBook = () => {
     };
 
     const handleBulkGradeSave = async () => {
+        if (!window.confirm('¿Está seguro de que desea guardar todos los cambios en la matriz de notas? Esta acción actualizará los registros oficiales.')) return;
         setIsSavingMatrix(true);
         try {
             // 1. Identify which virtual columns have data
@@ -1380,7 +1381,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                             <h3 className="text-2xl font-black text-[#11355a] tracking-tighter uppercase">Matriz de Calificaciones Global</h3>
                                             <div className="flex items-center gap-2 mt-2">
                                                 <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Decreto 67</span>
-                                                <span className="text-slate-400 font-bold text-[10px]">Ingreso de Alto Rendimiento • Máx 10 Columnas</span>
+                                                <span className="text-slate-400 font-bold text-[10px]">Ingreso de Alto Rendimiento • Máx 8 Columnas</span>
                                             </div>
                                         </div>
 
@@ -1417,22 +1418,23 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                 <table className="w-full text-left border-collapse">
                                                     <thead>
                                                         <tr className="bg-slate-50/50">
-                                                            <th className="p-8 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50/80 backdrop-blur-md z-10 w-80 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.1)]">Alumno / Estudiante</th>
+                                                            <th className="p-2 border-b text-[9px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50/80 backdrop-blur-md z-10 w-44 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.1)]">Alumno</th>
+                                                            <th className="p-2 border-b text-center min-w-[60px] bg-blue-50/50 text-[9px] font-black text-blue-600 uppercase">PROM.</th>
                                                             {/* Render real evaluations first */}
-                                                            {evaluations.map(ev => (
-                                                                <th key={ev._id} className="p-8 border-b text-center min-w-[140px] group transition-all hover:bg-slate-100/50">
-                                                                    <div className="text-[10px] font-black text-[#11355a] uppercase tracking-tight truncate max-w-[120px] mx-auto mb-1" title={ev.title}>{ev.title}</div>
-                                                                    <div className="text-[8px] font-bold text-slate-300 uppercase">{new Date(ev.date).toLocaleDateString()}</div>
-                                                                    <div className="text-[8px] font-black text-blue-500 mt-1">{ev.weight}%</div>
+                                                            {evaluations.slice(0, 8).map(ev => (
+                                                                <th key={ev._id} className="p-2 border-b text-center min-w-[72px] group transition-all hover:bg-slate-100/50">
+                                                                    <div className="text-[9px] font-black text-[#11355a] uppercase tracking-tight truncate max-w-[60px] mx-auto mb-0.5" title={ev.title}>{ev.title}</div>
+                                                                    <div className="text-[7px] font-bold text-slate-300 uppercase">{new Date(ev.date).toLocaleDateString()}</div>
+                                                                    <div className="text-[7px] font-black text-blue-500">{ev.weight}%</div>
                                                                 </th>
                                                             ))}
-                                                            {/* Render virtual slots for the remainder up to 10 */}
-                                                            {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => {
+                                                            {/* Render virtual slots for the remainder up to 8 */}
+                                                            {Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => {
                                                                 const virtualId = `virtual_${evaluations.length + i + 1}`;
                                                                 return (
-                                                                    <th key={virtualId} className="p-8 border-b text-center min-w-[140px] bg-slate-50/30 group">
-                                                                        <div className="text-[10px] font-black text-slate-300 uppercase italic">Nota {evaluations.length + i + 1}</div>
-                                                                        <div className="text-[8px] font-bold text-slate-200 uppercase mt-1">Disp. para ingreso</div>
+                                                                    <th key={virtualId} className="p-2 border-b text-center min-w-[72px] bg-slate-50/30 group">
+                                                                        <div className="text-[9px] font-black text-slate-300 uppercase italic">N{evaluations.length + i + 1}</div>
+                                                                        <div className="text-[7px] font-bold text-slate-200 uppercase mt-0.5">Vacío</div>
                                                                     </th>
                                                                 );
                                                             })}
@@ -1441,22 +1443,30 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     <tbody className="divide-y divide-slate-50">
                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => (
                                                             <tr key={student._id} className="hover:bg-blue-50/20 transition-all group">
-                                                                <td className="p-8 font-black text-[#11355a] text-sm uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
-                                                                    <div className="flex items-center gap-4">
-                                                                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-300 text-[10px] group-hover:bg-blue-500 group-hover:text-white transition-all">
-                                                                            {student.apellidos[0]}{student.nombres[0]}
-                                                                        </div>
-                                                                        <div className="truncate w-56">{student.apellidos}, {student.nombres}</div>
-                                                                    </div>
+                                                                <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
+                                                                    <div className="truncate w-40 px-1">{student.apellidos}, {student.nombres}</div>
+                                                                </td>
+                                                                <td className="p-1 text-center bg-blue-50/20">
+                                                                    {(() => {
+                                                                        const studentGrades = Object.values(gradeMatrix[student._id] || {});
+                                                                        const numericGrades = studentGrades.map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+                                                                        if (numericGrades.length === 0) return <span className="text-slate-300 font-bold">--</span>;
+                                                                        const avg = numericGrades.reduce((a, b) => a + b, 0) / numericGrades.length;
+                                                                        return (
+                                                                            <span className={`text-sm font-black ${avg >= 4.0 ? 'text-blue-600' : 'text-rose-600'}`}>
+                                                                                {avg.toFixed(1)}
+                                                                            </span>
+                                                                        );
+                                                                    })()}
                                                                 </td>
                                                                 {/* Real Evaluations Inputs */}
-                                                                {evaluations.map(ev => (
-                                                                    <td key={ev._id} className="p-6 text-center">
+                                                                {evaluations.slice(0, 8).map(ev => (
+                                                                    <td key={ev._id} className="p-1 text-center">
                                                                         <input 
                                                                             type="number" 
                                                                             min="1" max="7" step="0.1"
                                                                             placeholder="--"
-                                                                            className={`w-16 h-14 text-center rounded-2xl border-2 font-black text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all ${
+                                                                            className={`w-12 h-9 text-center rounded-lg border-2 font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') >= 4 ? 'bg-emerald-50 border-emerald-100 text-emerald-700 focus:border-emerald-500' : 
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') > 0 ? 'bg-rose-50 border-rose-100 text-rose-600 focus:border-rose-500' :
                                                                                 'bg-white border-slate-100 text-slate-300 focus:bg-white focus:border-blue-300 focus:text-blue-600'
@@ -1473,16 +1483,16 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                     </td>
                                                                 ))}
                                                                 {/* Virtual Slots Inputs */}
-                                                                {Array.from({length: Math.max(0, 10 - evaluations.length)}).map((_, i) => {
+                                                                {Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => {
                                                                     const virtualKey = `virtual_${evaluations.length + i + 1}`;
                                                                     const val = gradeMatrix[student._id]?.[virtualKey] || '';
                                                                     return (
-                                                                        <td key={virtualKey} className="p-6 text-center bg-slate-50/10">
+                                                                        <td key={virtualKey} className="p-1 text-center bg-slate-50/10">
                                                                             <input 
                                                                                 type="number" 
                                                                                 min="1" max="7" step="0.1"
                                                                                 placeholder="..."
-                                                                                className={`w-16 h-14 text-center rounded-2xl border-2 border-dashed font-black text-lg focus:outline-none focus:ring-4 focus:ring-blue-500/20 transition-all ${
+                                                                                className={`w-12 h-9 text-center rounded-lg border-2 border-dashed font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
                                                                                     parseFloat(val) >= 4 ? 'bg-emerald-50/50 border-emerald-200 text-emerald-700' : 
                                                                                     parseFloat(val) > 0 ? 'bg-rose-50/50 border-rose-200 text-rose-600' :
                                                                                     'bg-transparent border-slate-200 text-slate-400 focus:bg-white focus:border-blue-300 focus:border-solid'
