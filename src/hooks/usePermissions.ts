@@ -35,7 +35,10 @@ export const usePermissions = (): Permissions => {
     // Normalize role to lowercase for consistency and regularization
     const role = (user?.role || 'guest').toLowerCase();
 
-    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'utp', 'inspector_general', 'paradocente'].includes(role);
+    // Both 'secretario' and 'secretaria' are valid - gender-neutral role support
+    const isSecretary = role === 'secretario' || role === 'secretaria';
+
+    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'secretaria', 'utp', 'inspector_general', 'paradocente'].includes(role);
     const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
@@ -51,10 +54,10 @@ export const usePermissions = (): Permissions => {
         canEditProfile: true,
         canManageStudents: isStaff && !isStudent && !isApoderado,
         canManageUsers: isAdmin,
-        canManageEnrollments: (isAdmin || isDirector || isSostenedor || isTeacher || isUTP || role === 'secretario' || role === 'asistente_aula' || role === 'inspector') && !isStudent && !isApoderado,
+        canManageEnrollments: (isAdmin || isDirector || isSostenedor || isTeacher || isUTP || isSecretary || role === 'asistente_aula' || role === 'inspector') && !isStudent && !isApoderado,
         canEditAnnotations: isStaff && !isStudent && !isApoderado,
         canEditGrades: (isStaff || isUTP) && !isStudent && !isApoderado,
-        canViewSensitiveData: isAdmin || isDirector || isUTP || role === 'secretario' || role === 'paradocente',
+        canViewSensitiveData: isAdmin || isDirector || isUTP || isSecretary || role === 'paradocente',
         isSuperAdmin,
         isStaff,
         canManageCourses: isAdmin || isUTP,
@@ -66,7 +69,7 @@ export const usePermissions = (): Permissions => {
         isSostenedor,
         isDirector,
         isUTP,
-        canManagePayments: isSostenedor || isDirector || isUTP || role === 'secretario',
+        canManagePayments: isSostenedor || isDirector || isUTP || isSecretary,
         isAdmin,
         isStudent,
         isApoderado,
