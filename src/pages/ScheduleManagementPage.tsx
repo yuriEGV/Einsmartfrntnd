@@ -69,7 +69,8 @@ const ScheduleManagementPage = () => {
 
     useEffect(() => {
         fetchInitialData();
-        if (isStudent || isApoderado || isTeacher || canViewSensitiveData) {
+        // Students and Teachers should see their own schedule automatically
+        if (isStudent || isApoderado || isTeacher) {
             fetchSchedules();
         }
     }, []);
@@ -366,7 +367,7 @@ const ScheduleManagementPage = () => {
                                     </div>
                                 ))}
                                 {alternancias.length > 4 && (
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase text-center mt-2 italic">And {alternancias.length - 4} more students in alternation</p>
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase text-center mt-2 italic">Y {alternancias.length - 4} estudiantes más en alternancia</p>
                                 )}
                             </div>
                         </div>

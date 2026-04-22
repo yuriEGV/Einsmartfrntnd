@@ -11,9 +11,10 @@ import {
     School, TrendingUp, GraduationCap,
     CheckCircle2, Menu, X, ChevronRight,
     Bell, BookOpen, CreditCard, User, Clock,
-    Wand2, Building, Briefcase, Cloud, Library, ShieldCheck
+    Wand2, Building, Briefcase, Cloud, Library, ShieldCheck, RefreshCw
 } from 'lucide-react';
 import EinsmartMasterSidebar from '../components/EinsmartMasterSidebar';
+import { useUpdateCheck } from '../hooks/useUpdateCheck';
 
 const Layout = () => {
     const { user, logout } = useAuth();
@@ -24,6 +25,10 @@ const Layout = () => {
     const [notifications, setNotifications] = useState<any[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isAcademicOpen, setIsAcademicOpen] = useState(false);
+
+    // Update checking — only for admin roles
+    const canSeeUpdates = ['admin', 'sostenedor', 'director', 'utp', 'inspector_general', 'secretary', 'secretaria'].includes(user?.role || '');
+    const { updateStatus } = useUpdateCheck(canSeeUpdates);
 
     // Initial state from localStorage
     const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -382,6 +387,23 @@ const Layout = () => {
                             </div>
                         )}
                     </div>
+                    {/* Update Indicator */}
+                    {updateStatus.hasUpdate && (
+                        <Link
+                            to="/system-updates"
+                            className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3'} p-3.5 rounded-2xl bg-amber-500/20 border border-amber-400/30 hover:bg-amber-500/30 transition-all mb-3 animate-pulse`}
+                        >
+                            <div className="p-2 bg-amber-400/20 rounded-xl shrink-0">
+                                <RefreshCw size={16} className="text-amber-300" />
+                            </div>
+                            {!isCollapsed && (
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-[10px] font-black text-amber-200 uppercase tracking-widest leading-none">Actualización</p>
+                                    <p className="text-[9px] font-bold text-amber-300/70 mt-0.5">Nueva versión disponible</p>
+                                </div>
+                            )}
+                        </Link>
+                    )}
                     <button
                         onClick={handleLogout}
                         className={`flex items-center justify-center gap-3 text-white/70 hover:text-white hover:bg-rose-500/20 py-3.5 rounded-2xl transition-all font-black text-[10px] uppercase tracking-widest border border-white/5 hover:border-rose-500/20 shadow-xl ${isCollapsed ? 'w-10 h-10 p-0' : 'w-full'}`}
@@ -408,6 +430,18 @@ const Layout = () => {
                                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white"></span>
                             )}
                         </button>
+
+                        {/* Update Badge in Top Bar */}
+                        {updateStatus.hasUpdate && canSeeUpdates && (
+                            <Link
+                                to="/system-updates"
+                                className="p-3 text-amber-600 bg-amber-50 hover:bg-amber-100 rounded-2xl transition-all border border-amber-200 shadow-sm flex items-center gap-2"
+                                title="Hay una actualización disponible"
+                            >
+                                <RefreshCw size={20} className="animate-spin" style={{ animationDuration: '3s' }} />
+                                <span className="text-[10px] font-black text-amber-700 uppercase tracking-widest hidden lg:inline">Actualizar</span>
+                            </Link>
+                        )}
 
                         {/* Notifications Dropdown */}
                         {isNotifOpen && (

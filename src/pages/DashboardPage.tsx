@@ -22,6 +22,8 @@ const DashboardPage = () => {
     const [upcomingEvents, setUpcomingEvents] = useState([]);
     const [pendingSignatures, setPendingSignatures] = useState([]);
     const [accessLogs, setAccessLogs] = useState([]); // [NEW] Access Logs
+    const [pendingAdminDays, setPendingAdminDays] = useState([]); // [NEW] Administrative Days
+    const [dualStats, setDualStats] = useState({ total: 0, withCompany: 0 }); // [NEW] Dual Stats
 
     useEffect(() => {
         if (user) {
@@ -32,17 +34,28 @@ const DashboardPage = () => {
     const fetchDashboardData = async () => {
         try {
             // Parallel fetch
-            const [eventsRes, statsRes, signaturesRes, logsRes] = await Promise.all([
+            const [eventsRes, statsRes, signaturesRes, logsRes, adminDaysRes] = await Promise.all([
                 api.get('/events'),
                 (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
                 (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] }),
-                (['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] })
+                (['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] }),
+                (['admin', 'sostenedor', 'director', 'utp', 'inspector_general', 'secretary', 'secretaria'].includes(user?.role || '')) ? api.get('/admin-days/all?status=pendiente') : Promise.resolve({ data: [] })
             ]);
 
             setUpcomingEvents(eventsRes.data.slice(0, 3));
             if (statsRes.data) setStats(statsRes.data);
             if (signaturesRes.data) setPendingSignatures(signaturesRes.data);
             if (logsRes.data) setAccessLogs(logsRes.data);
+            if (adminDaysRes.data) setPendingAdminDays(adminDaysRes.data);
+
+            // Fetch Alternancia Stats
+            const altRes = await api.get('/alternancias');
+            if (altRes.data) {
+                setDualStats({
+                    total: altRes.data.length,
+                    withCompany: altRes.data.filter((a: any) => a.empresa).length
+                });
+            }
 
             if (user?.role === 'student' || user?.role === 'apoderado') {
                 const [gradesRes, anotRes, citRes] = await Promise.all([
@@ -196,6 +209,33 @@ const DashboardPage = () => {
                 </div>
             )}
 
+            {/* Días Administrativos Pendientes */}
+            {pendingAdminDays.length > 0 && (
+                <div className="bg-amber-50 border-2 border-amber-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500 shadow-xl shadow-amber-900/5 mt-6">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-amber-600 text-white rounded-3xl shadow-xl shadow-amber-200">
+                            <Clock size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-amber-900 uppercase tracking-tighter">SOLICITUDES ADMINISTRATIVAS</h3>
+                            <p className="text-sm font-bold text-amber-700/70">Hay {pendingAdminDays.length} solicitudes de funcionarios esperando revisión.</p>
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 w-full md:w-auto">
+                        {pendingAdminDays.slice(0, 3).map((req: any) => (
+                            <div key={req._id} className="text-[9px] font-black text-amber-600 uppercase tracking-widest bg-white/70 px-6 py-2 rounded-2xl border border-amber-100 flex items-center justify-between gap-4">
+                                <span>{new Date(req.date).toLocaleDateString()}</span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="flex-1 truncate uppercase font-black">{req.userId?.name}</span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className="bg-amber-100 px-2 py-0.5 rounded text-[8px]">{req.type}</span>
+                            </div>
+                        ))}
+                        <a href="/admin-days" className="text-center text-[8px] font-black text-amber-500 uppercase hover:underline mt-1">Gestionar Solicitudes</a>
+                    </div>
+                </div>
+            )}
+
             {/* Alertas de Cobertura de Clases */}
             {classBookMetrics?.alerts?.length > 0 && (
                 <div className="bg-amber-50 border-2 border-amber-100 p-6 rounded-[2.5rem] space-y-4 animate-in slide-in-from-top-4 duration-500">
@@ -313,6 +353,22 @@ const DashboardPage = () => {
                     <p className="text-lg font-black text-emerald-600 uppercase italic tracking-tight">{stats.isPlatformView ? 'Sistema Operativo' : 'Institución Activa'}</p>
                     <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">{stats.isPlatformView ? 'Todos los Nodos OK' : `Periodo ${new Date().getFullYear()}`}</p>
                 </div>
+
+                {!stats.isPlatformView && dualStats.total > 0 && (
+                    <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group flex flex-col justify-center">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="p-3 bg-[#2DAAB8]/10 rounded-2xl text-[#2DAAB8] group-hover:bg-[#2DAAB8] group-hover:text-white transition-all"><TrendingUp size={24} /></div>
+                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest text-right">Estadísticas Duales</span>
+                        </div>
+                        <div className="flex items-end gap-3">
+                            <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{dualStats.total}</p>
+                            <div className="pb-2">
+                                <p className="text-[10px] font-black text-[#2DAAB8] uppercase leading-none">{dualStats.withCompany} ASIGNADOS</p>
+                                <p className="text-[8px] font-bold text-slate-400 uppercase mt-1">Alumnos en Alternancia</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {classBookMetrics && !stats.isPlatformView && (
                     <div className="bg-[#11355a] p-6 md:p-8 rounded-3xl shadow-2xl border border-slate-100/10 hover:shadow-blue-900/40 transition-all group lg:col-span-3">
