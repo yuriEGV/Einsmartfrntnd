@@ -13,6 +13,8 @@ const DashboardPage = () => {
     const { isSuperAdmin, canManageStudents } = usePermissions();
 
     const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
+    const [updateInfo, setUpdateInfo] = useState<{hasUpdate: boolean, localHash?: string, remoteHash?: string} | null>(null);
+    const [isUpdating, setIsUpdating] = useState(false);
     const [recentGrades, setRecentGrades] = useState([]);
     const [notifications, setNotifications] = useState([]); // [NEW] For Admin/Sostenedor
     const [adminRanking, setAdminRanking] = useState([]);
@@ -83,17 +85,94 @@ const DashboardPage = () => {
             // Fetch notifications for ALL roles
             const notifRes = await api.get('/user-notifications');
             setNotifications(notifRes.data.slice(0, 5));
+
+            // Fetch updates for ALL roles
+            const updateRes = await api.get('/updates/check').catch(() => ({ data: null }));
+            if (updateRes.data && updateRes.data.hasUpdate) {
+                setUpdateInfo(updateRes.data);
+            }
         } catch (error) {
             console.error('Error loading dashboard data', error);
         }
     };
 
     if (isSuperAdmin) {
-        return <EinsmartDashboardPage stats={stats} />;
+        return (
+            <div className="space-y-6 md:space-y-10 animate-in fade-in duration-700">
+                {/* Alerta de Actualización del Sistema */}
+                {updateInfo?.hasUpdate && (
+                    <div className="bg-gradient-to-r from-emerald-500 to-teal-600 border-none p-6 mx-4 md:mx-10 mt-6 md:mt-10 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 shadow-2xl shadow-emerald-900/20 text-white">
+                        <div className="flex items-center gap-6 text-center md:text-left">
+                            <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl shadow-xl">
+                                <AlertCircle size={32} />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black uppercase tracking-tighter drop-shadow-md">ACTUALIZACIÓN DE SISTEMA DISPONIBLE</h3>
+                                <p className="text-sm font-bold text-emerald-50">Hay una nueva versión de Einsmart lista para ser instalada. ({updateInfo.localHash} → {updateInfo.remoteHash})</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                if (window.confirm('¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.')) {
+                                    setIsUpdating(true);
+                                    try {
+                                        await api.post('/updates/run');
+                                        alert('La actualización se ha iniciado en el servidor. El sistema se reiniciará automáticamente. Por favor, espera unos minutos y recarga la página.');
+                                    } catch (error) {
+                                        console.error(error);
+                                        alert('Hubo un error al intentar iniciar la actualización.');
+                                        setIsUpdating(false);
+                                    }
+                                }
+                            }}
+                            disabled={isUpdating}
+                            className={`bg-white text-emerald-700 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-50 transition-all shadow-lg active:scale-95 ${isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                        >
+                            {isUpdating ? 'Instalando...' : 'Descargar e Instalar'} <ChevronRight size={18} />
+                        </button>
+                    </div>
+                )}
+                <EinsmartDashboardPage stats={stats} />
+            </div>
+        );
     }
 
     return (
         <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
+            {/* Alerta de Actualización del Sistema */}
+            {updateInfo?.hasUpdate && (
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 border-none p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-10 duration-700 shadow-2xl shadow-emerald-900/20 text-white">
+                    <div className="flex items-center gap-6 text-center md:text-left">
+                        <div className="p-4 bg-white/20 backdrop-blur-md rounded-3xl shadow-xl">
+                            <AlertCircle size={32} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black uppercase tracking-tighter drop-shadow-md">ACTUALIZACIÓN DE SISTEMA DISPONIBLE</h3>
+                            <p className="text-sm font-bold text-emerald-50">Hay una nueva versión de Einsmart lista para ser instalada. ({updateInfo.localHash} → {updateInfo.remoteHash})</p>
+                        </div>
+                    </div>
+                    <button
+                        onClick={async () => {
+                            if (window.confirm('¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.')) {
+                                setIsUpdating(true);
+                                try {
+                                    await api.post('/updates/run');
+                                    alert('La actualización se ha iniciado en el servidor. El sistema se reiniciará automáticamente. Por favor, espera unos minutos y recarga la página.');
+                                } catch (error) {
+                                    console.error(error);
+                                    alert('Hubo un error al intentar iniciar la actualización.');
+                                    setIsUpdating(false);
+                                }
+                            }
+                        }}
+                        disabled={isUpdating}
+                        className={`bg-white text-emerald-700 px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-emerald-50 transition-all shadow-lg active:scale-95 ${isUpdating ? 'opacity-70 cursor-not-allowed' : ''}`}
+                    >
+                        {isUpdating ? 'Instalando...' : 'Descargar e Instalar'} <ChevronRight size={18} />
+                    </button>
+                </div>
+            )}
+
             {/* Alertas Regulatorias */}
             {pendingSignatures.length > 0 && (
                 <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500">
