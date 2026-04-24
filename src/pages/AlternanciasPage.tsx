@@ -26,7 +26,7 @@ interface Alternancia {
         rut: string;
         photoUrl?: string; 
     };
-    careerId: { _id: string; name: string };
+    careerId: { _id: string; name: string; headTeacher?: any };
     empresa: { _id: string; razonSocial: string; rut: string; emailContacto: string };
     tipo: string;
     fechaInicio: string;
