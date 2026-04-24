@@ -9,7 +9,7 @@ interface UserData {
     _id: string;
     name: string;
     email: string;
-    role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado' | 'inspector_general';
+    role: 'admin' | 'sostenedor' | 'director' | 'utp' | 'teacher' | 'student' | 'apoderado' | 'inspector_general' | 'tutor_empresa';
     rut?: string;
     phone?: string;
     address?: string;
@@ -162,6 +162,7 @@ const UsersPage = () => {
             case 'secretario': return <span className="bg-slate-100 text-slate-800 px-2 py-1 rounded-full text-xs font-bold">Secretario</span>;
             case 'apoderado': return <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-bold">Apoderado</span>;
             case 'inspector_general': return <span className="bg-purple-100 text-purple-800 px-2 py-1 rounded-full text-xs font-bold">Inspector General</span>;
+            case 'tutor_empresa': return <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-bold">Tutor Empresa</span>;
             default: return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-xs font-bold">{role}</span>;
         }
     };
@@ -503,6 +504,7 @@ const UsersPage = () => {
                                             <option value="inspector_general">Inspector General</option>
                                             <option value="student">Estudiante</option>
                                             <option value="apoderado">Apoderado / Tutor</option>
+                                            <option value="tutor_empresa">Tutor de Empresa (Externo)</option>
                                         </select>
                                         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-slate-400">
                                             <Shield size={18} />

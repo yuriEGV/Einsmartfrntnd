@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar, KeyRound } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar, KeyRound, MessageSquare, Send } from 'lucide-react';
 import { GPSMonitor } from '../components/Alternancia/GPSMonitor';
 import { AlternanciaSignatureModal } from '../components/Alternancia/AlternanciaSignatureModal';
 import { useGPSTracker } from '../hooks/useGPSTracker';
@@ -98,6 +98,10 @@ export default function AlternanciasPage() {
     const [subjects, setSubjects] = useState<any[]>([]);
     
     const [loading, setLoading] = useState(true);
+    const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
+    const [messageContent, setMessageContent] = useState('');
+    const [messageLoading, setMessageLoading] = useState(false);
+    const [messageTarget, setMessageTarget] = useState<{ userId: string, name: string } | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     
     // Modals visibility
@@ -327,7 +331,6 @@ export default function AlternanciasPage() {
     return (
         <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
             {/* Header Module */}
-            {/* Header Module */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-[#002447] uppercase tracking-tighter flex items-center gap-3">
@@ -406,11 +409,14 @@ export default function AlternanciasPage() {
                                             <User size={28} />
                                         )}
                                     </div>
-                                    <div>
-                                        <h3 className="font-black text-[#002447] uppercase leading-tight tracking-tighter text-lg">
-                                            {alt.estudianteId?.nombres} <br/> {alt.estudianteId?.apellidos}
+                                    <div className="flex flex-col">
+                                        <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1">
+                                            {alt.estudianteId?.nombres}
                                         </h3>
-                                        <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
+                                        <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1.5">
+                                            {alt.estudianteId?.apellidos}
+                                        </h3>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
                                     </div>
                                 </div>
                                 <div className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm
@@ -475,6 +481,22 @@ export default function AlternanciasPage() {
                                     <Star size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Evaluar</span>
                                 </button>
+
+                                {permissions.isTutor && alt.careerId?.headTeacher && (
+                                    <button
+                                        onClick={() => { 
+                                            setMessageTarget({ 
+                                                userId: (alt.careerId as any).headTeacher._id || (alt.careerId as any).headTeacher, 
+                                                name: 'Jefe de Carrera' 
+                                            }); 
+                                            setIsMessageModalOpen(true); 
+                                        }}
+                                        className="bg-[#2DAAB8]/5 border-2 border-[#2DAAB8]/10 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn col-span-2"
+                                    >
+                                        <MessageSquare size={20} className="text-[#2DAAB8]" />
+                                        <span className="text-[9px] font-black text-[#2DAAB8] uppercase tracking-widest group-hover:text-[#002447]">Contactar Jefe Carrera</span>
+                                    </button>
+                                )}
                                 
                                 {permissions.canManageAlternancias && (
                                     <>
@@ -1210,6 +1232,61 @@ export default function AlternanciasPage() {
                     onSuccess={() => { loadData(); setSignatureTarget(null); }} 
                     onClose={() => setSignatureTarget(null)} 
                 />
+            )}
+
+            {/* Message Modal for Tutor */}
+            {isMessageModalOpen && messageTarget && (
+                <div className="fixed inset-0 z-[150] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4">
+                    <div className="bg-white rounded-[2.5rem] w-full max-w-lg shadow-2xl border border-white p-8 animate-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-[#2DAAB8]/10 rounded-2xl text-[#2DAAB8]">
+                                    <MessageSquare size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="font-black text-[#002447] uppercase tracking-tighter">Enviar Mensaje</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Para: {messageTarget.name}</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setIsMessageModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                                <X size={20} className="text-slate-400" />
+                            </button>
+                        </div>
+
+                        <textarea
+                            value={messageContent}
+                            onChange={(e) => setMessageContent(e.target.value)}
+                            placeholder="Escribe tu mensaje aquí..."
+                            className="w-full h-40 p-6 bg-slate-50 border-2 border-slate-100 rounded-3xl outline-none focus:border-[#2DAAB8] focus:bg-white transition-all font-medium text-slate-700 mb-6"
+                        />
+
+                        <button
+                            onClick={async () => {
+                                if (!messageContent.trim()) return;
+                                setMessageLoading(true);
+                                try {
+                                    await api.post('/messages', {
+                                        receiverId: messageTarget.userId,
+                                        content: messageContent,
+                                        subject: 'Consulta de Tutor de Empresa'
+                                    });
+                                    toast.success('Mensaje enviado correctamente');
+                                    setIsMessageModalOpen(false);
+                                    setMessageContent('');
+                                } catch (error) {
+                                    console.error(error);
+                                    toast.error('Error al enviar mensaje');
+                                } finally {
+                                    setMessageLoading(false);
+                                }
+                            }}
+                            disabled={messageLoading || !messageContent.trim()}
+                            className="w-full bg-[#002447] hover:bg-[#003666] disabled:bg-slate-300 text-white py-4 rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex justify-center items-center gap-2 shadow-xl shadow-[#002447]/20"
+                        >
+                            {messageLoading ? 'Enviando...' : <><Send size={18} /> Enviar Mensaje</>}
+                        </button>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -28,6 +28,7 @@ export interface Permissions {
     canManageAlternancias: boolean;
     canManageEvents: boolean;
     canManageCareers: boolean;
+    isTutor: boolean;
 }
 
 export const usePermissions = (): Permissions => {
@@ -48,6 +49,7 @@ export const usePermissions = (): Permissions => {
     const isSuperAdmin = user?.isMaster || (role === 'admin' && user?.email === 'yuri@einsmart.cl') || role === 'superadmin';
     const isStudent = role === 'student';
     const isApoderado = role === 'apoderado';
+    const isTutor = role === 'tutor_empresa';
 
     return {
         user,
@@ -63,7 +65,7 @@ export const usePermissions = (): Permissions => {
         canManageCourses: isAdmin || isUTP,
         // New permissions
         canManageSubjects: isAdmin || isTeacher || isUTP,
-        canManageAlternancias: isAdmin || isUTP || isTeacher,
+        canManageAlternancias: isAdmin || isUTP || isTeacher || isTutor,
         canManageEvents: isAdmin || isTeacher || isDirector || isSostenedor || isUTP,
         isTeacher,
         isSostenedor,
@@ -74,6 +76,7 @@ export const usePermissions = (): Permissions => {
         isStudent,
         isApoderado,
         isInspectorGeneral,
+        isTutor,
         canApprovePlanning: isAdmin || isUTP,
         canManageCareers: isAdmin || isUTP,
     };
