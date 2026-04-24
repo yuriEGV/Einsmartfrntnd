@@ -21,8 +21,8 @@ interface Alternancia {
     _id: string;
     estudianteId: { 
         _id: string; 
-        firstName: string; 
-        lastName: string; 
+        nombres: string; 
+        apellidos: string; 
         rut: string;
         photoUrl?: string; 
     };
@@ -318,8 +318,8 @@ export default function AlternanciasPage() {
 
     const filteredAlternancias = alternancias.filter(a =>
         a.estudianteId?.rut.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.estudianteId?.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        a.estudianteId?.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.estudianteId?.nombres.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        a.estudianteId?.apellidos.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.empresa?.razonSocial?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         a.careerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -408,7 +408,7 @@ export default function AlternanciasPage() {
                                     </div>
                                     <div>
                                         <h3 className="font-black text-[#002447] uppercase leading-tight tracking-tighter text-lg">
-                                            {alt.estudianteId?.firstName} <br/> {alt.estudianteId?.lastName}
+                                            {alt.estudianteId?.nombres} <br/> {alt.estudianteId?.apellidos}
                                         </h3>
                                         <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
                                     </div>

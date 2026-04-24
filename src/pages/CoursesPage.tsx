@@ -367,26 +367,40 @@ const CoursesPage = () => {
 
                 {/* Subject Catalog / Existing Names to avoid duplicates */}
                 {!loading && (
-                    <div className="mt-12 p-8 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-100 text-slate-400">
-                                <Library size={20} />
+                    <div className="mt-12 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200 p-4 md:p-8">
+                        <details className="group">
+                            <summary className="flex items-center justify-between cursor-pointer list-none p-4 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-blue-300 transition-all">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-blue-50 rounded-xl text-blue-500">
+                                        <Library size={20} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Catálogo de Asignaturas</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Click para expandir y buscar por asignatura</p>
+                                    </div>
+                                </div>
+                                <div className="text-blue-500 font-black px-4 py-2 bg-blue-50 rounded-lg group-open:bg-slate-100 group-open:text-slate-400 transition-colors">
+                                    <span className="group-open:hidden">VER CATÁLOGO</span>
+                                    <span className="hidden group-open:block">OCULTAR</span>
+                                </div>
+                            </summary>
+                            <div className="mt-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-inner max-h-[400px] overflow-y-auto">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                    {Array.from(new Set(subjects.map(s => s.name))).sort().map(name => (
+                                        <button
+                                            key={name}
+                                            onClick={() => setSearchTerm(name)}
+                                            className="px-4 py-3 bg-slate-50 hover:bg-blue-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:text-blue-700 shadow-sm text-left flex items-center justify-between group/btn"
+                                            title={name}
+                                        >
+                                            <span className="truncate">{name}</span>
+                                            <Search size={14} className="opacity-0 group-hover/btn:opacity-100 text-blue-400 transition-opacity flex-shrink-0 ml-2" />
+                                        </button>
+                                    ))}
+                                    {subjects.length === 0 && <p className="text-xs text-slate-400 font-medium italic col-span-full">No hay asignaturas en el catálogo aún.</p>}
+                                </div>
                             </div>
-                            <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Nombres en Catálogo (Evitar Duplicados)</h3>
-                        </div>
-                        <div className="flex flex-wrap gap-2">
-                            {Array.from(new Set(subjects.map(s => s.name))).sort().map(name => (
-                                <button
-                                    key={name}
-                                    onClick={() => setSearchTerm(name)}
-                                    className="px-4 py-2 bg-white hover:bg-blue-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-600 transition-all hover:border-blue-200 hover:text-blue-600 shadow-sm"
-                                >
-                                    {name}
-                                </button>
-                            ))}
-                            {subjects.length === 0 && <p className="text-xs text-slate-400 font-medium italic">No hay asignaturas en el catálogo aún.</p>}
-                        </div>
-                        <p className="mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Tip: Haz clic en un nombre para filtrar y ver sus vinculaciones actuales.</p>
+                        </details>
                     </div>
                 )}
             </div>

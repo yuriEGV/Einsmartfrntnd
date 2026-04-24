@@ -207,11 +207,11 @@ const TeacherTimeReportPage = () => {
                                         <div className="flex items-center gap-6">
                                             <div className="text-center bg-white px-4 py-2 rounded-xl border border-slate-100 print:bg-transparent print:border-none print:text-left print:p-0">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Clases Impartidas</p>
-                                                <p className="text-xl font-black text-slate-700">{profesor.totalClassesAllCourses}</p>
+                                                <p className="text-xl font-black text-slate-700">{profesor.totalClasesAllCourses}</p>
                                             </div>
                                             <div className="text-center bg-blue-50 px-6 py-2 rounded-xl border-2 border-blue-100 print:bg-transparent print:border-none print:text-left print:p-0">
                                                 <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Aula Efectiva Total</p>
-                                                <p className="text-xl font-black text-blue-700">{formatTime(profesor.totalMinutesAllCourses)}</p>
+                                                <p className="text-xl font-black text-blue-700">{formatTime(profesor.totalMinutosAllCourses || 0)}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -221,10 +221,10 @@ const TeacherTimeReportPage = () => {
                                             <div key={cidx} className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex justify-between items-center print:border-slate-300">
                                                 <div>
                                                     <p className="text-xs font-black text-slate-700">{cur.courseName || 'Curso N/A'}</p>
-                                                    <p className="text-[9px] font-bold text-slate-400 mt-1">{cur.count} sesiones</p>
+                                                    <p className="text-[9px] font-bold text-slate-400 mt-1">{cur.clases} sesiones</p>
                                                 </div>
                                                 <div className="bg-slate-50 px-3 py-1 rounded-lg text-xs font-black text-slate-600 border border-slate-200">
-                                                    {formatTime(cur.minutes || 0)}
+                                                    {formatTime(cur.minutos || 0)}
                                                 </div>
                                             </div>
                                         ))}

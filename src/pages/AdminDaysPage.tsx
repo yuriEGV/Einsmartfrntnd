@@ -6,7 +6,7 @@ import { useTenant } from '../context/TenantContext';
 import {
     Clock, CheckCircle,
     Plus, Info, User, FileText, ChevronRight,
-    TrendingUp, ShieldCheck, Loader2
+    TrendingUp, ShieldCheck, Loader2, Printer
 } from 'lucide-react';
 
 interface AdminDayRequest {
@@ -83,6 +83,71 @@ const AdminDaysPage = () => {
             alert(error.response?.data?.message || 'Error al enviar solicitud');
             setLoading(false);
         }
+    };
+
+    const handlePrintPermiso = (req: AdminDayRequest) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        const schoolName = tenant?.name || 'Establecimiento';
+        const logoUrl = tenant?.logo || tenant?.theme?.logoUrl || '';
+
+        printWindow.document.write('<!DOCTYPE html>' +
+'<html>' +
+'<head>' +
+'    <title>Permiso Administrativo - ' + req.userId.name + '</title>' +
+'    <style>' +
+'        body { font-family: sans-serif; padding: 40px; color: #1e293b; line-height: 1.6; }' +
+'        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #11355a; padding-bottom: 20px; margin-bottom: 30px; }' +
+'        .school-info h1 { margin: 0; color: #11355a; font-size: 1.5rem; }' +
+'        .content { margin-bottom: 50px; }' +
+'        .title { text-align: center; text-transform: uppercase; font-weight: 900; font-size: 1.2rem; margin-bottom: 40px; text-decoration: underline; }' +
+'        .field { margin-bottom: 15px; }' +
+'        .label { font-weight: bold; width: 200px; display: inline-block; }' +
+'        .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 100px; }' +
+'        .signature-box { border-top: 1px solid #1e293b; text-align: center; padding-top: 10px; font-size: 0.9rem; font-weight: bold; }' +
+'        @media print { .no-print { display: none; } }' +
+'    </style>' +
+'</head>' +
+'<body>' +
+'    <div class="header">' +
+'        <div class="school-info">' +
+'            <h1>' + schoolName + '</h1>' +
+'            <p>Sistema de Gestión Educacional EinSmart</p>' +
+'        </div>' +
+'        ' + (logoUrl ? '<img src="' + logoUrl + '" style="height: 60px;">' : '') +
+'    </div>' +
+'' +
+'    <div class="title">Comprobante de Permiso Administrativo</div>' +
+'' +
+'    <div class="content">' +
+'        <div class="field"><span class="label">Nombre del Funcionario:</span> ' + req.userId.name + '</div>' +
+'        <div class="field"><span class="label">Cargo / Función:</span> ' + req.userId.role + '</div>' +
+'        <div class="field"><span class="label">Fecha del Permiso:</span> ' + new Date(req.date).toLocaleDateString('es-CL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) + '</div>' +
+'        <div class="field"><span class="label">Tipo de Jornada:</span> ' + getTypeLabel(req.type) + '</div>' +
+'        <div class="field"><span class="label">Motivo Declarado:</span> ' + req.reason + '</div>' +
+'        <div class="field"><span class="label">Estado de Solicitud:</span> <strong>APROBADO</strong></div>' +
+'        <div class="field"><span class="label">Fecha de Emisión:</span> ' + new Date().toLocaleString() + '</div>' +
+'    </div>' +
+'' +
+'    <p style="font-size: 0.8rem; font-style: italic; color: #64748b;">' +
+'        Este documento certifica que la solicitud ha sido procesada y aprobada por la dirección del establecimiento según los registros digitales del sistema.' +
+'    </p>' +
+'' +
+'    <div class="signatures">' +
+'        <div class="signature-box">Firma del Funcionario</div>' +
+'        <div class="signature-box">Firma Sostenedor / Director</div>' +
+'    </div>' +
+'' +
+'    <div class="no-print" style="margin-top: 50px; text-align: center;">' +
+'        <button onclick="window.print()" style="padding: 10px 20px; background: #11355a; color: white; border: none; border-radius: 5px; cursor: pointer;">Imprimir Documento</button>' +
+'    </div>' +
+'' +
+'    <script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>' +
+'</body>' +
+'</html>'
+        );
+        printWindow.document.close();
     };
 
     const handleUpdateStatus = async (id: string, status: string) => {
@@ -233,6 +298,15 @@ const AdminDaysPage = () => {
                                 </div>
 
                                 <div className="flex items-center gap-3">
+                                    {req.status === 'aprobado' && (
+                                        <button
+                                            onClick={() => handlePrintPermiso(req)}
+                                            className="p-3 bg-slate-100 text-slate-600 rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all active:scale-95"
+                                            title="Imprimir Permiso"
+                                        >
+                                            <Printer size={18} />
+                                        </button>
+                                    )}
                                     {req.status === 'pendiente' && (permissions.isSuperAdmin || permissions.user?.role === 'sostenedor' || permissions.user?.role === 'admin' || permissions.user?.role === 'director') ? (
                                         <>
                                             <button

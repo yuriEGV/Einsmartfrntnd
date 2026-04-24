@@ -196,7 +196,9 @@ const InstitutionalCalendar = ({ studentId, guardianId, courseId }: Institutiona
                             className={`text-[9px] font-black px-2 py-1 rounded-lg truncate flex items-center justify-between group ${
                                 item.itemType === 'evaluation'
                                     ? (item.category === 'planificada' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')
-                                    : (item.isLicense ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-indigo-100 text-indigo-700')
+                                    : (item.isLicense ? 'bg-rose-50 text-rose-600 border border-rose-100' : 
+                                       item.title.startsWith('Permiso Administrativo') ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                       'bg-indigo-100 text-indigo-700')
                                 }`}
                             title={item.title}
                         >
@@ -292,6 +294,10 @@ const InstitutionalCalendar = ({ studentId, guardianId, courseId }: Institutiona
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-lg bg-amber-100 border-2 border-amber-200"></div>
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">Evaluación Sorpresa</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-lg bg-amber-100 border-2 border-amber-200"></div>
+                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-tight">Día Administrativo</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-5 h-5 rounded-lg bg-indigo-100 border-2 border-indigo-200"></div>
