@@ -979,7 +979,7 @@ export default function AlternanciasPage() {
                                 <div>
                                     <h2 className="text-3xl font-black uppercase tracking-tighter leading-none mb-2">Bitácora de Alternancia</h2>
                                     <p className="text-[10px] font-bold text-[#2DAAB8] uppercase tracking-[0.3em]">
-                                        Expediente Dual: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                                        Expediente Dual: {selectedAlt.estudianteId?.nombres} {selectedAlt.estudianteId?.apellidos}
                                     </p>
                                 </div>
                             </div>
@@ -1123,7 +1123,7 @@ export default function AlternanciasPage() {
                                     <Star className="text-[#2DAAB8]" size={24} fill="currentColor" /> Rúbrica de Especialidad
                                 </h2>
                                 <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
-                                    Evaluación Dual: {selectedAlt.estudianteId?.firstName} {selectedAlt.estudianteId?.lastName}
+                                    Evaluación Dual: {selectedAlt.estudianteId?.nombres} {selectedAlt.estudianteId?.apellidos}
                                 </p>
                             </div>
                             <button onClick={() => setIsEvalModalOpen(false)} className="bg-white/10 p-2 rounded-xl text-white hover:bg-white/20 transition-colors shadow-sm focus:ring-2 ring-[#2DAAB8]">
