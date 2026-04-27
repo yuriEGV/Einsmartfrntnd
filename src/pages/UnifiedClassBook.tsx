@@ -1288,10 +1288,17 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             {isTimerPaused ? 'Reanudar' : 'Pausar'}
                                                         </button>
                                                         <button 
-                                                            onClick={() => { setIsTimerRunning(false); setIsTimerPaused(false); setEffectiveDuration(0); }}
-                                                            className="px-6 py-2 bg-rose-500 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all"
+                                                            onClick={() => { setIsTimerRunning(false); setIsTimerPaused(false); }}
+                                                            className="px-6 py-2 bg-rose-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg shadow-rose-900/20"
                                                         >
-                                                            Reset
+                                                            Terminar Clase
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => { if(window.confirm('¿Reiniciar contador a cero?')) setEffectiveDuration(0); }}
+                                                            className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
+                                                            title="Reiniciar Contador"
+                                                        >
+                                                            <Trash2 size={16} />
                                                         </button>
                                                     </>
                                                 )}
