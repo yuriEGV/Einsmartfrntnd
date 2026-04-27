@@ -541,7 +541,8 @@ const DashboardPage = () => {
                             </div>
                         )}
                     </div>
-                )}
+                </div>
+            )}
 
                 {/* Academic Notifications (Grades & Annotations) */}
                 {(user?.role === 'student' || user?.role === 'apoderado') && (
