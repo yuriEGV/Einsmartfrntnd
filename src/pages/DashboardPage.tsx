@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase } from 'lucide-react';
 import EinsmartDashboardPage from './EinsmartDashboardPage';
 
 const DashboardPage = () => {
