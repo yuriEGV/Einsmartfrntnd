@@ -295,8 +295,8 @@ const Layout = () => {
                         <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
                     )}
 
-                    {/* Redefine messages visibility: Only staff */}
-                    {permissions.isStaff && (
+                    {/* Redefine messages visibility: Only staff and tutors */}
+                    {(permissions.isStaff || permissions.isTutor) && (
                         <NavLink to="/messages" icon={FileText}>{!isCollapsed && "Mensajes"}</NavLink>
                     )}
 

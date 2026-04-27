@@ -345,7 +345,7 @@ export default function AlternanciasPage() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    {permissions.canManageAlternancias && (
+                    {permissions.canManageAlternancias && !permissions.isTutor && (
                         <button
                             onClick={() => setIsGPSMonitorOpen(true)}
                             className="bg-[#2DAAB8]/10 hover:bg-[#2DAAB8]/20 text-[#2DAAB8] px-6 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all border-b-4 border-[#2DAAB8]/30 active:scale-95"
@@ -353,7 +353,7 @@ export default function AlternanciasPage() {
                             <MapPin size={18} /> Monitor GPS
                         </button>
                     )}
-                    {permissions.canManageAlternancias && (
+                    {permissions.canManageAlternancias && !permissions.isTutor && (
                         <button
                             onClick={() => {
                                 setEditingId(null);
@@ -482,23 +482,42 @@ export default function AlternanciasPage() {
                                     <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Evaluar</span>
                                 </button>
 
-                                {permissions.isTutor && alt.careerId?.headTeacher && (
-                                    <button
-                                        onClick={() => { 
-                                            setMessageTarget({ 
-                                                userId: (alt.careerId as any).headTeacher._id || (alt.careerId as any).headTeacher, 
-                                                name: 'Jefe de Carrera' 
-                                            }); 
-                                            setIsMessageModalOpen(true); 
-                                        }}
-                                        className="bg-[#2DAAB8]/5 border-2 border-[#2DAAB8]/10 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn col-span-2"
-                                    >
-                                        <MessageSquare size={20} className="text-[#2DAAB8]" />
-                                        <span className="text-[9px] font-black text-[#2DAAB8] uppercase tracking-widest group-hover:text-[#002447]">Contactar Jefe Carrera</span>
-                                    </button>
+                                {permissions.isTutor && (
+                                    <div className="grid grid-cols-2 gap-3 col-span-2 mt-2">
+                                        {alt.careerId?.headTeacher && (
+                                            <button
+                                                onClick={() => { 
+                                                    setMessageTarget({ 
+                                                        userId: (alt.careerId as any).headTeacher._id || (alt.careerId as any).headTeacher, 
+                                                        name: 'Jefe de Carrera' 
+                                                    }); 
+                                                    setIsMessageModalOpen(true); 
+                                                }}
+                                                className="bg-[#2DAAB8]/5 border-2 border-[#2DAAB8]/10 hover:border-[#2DAAB8] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                            >
+                                                <MessageSquare size={16} className="text-[#2DAAB8]" />
+                                                <span className="text-[8px] font-black text-[#2DAAB8] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Jefe Carrera</span>
+                                            </button>
+                                        )}
+                                        {alt.profesorSupervisor && (
+                                            <button
+                                                onClick={() => { 
+                                                    setMessageTarget({ 
+                                                        userId: alt.profesorSupervisor._id, 
+                                                        name: alt.profesorSupervisor.name || 'Profesor Supervisor' 
+                                                    }); 
+                                                    setIsMessageModalOpen(true); 
+                                                }}
+                                                className="bg-[#11355a]/5 border-2 border-[#11355a]/10 hover:border-[#11355a] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#11355a]/10 group/btn"
+                                            >
+                                                <Send size={16} className="text-[#11355a]" />
+                                                <span className="text-[8px] font-black text-[#11355a] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Supervisor</span>
+                                            </button>
+                                        )}
+                                    </div>
                                 )}
                                 
-                                {permissions.canManageAlternancias && (
+                                {permissions.canManageAlternancias && !permissions.isTutor && (
                                     <>
                                         <button
                                             onClick={() => handleEdit(alt)}
