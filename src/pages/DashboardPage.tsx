@@ -10,7 +10,7 @@ import EinsmartDashboardPage from './EinsmartDashboardPage';
 const DashboardPage = () => {
     const { user } = useAuth();
     const { tenant } = useTenant();
-    const { isSuperAdmin, canManageStudents } = usePermissions();
+    const { isSuperAdmin, canManageStudents, isTutor } = usePermissions();
 
     const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
     const [updateInfo, setUpdateInfo] = useState<{hasUpdate: boolean, localHash?: string, remoteHash?: string} | null>(null);
@@ -483,11 +483,30 @@ const DashboardPage = () => {
                     </div>
                 )}
             </div>
+            
+            {isTutor && (
+                <div className="bg-gradient-to-r from-[#2DAAB8] to-[#002447] p-8 md:p-12 rounded-[3rem] text-white shadow-2xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                        <div className="p-6 bg-white/10 backdrop-blur-xl rounded-[2rem] border border-white/20">
+                            <Briefcase size={48} className="text-white" />
+                        </div>
+                        <div className="flex-1 text-center md:text-left">
+                            <h2 className="text-2xl md:text-3xl font-black uppercase tracking-tighter mb-2">Gestión de Alumnos en Alternancia</h2>
+                            <p className="text-blue-100 font-bold opacity-80 mb-6">Evalúa el desempeño de tus alumnos asignados y mantente en contacto con el establecimiento.</p>
+                            <a href="/alternancias" className="inline-flex items-center gap-3 bg-white text-[#002447] px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-50 transition-all shadow-xl active:scale-95">
+                                Ver mis Alumnos <ChevronRight size={18} />
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Notifications & Events Section - Stacked on Mobile */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-10">
                 {/* Upcoming Events */}
-                <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden group">
+                {!isTutor && (
+                    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden group">
                     <div
                         className="px-8 py-6 flex items-center justify-between"
                         style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}
@@ -522,7 +541,7 @@ const DashboardPage = () => {
                             </div>
                         )}
                     </div>
-                </div>
+                )}
 
                 {/* Academic Notifications (Grades & Annotations) */}
                 {(user?.role === 'student' || user?.role === 'apoderado') && (
@@ -675,11 +694,13 @@ const DashboardPage = () => {
             </div>
 
             {/* Institutional Calendar for the whole community */}
-            <InstitutionalCalendar
-                items={[]}
-                studentId={user?.role === 'student' ? user._id : undefined}
-                guardianId={user?.role === 'apoderado' ? user._id : undefined}
-            />
+            {!isTutor && (
+                <InstitutionalCalendar
+                    items={[]}
+                    studentId={user?.role === 'student' ? user._id : undefined}
+                    guardianId={user?.role === 'apoderado' ? user._id : undefined}
+                />
+            )}
         </div>
     );
 };

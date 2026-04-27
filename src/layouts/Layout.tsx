@@ -284,7 +284,7 @@ const Layout = () => {
                     )}
 
                     {/* Redundant links hidden for teachers to favor unified dashboard, EXCEPT alternancias which is TP specific */}
-                    {!permissions.isTeacher && !permissions.isStudent && !permissions.isApoderado && (
+                    {!permissions.isTeacher && !permissions.isStudent && !permissions.isApoderado && !permissions.isTutor && (
                         <>
                             <NavLink to="/grades" icon={ClipboardList}>{!isCollapsed && "Notas Globales"}</NavLink>
                             <NavLink to="/attendance" icon={CheckCircle2}>{!isCollapsed && "Asistencia Global"}</NavLink>
@@ -300,8 +300,12 @@ const Layout = () => {
                         <NavLink to="/messages" icon={FileText}>{!isCollapsed && "Mensajes"}</NavLink>
                     )}
 
-                    <NavLink to="/events" icon={Calendar}>{!isCollapsed && "Eventos"}</NavLink>
-                    <NavLink to="/schedules" icon={Clock}>{!isCollapsed && "Horarios"}</NavLink>
+                    {!permissions.isTutor && (
+                        <>
+                            <NavLink to="/events" icon={Calendar}>{!isCollapsed && "Eventos"}</NavLink>
+                            <NavLink to="/schedules" icon={Clock}>{!isCollapsed && "Horarios"}</NavLink>
+                        </>
+                    )}
 
                     <div className="pt-6 mb-4 px-2">
                         <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-4`}>
@@ -309,7 +313,7 @@ const Layout = () => {
                             <div className={`h-[1px] bg-white/5 ${isCollapsed ? 'w-4' : 'flex-1 ml-4'}`}></div>
                         </div>
 
-                        {(permissions.isAdmin || permissions.isSuperAdmin || permissions.isTeacher) && (
+                        {(permissions.isAdmin || permissions.isSuperAdmin || permissions.isTeacher) && !permissions.isTutor && (
                             <NavLink to="/students" icon={Users}>{!isCollapsed && "Comunidad Escolar"}</NavLink>
                         )}
 
