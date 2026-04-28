@@ -111,10 +111,6 @@ const TeacherTimeReportPage = () => {
         return `${h}h ${m}m`;
     };
 
-    const formatDate = (dateStr: string) => {
-        return new Date(dateStr).toLocaleDateString('es-CL', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
-    };
-
     const toggleTeacher = (id: string) => {
         setExpandedTeachers(prev => {
             const next = new Set(prev);
