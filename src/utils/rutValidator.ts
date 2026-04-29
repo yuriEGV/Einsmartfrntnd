@@ -13,29 +13,19 @@ export const validarRUT = (rutCompleto: string): boolean => {
     let suma = 0;
     let multiplo = 2;
     
-    // Recorrer el cuerpo de derecha a izquierda
-    for (let i = 1; i <= cuerpo.length; i++) {
-        let index = multiplo * parseInt(valor.charAt(cuerpo.length - i));
-        suma = suma + index;
-        if (multiplo < 7) { 
-            multiplo = multiplo + 1; 
-        } else { 
-            multiplo = 2; 
-        }
+    for (let i = cuerpo.length - 1; i >= 0; i--) {
+        suma += multiplo * parseInt(cuerpo.charAt(i));
+        multiplo = (multiplo === 7) ? 2 : multiplo + 1;
     }
     
-    let dvEsperado: number | string = 11 - (suma % 11);
+    let dvEsperado: string;
+    let res = 11 - (suma % 11);
     
-    let dvComparador: number | string = dv;
-    if (dv === 'K') dvComparador = 10;
-    else dvComparador = parseInt(dv);
+    if (res === 11) dvEsperado = '0';
+    else if (res === 10) dvEsperado = 'K';
+    else dvEsperado = String(res);
     
-    if (dvComparador === 0) dvComparador = 11;
-    
-    if (dvEsperado === 11) dvEsperado = 0;
-    if (dvEsperado === 10) dvEsperado = 10; // K case
-    
-    return String(dvEsperado) === String(dvComparador);
+    return dv === dvEsperado;
 };
 
 export const formatearRUT = (rut: string): string => {
