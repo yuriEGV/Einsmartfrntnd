@@ -4,6 +4,7 @@ import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, Shield, Save, Key, X } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { validarRUT } from '../utils/rutValidator';
 
 interface UserData {
     _id: string;
@@ -457,11 +458,21 @@ const UsersPage = () => {
                                 <div className="group text-start">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">RUT / IDENTIFICADOR (OPCIONAL)</label>
                                     <input
-                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 focus:shadow-xl focus:shadow-indigo-500/5 transition-all outline-none font-black text-slate-700"
+                                        className={`w-full px-6 py-4 bg-white border-2 rounded-2xl focus:shadow-xl transition-all outline-none font-black text-slate-700 ${
+                                            currentUserData.rut && currentUserData.rut.length > 7
+                                                ? (validarRUT(currentUserData.rut) ? 'border-emerald-300 focus:border-emerald-500 focus:shadow-emerald-500/5' : 'border-rose-300 focus:border-rose-500 focus:shadow-rose-500/5')
+                                                : 'border-slate-100 focus:border-indigo-500 focus:shadow-indigo-500/5'
+                                        }`}
                                         placeholder="Ej: 12.345.678-9"
                                         value={currentUserData.rut || ''}
                                         onChange={e => setCurrentUserData({ ...currentUserData, rut: e.target.value })}
                                     />
+                                    {currentUserData.rut && currentUserData.rut.length > 7 && (
+                                        <p className={`text-[10px] font-black mt-1.5 ml-1 ${validarRUT(currentUserData.rut) ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                            {validarRUT(currentUserData.rut) ? '✓ RUT válido' : '✕ RUT inválido — debe incluir dígito verificador (ej: 12345678-9)'}
+                                        </p>
+                                    )}
+                                    <p className="text-[9px] font-bold text-slate-300 mt-1 ml-1">Formatos: 12.345.678-9 / 12345678-9 / 123456789</p>
                                 </div>
                                 <div className="group text-start">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">TELÉFONO DE CONTACTO (OPCIONAL)</label>
