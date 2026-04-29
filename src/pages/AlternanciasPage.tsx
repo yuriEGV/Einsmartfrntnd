@@ -75,8 +75,12 @@ interface Alternancia {
         actividadRealizada: string;
         observaciones?: string;
         firmadoTutor: boolean;
+        firmadoTutorEmpresa?: boolean;
+        firmadoSupervisor?: boolean;
         firmaEstudiante?: string;
         firmaTutorContenido?: string;
+        firmaTutorEmpresaContenido?: string;
+        firmaSupervisorContenido?: string;
         gpsLocation?: {
             lat: number;
             lng: number;
@@ -1099,24 +1103,45 @@ export default function AlternanciasPage() {
                                                             <MapPin size={14} /> GPS Verificado
                                                         </a>
                                                     )}
-                                                    {entry.firmadoTutor && (
-                                                        <div className="p-2 bg-[#002447]/5 text-[#002447] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase">
-                                                            <PenTool size={14} className="text-[#2DAAB8]" /> Firmado por Tutor
+                                                    {/* Signatures Status */}
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`p-2 rounded-xl flex items-center gap-2 font-black text-[9px] uppercase border transition-all ${entry.firmadoTutorEmpresa ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                            {entry.firmadoTutorEmpresa ? <CheckCircle2 size={12} /> : <PenTool size={12} />}
+                                                            Tutor Empresa {entry.firmadoTutorEmpresa ? 'OK' : 'Pendiente'}
                                                         </div>
-                                                    )}
-                                                    {entry.firmaEstudiante && (
-                                                        <div className="p-2 bg-[#2DAAB8]/10 text-[#2DAAB8] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase">
-                                                            <CheckCircle2 size={14} /> Firmado (Estudiante)
+                                                        <div className={`p-2 rounded-xl flex items-center gap-2 font-black text-[9px] uppercase border transition-all ${entry.firmadoSupervisor ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-slate-50 text-slate-400 border-slate-100'}`}>
+                                                            {entry.firmadoSupervisor ? <CheckCircle2 size={12} /> : <PenTool size={12} />}
+                                                            Supervisor {entry.firmadoSupervisor ? 'OK' : 'Pendiente'}
                                                         </div>
-                                                    )}
-                                                    {(!entry.firmadoTutor || !entry.firmaEstudiante) && (
-                                                        <button 
-                                                            onClick={() => setSignatureTarget({ alternanciaId: selectedAlt._id, bitacoraId: entry._id || '' })}
-                                                            className="p-2 bg-amber-50 text-amber-600 hover:bg-amber-600 hover:text-white rounded-xl flex items-center gap-2 font-black text-[9px] uppercase transition-all shadow-sm"
-                                                        >
-                                                            <KeyRound size={14} /> Firmar (PIN)
-                                                        </button>
-                                                    )}
+                                                        {entry.firmaEstudiante && (
+                                                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl flex items-center gap-2 font-black text-[9px] uppercase border border-indigo-100">
+                                                                <CheckCircle2 size={12} /> Alumno OK
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Sign Button Logic */}
+                                                    {(() => {
+                                                        const isMyTutorSignPending = permissions.isTutor && 
+                                                            ((selectedAlt.tutorId as any)?._id || selectedAlt.tutorId) === permissions.user?._id && 
+                                                            !entry.firmadoTutorEmpresa;
+                                                        
+                                                        const isMySupervisorSignPending = (permissions.isTeacher || permissions.isAdmin || permissions.isUTP || permissions.isDirector) && 
+                                                            ((selectedAlt.profesorSupervisor as any)?._id || selectedAlt.profesorSupervisor) === permissions.user?._id && 
+                                                            !entry.firmadoSupervisor;
+
+                                                        if (isMyTutorSignPending || isMySupervisorSignPending) {
+                                                            return (
+                                                                <button 
+                                                                    onClick={() => setSignatureTarget({ alternanciaId: selectedAlt._id, bitacoraId: entry._id || '' })}
+                                                                    className="px-6 py-2 bg-[#002447] text-white hover:bg-[#003666] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase transition-all shadow-lg shadow-[#002447]/20 active:scale-95"
+                                                                >
+                                                                    <KeyRound size={14} /> Firmar Bitácora (PIN)
+                                                                </button>
+                                                            );
+                                                        }
+                                                        return null;
+                                                    })()}
                                                 </div>
                                             </div>
                                             <p className="text-sm font-bold text-[#002447]/80 leading-relaxed bg-slate-50/50 p-5 rounded-3xl group-hover:bg-white transition-colors">
