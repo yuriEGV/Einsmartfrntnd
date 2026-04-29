@@ -138,6 +138,7 @@ export default function AlternanciasPage() {
         estado: 'Borrador',
         seguroEscolar: false,
         profesorSupervisor: '',
+        tutorId: '',
         planFormativoDetalle: '',
         actividadesDetalle: '',
         observaciones: '',
@@ -275,6 +276,7 @@ export default function AlternanciasPage() {
             maestroGuiaCargo: alt.maestroGuia?.cargo || '',
             maestroGuiaEmail: alt.maestroGuia?.email || '',
             maestroGuiaTelefono: alt.maestroGuia?.telefono || '',
+            tutorId: alt.tutorId?._id || alt.tutorId || '',
             modulosDual: alt.modulosDual || [],
             dispositivoRastreo: alt.dispositivoRastreo || { numeroChip: '', imei: '', modeloEquipo: '', activo: true }
         });
@@ -898,6 +900,18 @@ export default function AlternanciasPage() {
                                             >
                                                 <option value="">Seleccionar Docente...</option>
                                                 {users.filter(u => u.role === 'teacher').map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Tutor de Empresa (Externo)</label>
+                                            <select
+                                                required
+                                                value={formData.tutorId}
+                                                onChange={(e) => setFormData({ ...formData, tutorId: e.target.value })}
+                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
+                                            >
+                                                <option value="">Seleccionar Tutor...</option>
+                                                {users.filter(u => u.role === 'tutor_empresa').map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
                                             </select>
                                         </div>
                                         <div className="space-y-2">
