@@ -34,6 +34,7 @@ interface Alternancia {
     estado: string;
     seguroEscolar: boolean;
     profesorSupervisor: { _id: string; name: string };
+    tutorId?: { _id: string; name: string; email?: string };
     planFormativo: {
         objetivosAprendizaje: string[];
         actividades: string[];
