@@ -58,8 +58,25 @@ api.interceptors.request.use((config) => {
     if (tenantId) {
         config.headers['x-tenant-id'] = tenantId;
     }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 
-    return config;
-});
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            console.warn('Sesión expirada o no autorizada. Redirigiendo a login...');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('tenantId');
+            if (typeof window !== 'undefined' && window.location.pathname !== '/login') {
+                window.location.href = '/login';
+            }
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default api;
