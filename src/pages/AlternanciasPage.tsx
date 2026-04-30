@@ -1138,7 +1138,8 @@ export default function AlternanciasPage() {
                                                     {/* Sign Button Logic */}
                                                     {(() => {
                                                         const isMyTutorSignPending = permissions.isTutor && 
-                                                            ((selectedAlt.tutorId as any)?._id || selectedAlt.tutorId) === permissions.user?._id && 
+                                                            (((selectedAlt.tutorId as any)?._id || selectedAlt.tutorId) === permissions.user?._id || 
+                                                             selectedAlt.maestroGuia?.email === permissions.user?.email) && 
                                                             !entry.firmadoTutorEmpresa;
                                                         
                                                         const isMySupervisorSignPending = (permissions.isTeacher || permissions.isAdmin || permissions.isUTP || permissions.isDirector) && 

@@ -56,7 +56,7 @@ export function AlternanciaSignatureModal({ alternanciaId, bitacoraId, onSuccess
     };
 
     return (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
+        <div className="fixed inset-0 z-[250] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
             <div className="bg-white rounded-[2rem] w-full max-w-sm overflow-hidden shadow-2xl flex flex-col border border-white scale-in-center">
                 <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white">
                     <div className="flex items-center gap-3">
