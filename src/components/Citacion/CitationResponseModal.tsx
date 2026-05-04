@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Calendar, Clock, MessageSquare, CheckCircle, Video, MapPin, Send } from 'lucide-react';
+import { X, Calendar, Clock, MessageSquare, CheckCircle, Video, MapPin } from 'lucide-react';
 import api from '../../services/api';
 
 interface CitationResponseModalProps {
