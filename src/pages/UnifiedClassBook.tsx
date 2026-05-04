@@ -134,6 +134,18 @@ const UnifiedClassBook = () => {
     }, [selectedCourse, selectedSubject, selectedBlock]);
 
 
+    const logClassBookAction = async (action: string, details: string) => {
+        try {
+            await api.post('/logs/class-book', {
+                courseId: selectedCourse,
+                action,
+                details
+            });
+        } catch (e) {
+            console.error('LOG ERROR:', e);
+        }
+    };
+
     const handlePrint = useReactToPrint({
         contentRef: printRef,
         documentTitle: `Libro de Clases - ${selectedCourse || 'Curso'}`,
@@ -160,6 +172,7 @@ const UnifiedClassBook = () => {
         e.preventDefault();
         try {
             await api.patch(`/citaciones/${selectedCitacion._id}/status`, actaFormData);
+            logClassBookAction('acta', `Completó acta de reunión para el alumno ${selectedCitacion.estudianteId?.nombres} ${selectedCitacion.estudianteId?.apellidos}`);
             alert('Acta guardada correctamente.');
             setShowActaModal(false);
             refreshTabContent();
@@ -337,15 +350,14 @@ const UnifiedClassBook = () => {
 
     const handleSaveAttendance = async () => {
         try {
-            const payload = {
+            await api.post('/attendance/bulk', {
                 courseId: selectedCourse,
-                fecha: attendanceDate,
-                bloqueHorario: selectedBlock,
-                subjectId: selectedSubject,
-                students: Object.entries(attendanceMap).map(([estudianteId, estado]) => ({ estudianteId, estado }))
-            };
-            await api.post('/attendance/bulk', payload);
-            alert('Asistencia legal guardada y validada.');
+                date: new Date().toISOString().split('T')[0],
+                block: selectedBlock,
+                records: Object.entries(attendanceMap).map(([studentId, status]) => ({ studentId, status }))
+            });
+            logClassBookAction('attendance', `Registró pase de lista para el bloque ${selectedBlock}`);
+            alert('Asistencia guardada correctamente.');
         } catch (err) { alert('Error al guardar asistencia para este bloque.'); }
     };
 
@@ -359,8 +371,8 @@ const UnifiedClassBook = () => {
                 subjectId: selectedSubject,
                 bloqueHorario: selectedBlock
             });
-            // Automatic prompt to sign or just refresh
-            alert('Registro guardado. Ahora proceda a firmar digitalmente.');
+            logClassBookAction('edit', `Actualizó leccionario/registro de actividad`);
+            alert('Registro guardado correctamente.');
             setShowLogForm(false);
             setAttendanceConfirmed(false);
             refreshTabContent();
@@ -377,6 +389,7 @@ const UnifiedClassBook = () => {
                 effectiveDuration: Math.floor(effectiveDuration / 60), // Send the tracked duration in minutes
                 bloqueHorario: selectedBlock
             });
+            logClassBookAction('sign', `Firmó digitalmente el libro de clases para el bloque ${selectedBlock}`);
             alert('Registro firmado exitosamente con firma digital legal.');
             setShowSignatureModal(false);
             setSigningLogId(null);
@@ -395,7 +408,8 @@ const UnifiedClassBook = () => {
                 ...citacionFormData,
                 courseId: selectedCourse
             });
-            alert('Citación programada y notificada al apoderado.');
+            logClassBookAction('citation', `Creó una nueva citación para entrevista`);
+            alert('Citación agendada exitosamente.');
             setShowCitacionModal(false);
             refreshTabContent();
         } catch (err: any) {
@@ -411,7 +425,8 @@ const UnifiedClassBook = () => {
                 cursoId: selectedCourse,
                 estudianteId: annotationFormData.estudianteId || null
             });
-            alert('Anotación registrada exitosamente.');
+            logClassBookAction('annotation', `Registró una anotación ${annotationFormData.tipo} para un estudiante`);
+            alert('Anotación registrada correctamente.');
             setShowAnnotationModal(false);
             setAnnotationFormData({ ...annotationFormData, estudianteId: '', titulo: '', descripcion: '' });
             refreshTabContent();
@@ -473,6 +488,7 @@ const UnifiedClassBook = () => {
             }
 
             await api.post('/grades/bulk', { grades: gradesPayload });
+            logClassBookAction('grade', `Actualizó matriz de calificaciones masivamente (${gradesPayload.length} notas)`);
             alert('Matriz de calificaciones actualizada exitosamente.');
             refreshTabContent();
         } catch (error: any) {

@@ -97,6 +97,12 @@ const DashboardPage = () => {
             }
         } catch (error) {
             console.error('Error loading dashboard data', error);
+            // Non-blocking fallback for notifications if it fails specifically
+            if (notifications.length === 0) {
+                api.get('/user-notifications')
+                    .then(res => setNotifications(res.data.slice(0, 5)))
+                    .catch(e => console.warn('Delayed notification fetch failed:', e));
+            }
         }
     };
 
@@ -706,8 +712,19 @@ const DashboardPage = () => {
                                             {log.userId?.name?.charAt(0)}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="font-bold text-slate-800 text-xs leading-tight uppercase truncate">{log.userId?.name}</h4>
+                                            <div className="flex justify-between items-start">
+                                                <h4 className="font-bold text-slate-800 text-xs leading-tight uppercase truncate">{log.userId?.name}</h4>
+                                                <span className={`px-2 py-0.5 rounded text-[7px] font-black uppercase ${
+                                                    log.action === 'sign' ? 'bg-emerald-100 text-emerald-700' :
+                                                    log.action === 'grade' ? 'bg-blue-100 text-blue-700' :
+                                                    log.action === 'attendance' ? 'bg-amber-100 text-amber-700' :
+                                                    'bg-slate-100 text-slate-500'
+                                                }`}>
+                                                    {log.action}
+                                                </span>
+                                            </div>
                                             <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{log.courseId?.name} {log.courseId?.letter}</p>
+                                            <p className="text-[9px] font-bold text-slate-600 mt-1 line-clamp-1 italic">"{log.details || 'Acceso al módulo'}"</p>
                                             <p className="text-[8px] font-bold text-emerald-500 uppercase mt-1">
                                                 {new Date(log.createdAt).toLocaleString()}
                                             </p>
