@@ -68,8 +68,11 @@ const ScheduleManagementPage = () => {
     });
 
     useEffect(() => {
-        fetchInitialData();
-        // Students and Teachers should see their own schedule automatically
+        if (isAdmin || isUTP || isDirector || canViewSensitiveData) {
+            fetchInitialData();
+        }
+        
+        // Students, Guardians and Teachers should see their own schedule automatically
         if (isStudent || isApoderado || isTeacher) {
             fetchSchedules();
         }

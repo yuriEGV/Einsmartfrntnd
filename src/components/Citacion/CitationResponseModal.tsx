@@ -16,7 +16,7 @@ const CitationResponseModal: React.FC<CitationResponseModalProps> = ({ citation,
     const handleConfirm = async (status: string) => {
         try {
             setLoading(true);
-            await api.put(`/citaciones/${citation._id}`, {
+            await api.patch(`/citaciones/${citation._id}/status`, {
                 estado: status,
                 comentariosApoderado: comentarios,
                 modalidad: modalidad
