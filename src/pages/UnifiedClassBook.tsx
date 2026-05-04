@@ -1669,19 +1669,79 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
 
                                                     <div className="grid grid-cols-2 gap-8">
                                                         <div className="space-y-2">
-                                                            <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Acuerdos y Compromisos</label>
-                                                            <textarea value={actaFormData.acuerdo} onChange={e => setActaFormData({ ...actaFormData, acuerdo: e.target.value })} className="w-full px-8 py-5 bg-emerald-50 border-2 border-emerald-100 rounded-3xl font-bold resize-none" rows={3} placeholder="¿A qué se comprometió el apoderado/escuela?"></textarea>
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Resolución / Resultado</label>
-                                                            <textarea value={actaFormData.resultado} onChange={e => setActaFormData({ ...actaFormData, resultado: e.target.value })} className="w-full px-8 py-5 bg-blue-50 border-2 border-blue-100 rounded-3xl font-bold resize-none" rows={3} placeholder="Resultado final de la reunión..."></textarea>
-                                                        </div>
-                                                    </div>
+                                                             <label className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Acuerdos y Compromisos</label>
+                                                             <textarea value={actaFormData.acuerdo} onChange={e => setActaFormData({ ...actaFormData, acuerdo: e.target.value })} className="w-full px-8 py-5 bg-emerald-50 border-2 border-emerald-100 rounded-3xl font-bold resize-none" rows={3} placeholder="¿A qué se comprometió el apoderado/escuela?"></textarea>
+                                                         </div>
+                                                         <div className="space-y-2">
+                                                             <label className="text-[10px] font-black text-blue-600 uppercase tracking-widest">Resolución / Resultado</label>
+                                                             <textarea value={actaFormData.resultado} onChange={e => setActaFormData({ ...actaFormData, resultado: e.target.value })} className="w-full px-8 py-5 bg-blue-50 border-2 border-blue-100 rounded-3xl font-bold resize-none" rows={3} placeholder="Resultado final de la reunión..."></textarea>
+                                                         </div>
+                                                     </div>
 
-                                                    <button type="submit" className="w-full py-6 bg-[#11355a] text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] transition-all">
-                                                        GUARDAR CAMBIOS EN EL ACTA
-                                                    </button>
-                                                </form>
+                                                     {selectedCitacion.comentariosApoderado && (
+                                                         <div className="p-8 bg-amber-50 border-2 border-amber-100 rounded-[2rem]">
+                                                             <label className="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-2">Comentarios del Apoderado (Previos)</label>
+                                                             <p className="text-sm font-bold text-amber-900 italic">"{selectedCitacion.comentariosApoderado}"</p>
+                                                         </div>
+                                                     )}
+
+                                                     <div className="grid grid-cols-2 gap-8 pt-6 border-t border-slate-100">
+                                                         <div className="space-y-4">
+                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Firma del Profesor</label>
+                                                             {selectedCitacion.firmaProfesor ? (
+                                                                 <div className="p-6 bg-emerald-50 border-2 border-emerald-200 rounded-3xl text-center">
+                                                                     <div className="text-emerald-600 font-black text-xs uppercase">DOCUMENTO FIRMADO</div>
+                                                                     <div className="text-[8px] text-emerald-400 mt-1 uppercase">{new Date(selectedCitacion.fechaFirmaProfesor).toLocaleString()}</div>
+                                                                 </div>
+                                                             ) : (
+                                                                 <div className="flex gap-2">
+                                                                     <input 
+                                                                        type="password" 
+                                                                        placeholder="PIN" 
+                                                                        className="w-20 px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-black"
+                                                                        value={pin}
+                                                                        onChange={(e) => setPin(e.target.value)}
+                                                                     />
+                                                                     <button 
+                                                                        type="button"
+                                                                        onClick={async () => {
+                                                                            if (!pin) return alert('Ingrese su PIN');
+                                                                            try {
+                                                                                await api.post(`/citaciones/${selectedCitacion._id}/sign`, { pin, signature: `Firma Profesor: ${user?.name}` });
+                                                                                alert('Acta firmada correctamente');
+                                                                                setPin('');
+                                                                                refreshTabContent();
+                                                                                setShowActaModal(false);
+                                                                            } catch (err: any) {
+                                                                                alert(err.response?.data?.message || 'Error al firmar');
+                                                                            }
+                                                                        }}
+                                                                        className="flex-1 bg-[#11355a] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                                                                     >
+                                                                         FIRMAR AHORA
+                                                                     </button>
+                                                                 </div>
+                                                             )}
+                                                         </div>
+                                                         <div className="space-y-4 text-center">
+                                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Firma del Apoderado</label>
+                                                            {selectedCitacion.firmaApoderado ? (
+                                                                <div className="p-6 bg-blue-50 border-2 border-blue-200 rounded-3xl h-full flex flex-col justify-center">
+                                                                    <div className="text-blue-600 font-black text-xs uppercase">APODERADO FIRMÓ</div>
+                                                                    <div className="text-[8px] text-blue-400 mt-1 uppercase">{new Date(selectedCitacion.fechaFirmaApoderado).toLocaleString()}</div>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="p-6 bg-slate-50 border-2 border-dashed border-slate-200 rounded-3xl h-full flex items-center justify-center">
+                                                                    <span className="text-[10px] font-black text-slate-300 uppercase italic">PENDIENTE FIRMA</span>
+                                                                </div>
+                                                            )}
+                                                         </div>
+                                                     </div>
+
+                                                     <button type="submit" className="w-full py-6 bg-[#11355a] text-white rounded-[2.5rem] font-black uppercase text-xs tracking-widest shadow-xl hover:scale-[1.02] transition-all">
+                                                         GUARDAR CAMBIOS EN EL ACTA
+                                                     </button>
+                                                 </form>
 
                                                 {/* Printable Template (Hidden) */}
                                                 <div className="hidden">
@@ -1737,11 +1797,21 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                         <div className="mt-32 grid grid-cols-2 gap-20 text-center">
                                                             <div className="border-t-2 border-slate-200 pt-8">
                                                                 <div className="font-black uppercase text-xs mb-1">FIRMA RESPONSABLE COLEGIO</div>
-                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter">CERTIFICADO DIGITAL EINSMART ID-{selectedCitacion._id.slice(-8)}</div>
+                                                                {selectedCitacion.firmaProfesor ? (
+                                                                    <div className="text-[9px] font-black text-blue-600 uppercase">FIRMADO DIGITALMENTE: {selectedCitacion.profesorId?.name}</div>
+                                                                ) : (
+                                                                    <div className="text-[9px] font-black text-rose-500 uppercase">PENDIENTE DE FIRMA</div>
+                                                                )}
+                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter mt-1">CERTIFICADO DIGITAL EINSMART ID-{selectedCitacion._id.slice(-8)}</div>
                                                             </div>
                                                             <div className="border-t-2 border-slate-200 pt-8">
                                                                 <div className="font-black uppercase text-xs mb-1">FIRMA APODERADO / TUTOR</div>
-                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter">ASISTENCIA: {actaFormData.asistioApoderado ? 'SÍ ASISTIÓ' : 'NO ASISTIÓ'}</div>
+                                                                {selectedCitacion.firmaApoderado ? (
+                                                                    <div className="text-[9px] font-black text-emerald-600 uppercase">FIRMADO DIGITALMENTE: {selectedCitacion.apoderadoId?.nombre}</div>
+                                                                ) : (
+                                                                    <div className="text-[9px] font-black text-rose-500 uppercase">PENDIENTE DE FIRMA</div>
+                                                                )}
+                                                                <div className="text-[8px] text-slate-300 uppercase font-bold tracking-tighter mt-1">ASISTENCIA: {actaFormData.asistioApoderado ? 'SÍ ASISTIÓ' : 'NO ASISTIÓ'}</div>
                                                             </div>
                                                         </div>
 
