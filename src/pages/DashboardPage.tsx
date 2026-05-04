@@ -74,7 +74,7 @@ const DashboardPage = () => {
                 setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
             } else {
                 // [NEW] Fetch Admin Day Ranking for Director/Sostenedor
-                if (user?.role === 'director' || user?.role === 'sostenedor' || isSuperAdmin || user?.role === 'inspector_general') {
+                if (['director', 'sostenedor', 'utp', 'inspector_general'].includes(user?.role || '') || isSuperAdmin) {
                     const [rankingRes, metricsRes, citRes] = await Promise.all([
                         api.get('/admin-days/ranking'),
                         api.get('/analytics/class-book'),
@@ -227,7 +227,16 @@ const DashboardPage = () => {
                                     {cit.apoderadoId?.nombre} {cit.apoderadoId?.apellidos}
                                 </span>
                                 <span className="text-[8px] opacity-60">|</span>
-                                <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
+                                 <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
+                                <span className="text-[8px] opacity-60">|</span>
+                                <span className={`px-2 py-0.5 rounded-full text-[7px] font-black uppercase ${cit.estado === 'confirmada' ? 'bg-emerald-50 text-emerald-600' : cit.estado === 'rechazada' ? 'bg-rose-50 text-rose-600' : 'bg-slate-50 text-slate-400'}`}>
+                                    {cit.estado}
+                                </span>
+                                {cit.comentariosApoderado && (
+                                    <span className="text-[8px] text-amber-600 font-bold italic truncate max-w-[100px]" title={cit.comentariosApoderado}>
+                                        💬 {cit.comentariosApoderado}
+                                    </span>
+                                )}
                                 
                                 {user?.role === 'apoderado' && (
                                     <button
@@ -607,7 +616,7 @@ const DashboardPage = () => {
                 )}
 
                 {/* [NEW] General Notifications for Admin/Sostenedor/Director */}
-                {(user?.role === 'admin' || user?.role === 'sostenedor' || user?.role === 'teacher' || user?.role === 'director') && (
+                {(['admin', 'sostenedor', 'teacher', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
                     <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden mt-6">
                         <div
                             className="px-8 py-6"
