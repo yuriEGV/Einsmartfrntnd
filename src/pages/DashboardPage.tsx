@@ -4,7 +4,8 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase, Send, Video, Loader2, Check, Plus, Trash2, Save } from 'lucide-react';
+import CitationResponseModal from '../components/Citacion/CitationResponseModal';
 import EinsmartDashboardPage from './EinsmartDashboardPage';
 
 const DashboardPage = () => {
@@ -27,6 +28,9 @@ const DashboardPage = () => {
     const [pendingAdminDays, setPendingAdminDays] = useState([]); // [NEW] Administrative Days
     const [dualStats, setDualStats] = useState({ total: 0, withCompany: 0 }); // [NEW] Dual Stats
 
+    const [selectedCitation, setSelectedCitation] = useState<any>(null);
+    const [showResponseModal, setShowResponseModal] = useState(false);
+
     useEffect(() => {
         if (user) {
             fetchDashboardData();
@@ -38,7 +42,7 @@ const DashboardPage = () => {
             // Parallel fetch
             const [eventsRes, statsRes, signaturesRes, logsRes, adminDaysRes] = await Promise.all([
                 api.get('/events'),
-                (canManageStudents || isSuperAdmin || user?.role === 'teacher') ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
+                (['admin', 'sostenedor', 'director', 'utp', 'inspector_general', 'teacher', 'apoderado', 'student'].includes(user?.role || '')) ? api.get('/analytics/dashboard-stats') : Promise.resolve({ data: { studentCount: 0, courseCount: 0 } }),
                 (user?.role === 'teacher' || isSuperAdmin) ? api.get('/class-logs?isSigned=false') : Promise.resolve({ data: [] }),
                 (['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) ? api.get('/logs/class-book?limit=5') : Promise.resolve({ data: [] }),
                 (['admin', 'sostenedor', 'director', 'utp', 'inspector_general', 'secretary', 'secretaria'].includes(user?.role || '')) ? api.get('/admin-days/all?status=pendiente') : Promise.resolve({ data: [] })
@@ -224,6 +228,19 @@ const DashboardPage = () => {
                                 </span>
                                 <span className="text-[8px] opacity-60">|</span>
                                 <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
+                                
+                                {user?.role === 'apoderado' && (
+                                    <button
+                                        onClick={() => {
+                                            setSelectedCitation(cit);
+                                            setShowResponseModal(true);
+                                        }}
+                                        className="bg-blue-600 text-white px-4 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-1.5 shadow-lg shadow-blue-200"
+                                    >
+                                        <Send size={10} /> Responder
+                                    </button>
+                                )}
+
                                 {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
                                     <button
                                         onClick={async () => {
@@ -392,32 +409,32 @@ const DashboardPage = () => {
                     </>
                 ) : (
                     <>
-                        {(canManageStudents || user?.role === 'teacher') && (
+                        {(canManageStudents || user?.role === 'teacher' || user?.role === 'apoderado') && (
                             <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                        {user?.role === 'teacher' ? 'Mis Estudiantes' : 'Estudiantes'}
+                                        {user?.role === 'teacher' ? 'Mis Estudiantes' : (user?.role === 'apoderado' ? 'Mis Pupilos' : 'Estudiantes')}
                                     </span>
                                 </div>
                                 <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
                                 <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
-                                    {user?.role === 'teacher' ? 'Alumnos a cargo' : 'Matrículas Vigentes'}
+                                    {user?.role === 'teacher' ? 'Alumnos a cargo' : (user?.role === 'apoderado' ? 'Hijos vinculados' : 'Matrículas Vigentes')}
                                 </p>
                             </div>
                         )}
 
-                        {(isSuperAdmin || user?.role === 'teacher') && (
+                        {(isSuperAdmin || user?.role === 'teacher' || user?.role === 'apoderado' || user?.role === 'student') && (
                             <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
                                     <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
-                                        {user?.role === 'teacher' ? 'Mis Cursos' : 'Cursos'}
+                                        {user?.role === 'teacher' ? 'Mis Cursos' : (user?.role === 'apoderado' ? 'Cursos' : 'Mi Curso')}
                                     </span>
                                 </div>
                                 <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
                                 <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
-                                    {user?.role === 'teacher' ? 'Cursos Asignados' : 'Niveles Académicos'}
+                                    {user?.role === 'teacher' ? 'Cursos Asignados' : (user?.role === 'apoderado' ? 'Distribución' : 'Nivel Académico')}
                                 </p>
                             </div>
                         )}
@@ -700,6 +717,16 @@ const DashboardPage = () => {
                     items={[]}
                     studentId={user?.role === 'student' ? user._id : undefined}
                     guardianId={user?.role === 'apoderado' ? user._id : undefined}
+                />
+            )}
+
+            {showResponseModal && selectedCitation && (
+                <CitationResponseModal
+                    citation={selectedCitation}
+                    onClose={() => setShowResponseModal(false)}
+                    onSuccess={() => {
+                        window.location.reload();
+                    }}
                 />
             )}
         </div>
