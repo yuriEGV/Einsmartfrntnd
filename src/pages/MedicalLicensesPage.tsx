@@ -4,8 +4,9 @@ import { usePermissions } from '../hooks/usePermissions';
 import { 
     Plus, Calendar, 
     Loader2,
-    Trash2, Check, X
+    Trash2, Check, X, Printer, Download
 } from 'lucide-react';
+import { useTenant } from '../context/TenantContext';
 
 interface MedicalLicense {
     _id: string;
@@ -42,6 +43,9 @@ const MedicalLicensesPage = () => {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [filterType, setFilterType] = useState<'all' | 'Estudiante' | 'Funcionario'>('all');
+    const { tenant } = useTenant();
+    const [selectedLicense, setSelectedLicense] = useState<MedicalLicense | null>(null);
+    const [showPrintModal, setShowPrintModal] = useState(false);
 
     const [formData, setFormData] = useState({
         userId: '',
@@ -214,6 +218,14 @@ const MedicalLicensesPage = () => {
                                         </div>
                                     )}
 
+                                    <button 
+                                        onClick={() => { setSelectedLicense(license); setShowPrintModal(true); }}
+                                        className="p-3 text-blue-600 hover:bg-blue-50 rounded-xl transition-all"
+                                        title="Imprimir Certificado"
+                                    >
+                                        <Printer size={18} />
+                                    </button>
+
                                     <button onClick={() => handleDelete(license._id)} className="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
                                         <Trash2 size={18} />
                                     </button>
@@ -341,6 +353,145 @@ const MedicalLicensesPage = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modal de Impresión Profesional */}
+            {showPrintModal && selectedLicense && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[1000] flex items-center justify-center p-4 print:p-0">
+                    <div className="bg-white rounded-[3rem] w-full max-w-4xl max-h-[95vh] overflow-hidden shadow-2xl flex flex-col print:shadow-none print:rounded-none print:max-h-none print:w-full">
+                        {/* Header Modal - Oculto en impresión */}
+                        <div className="bg-[#11355a] p-8 text-white flex justify-between items-center shrink-0 print:hidden">
+                            <div>
+                                <h2 className="text-2xl font-black tracking-tighter uppercase">Vista Previa de Certificado</h2>
+                                <p className="text-blue-300 font-bold text-[10px] uppercase tracking-widest mt-1">Licencia Médica - {getUserName(selectedLicense)}</p>
+                            </div>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => window.print()}
+                                    className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center gap-2"
+                                >
+                                    <Printer size={16} /> Imprimir Ahora
+                                </button>
+                                <button onClick={() => setShowPrintModal(false)} className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all">✕</button>
+                            </div>
+                        </div>
+
+                        {/* Área de Impresión */}
+                        <div className="flex-1 overflow-y-auto p-12 bg-slate-100 print:bg-white print:p-0 custom-scrollbar">
+                            <div className="bg-white shadow-xl mx-auto p-16 min-h-[297mm] w-[210mm] border border-slate-200 print:shadow-none print:border-none print:w-full print:p-8 certificate-content">
+                                {/* Encabezado Institucional */}
+                                <div className="flex justify-between items-start mb-16 border-b-2 border-slate-900 pb-10">
+                                    <div className="flex items-center gap-6">
+                                        {tenant?.theme?.logoUrl ? (
+                                            <img src={tenant.theme.logoUrl} alt="Logo" className="w-24 h-24 object-contain" />
+                                        ) : (
+                                            <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-300 font-black">LOGO</div>
+                                        )}
+                                        <div>
+                                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{tenant?.name || 'EINSMART INSTITUTE'}</h1>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">{tenant?.domain || 'Gestión Educativa Digital'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="bg-slate-900 text-white px-4 py-2 rounded-lg font-black text-[10px] uppercase tracking-widest inline-block mb-2">Certificado de Registro</div>
+                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Folio: {selectedLicense._id.substring(selectedLicense._id.length - 8).toUpperCase()}</p>
+                                    </div>
+                                </div>
+
+                                {/* Título Central */}
+                                <div className="text-center mb-16">
+                                    <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tight mb-4">Comprobante de Licencia Médica</h2>
+                                    <div className="w-24 h-1.5 bg-rose-600 mx-auto rounded-full"></div>
+                                </div>
+
+                                {/* Cuerpo del Certificado */}
+                                <div className="space-y-10 text-slate-800">
+                                    <p className="text-lg leading-relaxed">
+                                        Se certifica que el sistema de gestión escolar ha registrado la siguiente licencia médica correspondiente a:
+                                    </p>
+
+                                    <div className="bg-slate-50 p-10 rounded-[2.5rem] border border-slate-100 grid grid-cols-2 gap-y-8 gap-x-12">
+                                        <div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Nombre del {selectedLicense.userType}</span>
+                                            <p className="text-xl font-black text-slate-900 uppercase">{getUserName(selectedLicense)}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Tipo de Licencia</span>
+                                            <p className="text-xl font-black text-slate-900 uppercase">{selectedLicense.tipo}</p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Periodo de Reposo</span>
+                                            <p className="text-xl font-black text-slate-900 uppercase">
+                                                {new Date(selectedLicense.fechaInicio).toLocaleDateString('es-CL')} - {new Date(selectedLicense.fechaFin).toLocaleDateString('es-CL')}
+                                            </p>
+                                        </div>
+                                        <div>
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Total de Días</span>
+                                            <p className="text-xl font-black text-rose-600 uppercase">{selectedLicense.diasReposo} Días Naturales</p>
+                                        </div>
+                                        <div className="col-span-2">
+                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] block mb-2">Observaciones de Registro</span>
+                                            <p className="text-sm font-bold text-slate-600 italic">"{selectedLicense.observaciones || 'Sin observaciones adicionales registradas.'}"</p>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-sm text-slate-500 leading-relaxed text-center mt-10">
+                                        Este documento es un comprobante interno generado por la plataforma digital. La veracidad del reposo médico debe ser respaldada por el documento original emitido por el profesional de salud competente.
+                                    </p>
+                                </div>
+
+                                {/* Sección de Firmas */}
+                                <div className="mt-32 grid grid-cols-3 gap-12">
+                                    <div className="text-center space-y-4">
+                                        <div className="h-0.5 bg-slate-300 w-full mb-6"></div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">Dirección</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase">{tenant?.name}</p>
+                                    </div>
+                                    <div className="text-center space-y-4">
+                                        <div className="h-0.5 bg-slate-300 w-full mb-6"></div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">U.T.P / Inspectoría</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase">Validación Curricular</p>
+                                    </div>
+                                    <div className="text-center space-y-4">
+                                        <div className="h-0.5 bg-slate-300 w-full mb-6"></div>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">Secretaría General</p>
+                                        <p className="text-[8px] font-bold text-slate-400 uppercase">Recepción de Documento</p>
+                                    </div>
+                                </div>
+
+                                {/* Footer de Página */}
+                                <div className="mt-20 pt-8 border-t border-slate-100 text-center">
+                                    <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.5em]">Einsmart Digital Management Systems • {new Date().getFullYear()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <style>{`
+                @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    .certificate-content, .certificate-content * {
+                        visibility: visible;
+                    }
+                    .certificate-content {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100% !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        border: none !important;
+                        box-shadow: none !important;
+                    }
+                    @page {
+                        size: A4;
+                        margin: 10mm;
+                    }
+                }
+            `}</style>
         </div>
     );
 };
