@@ -4,7 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { 
     Plus, Calendar, 
     Loader2,
-    Trash2, Check, X, Printer, Download
+    Trash2, Check, X, Printer
 } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 
@@ -388,7 +388,7 @@ const MedicalLicensesPage = () => {
                                         )}
                                         <div>
                                             <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">{tenant?.name || 'EINSMART INSTITUTE'}</h1>
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">{tenant?.domain || 'Gestión Educativa Digital'}</p>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-[0.2em]">{tenant?.rbd ? `RBD: ${tenant.rbd}` : 'Gestión Educativa Digital'}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
