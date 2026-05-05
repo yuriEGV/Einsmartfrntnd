@@ -278,7 +278,8 @@ export default function AlternanciasPage() {
             maestroGuiaTelefono: alt.maestroGuia?.telefono || '',
             tutorId: alt.tutorId?._id || alt.tutorId || '',
             modulosDual: alt.modulosDual || [],
-            dispositivoRastreo: alt.dispositivoRastreo || { numeroChip: '', imei: '', modeloEquipo: '', activo: true }
+            dispositivoRastreo: alt.dispositivoRastreo || { numeroChip: '', imei: '', modeloEquipo: '', activo: true },
+            estudianteName: `${alt.estudianteId?.nombres} ${alt.estudianteId?.apellidos}`
         });
         setEditingId(alt._id);
         setIsModalOpen(true);
@@ -428,11 +429,25 @@ export default function AlternanciasPage() {
                                 </div>
                                 <div className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm
                                     ${alt.estado === 'Activa' ? 'bg-[#2DAAB8] text-white' :
+                                      alt.estado === 'Pausada' ? 'bg-amber-500 text-white' :
                                       alt.estado === 'Finalizada' ? 'bg-[#002447] text-white' :
                                       'bg-slate-100 text-slate-400'}`}>
                                     {alt.estado}
                                 </div>
                             </div>
+
+                            {/* [PRO] Medical License Alert */}
+                            {(alt as any).hasActiveLicense && (
+                                <div className="bg-rose-50 border border-rose-100 p-4 rounded-3xl mb-6 flex items-center gap-4 animate-pulse">
+                                    <div className="p-2 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-200">
+                                        <AlertCircle size={18} />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Alerta de Salud</p>
+                                        <p className="text-[9px] font-bold text-rose-400 uppercase">Licencia Médica Registrada</p>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Info Rows */}
                             <div className="space-y-4 mb-8">
@@ -462,8 +477,13 @@ export default function AlternanciasPage() {
                                 </div>
                                 <div className="h-8 w-px bg-slate-100"></div>
                                 <div className="text-center">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Evaluaciones</p>
-                                    <p className="text-lg font-black text-[#2DAAB8]">{alt.evaluacionesPeriodicas?.length || 0}</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Nota Promedio</p>
+                                    <p className="text-lg font-black text-[#2DAAB8]">
+                                        {alt.evaluacionesPeriodicas && alt.evaluacionesPeriodicas.length > 0 
+                                            ? (alt.evaluacionesPeriodicas.reduce((acc, curr) => 
+                                                acc + ((curr.desempeñoTecnico + curr.habilidadesLaborales + curr.asistencia) / 3), 0) / alt.evaluacionesPeriodicas.length).toFixed(1)
+                                            : 'N/A'}
+                                    </p>
                                 </div>
                                 <div className="h-8 w-px bg-slate-100"></div>
                                 <div className="text-center">
@@ -534,6 +554,22 @@ export default function AlternanciasPage() {
                                             <span className="text-[9px] font-black text-[#2DAAB8] group-hover/btn2:text-white uppercase tracking-widest">Ajustes</span>
                                         </button>
                                         <button
+                                            onClick={async () => {
+                                                const newStatus = alt.estado === 'Pausada' ? 'Activa' : 'Pausada';
+                                                try {
+                                                    await api.put(`/alternancias/${alt._id}`, { estado: newStatus });
+                                                    toast.success(`Alternancia ${newStatus === 'Pausada' ? 'Pausada' : 'Reactivada'}`);
+                                                    loadData();
+                                                } catch (error) {
+                                                    toast.error('Error al cambiar estado');
+                                                }
+                                            }}
+                                            className={`${alt.estado === 'Pausada' ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500' : 'bg-amber-50 text-amber-600 hover:bg-amber-500'} p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn4 hover:text-white`}
+                                        >
+                                            <Calendar size={20} />
+                                            <span className="text-[9px] font-black uppercase tracking-widest">{alt.estado === 'Pausada' ? 'Reactivar' : 'Pausar'}</span>
+                                        </button>
+                                        <button
                                             onClick={() => handleDelete(alt._id)}
                                             className="bg-rose-50 hover:bg-rose-500 p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn3 text-rose-500 hover:text-white"
                                         >
@@ -565,7 +601,7 @@ export default function AlternanciasPage() {
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-black uppercase tracking-tighter">
-                                        {editingId ? 'Actualización de Expediente' : 'Apertura de Alternancia Dual'}
+                                        {editingId ? `Expediente: ${formData.estudianteName || 'Actualización'}` : 'Apertura de Alternancia Dual'}
                                     </h2>
                                     <p className="text-[10px] font-bold text-white/50 tracking-[0.2em] uppercase mt-1">Sincronización Curricular Marítima</p>
                                 </div>
@@ -923,6 +959,7 @@ export default function AlternanciasPage() {
                                             >
                                                 <option value="Borrador">Borrador (Ficha Interna)</option>
                                                 <option value="Activa">Activa (En Proceso)</option>
+                                                <option value="Pausada">Pausada (Suspensión Temporal)</option>
                                                 <option value="Finalizada">Finalizada (Certificada)</option>
                                                 <option value="Cancelada">Cancelada</option>
                                             </select>
@@ -1259,6 +1296,18 @@ export default function AlternanciasPage() {
                                     placeholder="Describa el progreso del estudiante en el entorno real de trabajo..."
                                     className="w-full px-5 py-4 rounded-2xl border-2 border-white focus:border-[#2DAAB8] bg-white font-bold text-sm shadow-sm outline-none transition-all resize-none"
                                 />
+                            </div>
+
+                            {/* [PRO] Final Average Display */}
+                            <div className="bg-[#002447] p-8 rounded-[3rem] flex items-center justify-between shadow-2xl shadow-[#002447]/20 border border-white/10 group overflow-hidden relative">
+                                <div className="absolute top-0 right-0 w-32 h-full bg-[#2DAAB8]/10 blur-3xl -skew-x-12 group-hover:bg-[#2DAAB8]/20 transition-all"></div>
+                                <div className="relative z-10">
+                                    <p className="text-[10px] font-black text-[#2DAAB8] uppercase tracking-[0.2em] mb-1">Calificación Promedio Final</p>
+                                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-tight">Calculado automáticamente en base<br/>a la rúbrica de desempeño técnico</p>
+                                </div>
+                                <div className="text-5xl font-black text-white relative z-10 tabular-nums">
+                                    {((evalForm.desempeñoTecnico + evalForm.habilidadesLaborales + evalForm.asistencia) / 3).toFixed(1)}
+                                </div>
                             </div>
 
                             <div className="pt-4 flex gap-4">
