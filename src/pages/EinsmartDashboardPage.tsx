@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Activity, School, Users, Server, ShieldCheck, Box, Cpu, HardDrive, BarChart3, RefreshCcw } from 'lucide-react';
+import { Activity, School, Users, Server, ShieldCheck, Box, Cpu, HardDrive, BarChart3 } from 'lucide-react';
 
 export default function EinsmartDashboardPage({ stats }: { stats: any }) {
     const [health, setHealth] = useState<any>(null);
