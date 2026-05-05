@@ -1170,31 +1170,34 @@ export default function AlternanciasPage() {
                                                                 <CheckCircle2 size={12} /> Alumno OK
                                                             </div>
                                                         )}
+                                                        {(() => {
+                                                            const currentUserId = permissions.user?._id?.toString();
+                                                            const currentUserEmail = permissions.user?.email?.toLowerCase();
+                                                            const supervisorId = ((selectedAlt.profesorSupervisor as any)?._id || selectedAlt.profesorSupervisor)?.toString();
+                                                            const tutorId = ((selectedAlt.tutorId as any)?._id || selectedAlt.tutorId)?.toString();
+                                                            const maestroGuiaEmail = selectedAlt.maestroGuia?.email?.toLowerCase();
+
+                                                            const isAdminPower = permissions.isAdmin || permissions.isUTP || permissions.isDirector || permissions.isInspectorGeneral;
+                                                            const isMySupervisorSignPending = (permissions.isTeacher || isAdminPower) && 
+                                                                (isAdminPower || supervisorId === currentUserId) && 
+                                                                !entry.firmadoSupervisor;
+                                                            const isMyTutorSignPending = permissions.isTutor && 
+                                                                (tutorId === currentUserId || maestroGuiaEmail === currentUserEmail) && 
+                                                                !entry.firmadoTutorEmpresa;
+
+                                                            if (isMyTutorSignPending || isMySupervisorSignPending) {
+                                                                return (
+                                                                    <button 
+                                                                        onClick={() => setSignatureTarget({ alternanciaId: selectedAlt._id, bitacoraId: entry._id || '' })}
+                                                                        className="px-6 py-2 bg-[#002447] text-white hover:bg-[#003666] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase transition-all shadow-lg shadow-[#002447]/20 active:scale-95"
+                                                                    >
+                                                                        <KeyRound size={14} /> Firmar Bitácora (PIN)
+                                                                    </button>
+                                                                );
+                                                            }
+                                                            return null;
+                                                        })()}
                                                     </div>
-
-                                                    {/* Sign Button Logic */}
-                                                    {(() => {
-                                                        const isMyTutorSignPending = permissions.isTutor && 
-                                                            (((selectedAlt.tutorId as any)?._id || selectedAlt.tutorId) === permissions.user?._id || 
-                                                             selectedAlt.maestroGuia?.email === permissions.user?.email) && 
-                                                            !entry.firmadoTutorEmpresa;
-                                                        
-                                                        const isMySupervisorSignPending = (permissions.isTeacher || permissions.isAdmin || permissions.isUTP || permissions.isDirector) && 
-                                                            ((selectedAlt.profesorSupervisor as any)?._id || selectedAlt.profesorSupervisor) === permissions.user?._id && 
-                                                            !entry.firmadoSupervisor;
-
-                                                        if (isMyTutorSignPending || isMySupervisorSignPending) {
-                                                            return (
-                                                                <button 
-                                                                    onClick={() => setSignatureTarget({ alternanciaId: selectedAlt._id, bitacoraId: entry._id || '' })}
-                                                                    className="px-6 py-2 bg-[#002447] text-white hover:bg-[#003666] rounded-xl flex items-center gap-2 font-black text-[9px] uppercase transition-all shadow-lg shadow-[#002447]/20 active:scale-95"
-                                                                >
-                                                                    <KeyRound size={14} /> Firmar Bitácora (PIN)
-                                                                </button>
-                                                            );
-                                                        }
-                                                        return null;
-                                                    })()}
                                                 </div>
                                             </div>
                                             <p className="text-sm font-bold text-[#002447]/80 leading-relaxed bg-slate-50/50 p-5 rounded-3xl group-hover:bg-white transition-colors">
