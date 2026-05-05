@@ -148,7 +148,7 @@ const DashboardPage = () => {
     }
 
     return (
-        <div className="space-y-6 md:space-y-10 p-4 md:p-10 animate-in fade-in duration-700">
+        <div className="space-y-4 md:space-y-6 p-4 md:p-6 animate-in fade-in duration-700">
             {/* Alerta de Actualización del Sistema */}
             {updateInfo?.hasUpdate && (
                 <div className="bg-gradient-to-r from-emerald-500 to-teal-600 border-none p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in slide-in-from-top-10 duration-700 shadow-2xl shadow-emerald-900/20 text-white">
@@ -185,37 +185,37 @@ const DashboardPage = () => {
 
             {/* Alertas Regulatorias */}
             {pendingSignatures.length > 0 && (
-                <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500">
-                    <div className="flex items-center gap-6 text-center md:text-left">
-                        <div className="p-4 bg-rose-600 text-white rounded-3xl shadow-xl shadow-rose-200">
-                            <ShieldAlert size={32} />
+                <div className="bg-rose-50 border-2 border-rose-100 p-5 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in zoom-in-95 duration-500">
+                    <div className="flex items-center gap-4 text-center md:text-left">
+                        <div className="p-3 bg-rose-600 text-white rounded-2xl shadow-xl shadow-rose-200">
+                            <ShieldAlert size={28} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-rose-900 uppercase tracking-tighter">Pendiente de Firma Digital</h3>
-                            <p className="text-sm font-bold text-rose-700/70">Tienes {pendingSignatures.length} registros en el Libro de Clases sin firmar.</p>
+                            <h3 className="text-lg font-black text-rose-900 uppercase tracking-tighter">Pendiente de Firma Digital</h3>
+                            <p className="text-xs font-bold text-rose-700/70">Tienes {pendingSignatures.length} registros sin firmar.</p>
                         </div>
                     </div>
                     <a
                         href="/class-book"
-                        className="bg-rose-600 text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 active:scale-95"
+                        className="bg-rose-600 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-lg active:scale-95"
                     >
-                        Ir al Libro de Clases <ChevronRight size={18} />
+                        Ir al Libro <ChevronRight size={16} />
                     </a>
                 </div>
             )}
 
             {/* Citaciones Pendientes para Apoderados */}
             {(pendingCitations.filter((c: any) => c.tipo === 'citacion' || !c.tipo).length > 0) && (
-                <div className="bg-blue-50 border-2 border-blue-100 p-6 rounded-[2.5rem] flex flex-col md:flex-row items-center justify-between gap-6 animate-in zoom-in-95 duration-500 shadow-xl shadow-blue-900/5">
-                    <div className="flex items-center gap-6 text-center md:text-left">
-                        <div className="p-4 bg-blue-600 text-white rounded-3xl shadow-xl shadow-blue-200">
-                            <Calendar size={32} />
+                <div className="bg-blue-50 border-2 border-blue-100 p-5 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in zoom-in-95 duration-500 shadow-xl shadow-blue-900/5">
+                    <div className="flex items-center gap-4 text-center md:text-left">
+                        <div className="p-3 bg-blue-600 text-white rounded-2xl shadow-xl shadow-blue-200">
+                            <Calendar size={28} />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-blue-900 uppercase tracking-tighter">
+                            <h3 className="text-lg font-black text-blue-900 uppercase tracking-tighter">
                                 {user?.role === 'student' || user?.role === 'apoderado' ? 'CITACIÓN PENDIENTE' : 'CONTROL DE CITACIONES'}
                             </h3>
-                            <p className="text-sm font-bold text-blue-700/70">
+                            <p className="text-xs font-bold text-blue-700/70">
                                 {user?.role === 'student' || user?.role === 'apoderado'
                                     ? `Tienes citaciones agendadas para entrevista.`
                                     : `Hay citaciones pendientes en el establecimiento.`}
@@ -402,53 +402,53 @@ const DashboardPage = () => {
             </div>
 
             {/* Stats Cards - Grid optimized for adaptability */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {stats.isPlatformView ? (
                     <>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><School size={24} /></div>
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Instituciones</span>
+                        <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><School size={20} /></div>
+                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Instituciones</span>
                             </div>
-                            <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.tenantCount}</p>
-                            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Colegios en la Plataforma</p>
+                            <p className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter">{stats.tenantCount}</p>
+                            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">Colegios en la Plataforma</p>
                         </div>
-                        <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                            <div className="flex items-center justify-between mb-4">
-                                <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
-                                <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Matrícula Global</span>
+                        <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><GraduationCap size={20} /></div>
+                                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Matrícula Global</span>
                             </div>
-                            <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
-                            <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">Estudiantes Sincronizados</p>
+                            <p className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                            <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">Estudiantes Sincronizados</p>
                         </div>
                     </>
                 ) : (
                     <>
                         {(canManageStudents || user?.role === 'teacher' || user?.role === 'apoderado') && (
-                            <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-blue-50 rounded-2xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={24} /></div>
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                            <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2.5 bg-blue-50 rounded-xl text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all"><GraduationCap size={20} /></div>
+                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
                                         {user?.role === 'teacher' ? 'Mis Estudiantes' : (user?.role === 'apoderado' ? 'Mis Pupilos' : 'Estudiantes')}
                                     </span>
                                 </div>
-                                <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
-                                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                                <p className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter">{stats.studentCount.toLocaleString()}</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">
                                     {user?.role === 'teacher' ? 'Alumnos a cargo' : (user?.role === 'apoderado' ? 'Hijos vinculados' : 'Matrículas Vigentes')}
                                 </p>
                             </div>
                         )}
 
                         {(isSuperAdmin || user?.role === 'teacher' || user?.role === 'apoderado' || user?.role === 'student') && (
-                            <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="p-3 bg-emerald-50 rounded-2xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={24} /></div>
-                                    <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
+                            <div className="bg-white p-5 md:p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+                                <div className="flex items-center justify-between mb-3">
+                                    <div className="p-2.5 bg-emerald-50 rounded-xl text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-all"><BookOpen size={20} /></div>
+                                    <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">
                                         {user?.role === 'teacher' ? 'Mis Cursos' : (user?.role === 'apoderado' ? 'Cursos' : 'Mi Curso')}
                                     </span>
                                 </div>
-                                <p className="text-4xl md:text-5xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
-                                <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-tight">
+                                <p className="text-3xl md:text-4xl font-black text-slate-800 tracking-tighter">{stats.courseCount}</p>
+                                <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-tight">
                                     {user?.role === 'teacher' ? 'Cursos Asignados' : (user?.role === 'apoderado' ? 'Distribución' : 'Nivel Académico')}
                                 </p>
                             </div>

@@ -179,37 +179,37 @@ const AttendancePage = () => {
     });
 
     return (
-        <div className="p-4 md:p-10 space-y-6 md:space-y-10 animate-in fade-in duration-700">
+        <div className="p-4 md:p-6 space-y-4 md:space-y-6 animate-in fade-in duration-700">
             {/* Page Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight flex items-center gap-3">
-                        <div className="p-3 bg-blue-50 rounded-2xl border border-blue-100/50">
-                            <CalendarDays size={32} className="text-[#11355a] md:w-10 md:h-10" />
+                    <h1 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tight flex items-center gap-3">
+                        <div className="p-2.5 bg-blue-50 rounded-xl border border-blue-100/50">
+                            <CalendarDays size={24} className="text-[#11355a]" />
                         </div>
                         {isStudentOrGuardian ? 'Mi Asistencia' : 'Pase de Lista'}
                     </h1>
-                    <p className="text-gray-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-2 ml-1">
+                    <p className="text-gray-400 font-bold uppercase text-[9px] tracking-[0.2em] mt-1 ml-1">
                         {isStudentOrGuardian ? 'BITÁCORA DE PRESENCIA DIARIA' : 'REGISTRO ACADÉMICO DE ASISTENCIA'}
                     </p>
                 </div>
 
                 {!isStudentOrGuardian && (
-                    <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                    <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto">
                         <button
                             onClick={handlePrint}
                             disabled={!selectedCourse || students.length === 0}
-                            className="bg-white text-slate-600 px-6 py-4 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:bg-slate-50 transition-all border border-slate-100 uppercase text-[11px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-white text-slate-600 px-5 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-slate-50 transition-all border border-slate-100 uppercase text-[10px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Printer size={20} />
+                            <Printer size={18} />
                             Imprimir
                         </button>
                         <button
                             onClick={handleSave}
                             disabled={!selectedCourse || students.length === 0}
-                            className="bg-[#11355a] text-white px-8 py-4 rounded-[1.5rem] font-black flex items-center justify-center gap-3 hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 uppercase text-[11px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-black flex items-center justify-center gap-2 hover:bg-blue-900 transition-all shadow-xl shadow-blue-900/20 active:scale-95 uppercase text-[10px] tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            <Save size={20} />
+                            <Save size={18} />
                             Guardar Registro
                         </button>
                     </div>
@@ -220,10 +220,10 @@ const AttendancePage = () => {
             <div className="grid gap-6 md:grid-cols-3">
                 {!isStudentOrGuardian ? (
                     <>
-                        <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-slate-50 group">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">CURSO / NIVEL</label>
+                        <div className="bg-white p-4 rounded-3xl shadow-xl shadow-blue-900/5 border border-slate-50 group">
+                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">CURSO / NIVEL</label>
                             <select
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400"
+                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400 text-xs"
                                 value={selectedCourse}
                                 onChange={e => setSelectedCourse(e.target.value)}
                                 disabled={isStudentOrGuardian}
@@ -234,29 +234,29 @@ const AttendancePage = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="bg-white p-6 rounded-[2rem] shadow-xl shadow-blue-900/5 border border-slate-50 group">
-                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">FECHA DEL REGISTRO</label>
+                        <div className="bg-white p-4 rounded-3xl shadow-xl shadow-blue-900/5 border border-slate-50 group">
+                            <label className="block text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 ml-1">FECHA DEL REGISTRO</label>
                             <input
                                 type="date"
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400"
+                                className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400 text-xs"
                                 value={selectedDate}
                                 onChange={e => setSelectedDate(e.target.value)}
                             />
                         </div>
-                        <div className="bg-gradient-to-br from-[#11355a] to-[#1e4e83] rounded-[2rem] p-6 shadow-2xl shadow-blue-900/20 flex items-center justify-around border-4 border-white">
+                        <div className="bg-gradient-to-br from-[#11355a] to-[#1e4e83] rounded-3xl p-4 shadow-2xl shadow-blue-900/20 flex items-center justify-around border-2 border-white">
                             <div className="text-center group">
-                                <div className="text-3xl font-black text-emerald-400 group-hover:scale-110 transition-transform">{stats.present}</div>
-                                <div className="text-[8px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Presentes</div>
+                                <div className="text-2xl font-black text-emerald-400 group-hover:scale-110 transition-transform">{stats.present}</div>
+                                <div className="text-[7px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Presentes</div>
                             </div>
-                            <div className="w-px h-10 bg-white/10"></div>
+                            <div className="w-px h-8 bg-white/10"></div>
                             <div className="text-center group">
-                                <div className="text-3xl font-black text-rose-400 group-hover:scale-110 transition-transform">{stats.absent}</div>
-                                <div className="text-[8px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Ausentes</div>
+                                <div className="text-2xl font-black text-rose-400 group-hover:scale-110 transition-transform">{stats.absent}</div>
+                                <div className="text-[7px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Ausentes</div>
                             </div>
-                            <div className="w-px h-10 bg-white/10"></div>
+                            <div className="w-px h-8 bg-white/10"></div>
                             <div className="text-center group">
-                                <div className="text-3xl font-black text-amber-400 group-hover:scale-110 transition-transform">{stats.late}</div>
-                                <div className="text-[8px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Justif.</div>
+                                <div className="text-2xl font-black text-amber-400 group-hover:scale-110 transition-transform">{stats.late}</div>
+                                <div className="text-[7px] font-black text-blue-100 uppercase tracking-widest mt-1 opacity-70">Justif.</div>
                             </div>
                         </div>
                     </>
@@ -386,18 +386,18 @@ const AttendancePage = () => {
                                                 <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">{grade} <span className="text-slate-400 ml-2 text-sm font-bold">({gradeStudents.length} ALUMNOS)</span></h2>
                                             </div>
 
-                                            <div className="hidden md:block bg-white rounded-[2.5rem] shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
+                                            <div className="hidden md:block bg-white rounded-3xl shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
                                                 <table className="min-w-full divide-y divide-slate-100">
                                                     <thead className="bg-slate-50/50">
                                                         <tr>
-                                                            <th className="px-10 py-6 text-left text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Nombre del Estudiante</th>
-                                                            <th className="px-10 py-6 text-center text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Estado de Presencia</th>
+                                                            <th className="px-6 py-4 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Nombre del Estudiante</th>
+                                                            <th className="px-6 py-4 text-center text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Estado de Presencia</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="bg-white divide-y divide-slate-50">
                                                         {gradeStudents.map((student) => (
                                                             <tr key={student._id} className="group hover:bg-blue-50/20 transition-all duration-300">
-                                                                <td className="px-10 py-8">
+                                                                <td className="px-6 py-4">
                                                                     <div className="flex items-center gap-4">
                                                                         <div className="w-12 h-12 rounded-2xl bg-slate-100 text-[#11355a] flex items-center justify-center font-black group-hover:bg-[#11355a] group-hover:text-white transition-all shadow-sm overflow-hidden" title="Foto Alumno">
                                                                             {student.photoUrl ? (
@@ -407,21 +407,21 @@ const AttendancePage = () => {
                                                                             )}
                                                                         </div>
                                                                         <div>
-                                                                            <div className="text-lg font-black text-slate-700 tracking-tight flex items-center gap-2">
+                                                                            <div className="text-base font-black text-slate-700 tracking-tight flex items-center gap-2">
                                                                                 {student.nombres} {student.apellidos}
                                                                                 {activeLicenses.some(lic => lic.userId?._id === student._id || lic.userId === student._id) && (
-                                                                                    <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[9px] font-black border border-rose-100 animate-pulse">
-                                                                                        <ShieldCheck size={12} /> LICENCIA
+                                                                                    <div className="flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-600 rounded-lg text-[8px] font-black border border-rose-100 animate-pulse">
+                                                                                        <ShieldCheck size={10} /> LICENCIA
                                                                                     </div>
                                                                                 )}
                                                                             </div>
-                                                                            <div className="text-[10px] text-blue-500 font-black font-mono tracking-tighter opacity-60 uppercase">
-                                                                                ID: {student.rut}
+                                                                            <div className="text-[9px] text-blue-500 font-black font-mono tracking-tighter opacity-60 uppercase">
+                                                                                {student.rut}
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </td>
-                                                                <td className="px-10 py-8">
+                                                                <td className="px-6 py-4">
                                                                     {!isStudentOrGuardian ? (
                                                                         <div className="flex justify-center gap-2 print:hidden">
                                                                             <button

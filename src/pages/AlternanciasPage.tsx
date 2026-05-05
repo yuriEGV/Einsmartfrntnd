@@ -337,13 +337,13 @@ export default function AlternanciasPage() {
     );
 
     return (
-        <div className="p-4 md:p-8 space-y-6 animate-in fade-in duration-500">
+        <div className="p-4 md:p-6 space-y-4 animate-in fade-in duration-500">
             {/* Header Module */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-black text-[#002447] uppercase tracking-tighter flex items-center gap-3">
-                        <div className="p-3 bg-[#002447]/5 text-[#2DAAB8] rounded-2xl">
-                            <Briefcase size={28} />
+                    <h1 className="text-2xl font-black text-[#002447] uppercase tracking-tighter flex items-center gap-3">
+                        <div className="p-2.5 bg-[#002447]/5 text-[#2DAAB8] rounded-xl">
+                            <Briefcase size={24} />
                         </div>
                         Gestión de Alternancia Dual
                     </h1>
@@ -377,16 +377,16 @@ export default function AlternanciasPage() {
             </div>
 
             {/* Smart Search */}
-            <div className="bg-white/60 backdrop-blur-xl rounded-[2rem] p-2 shadow-2xl shadow-[#002447]/5 border border-white/80 flex items-center gap-3 focus-within:ring-4 ring-[#2DAAB8]/10 transition-all">
-                <div className="p-3 bg-[#002447] rounded-2xl text-[#2DAAB8]">
-                    <Search size={22} />
+            <div className="bg-white/60 backdrop-blur-xl rounded-2xl p-1.5 shadow-2xl shadow-[#002447]/5 border border-white/80 flex items-center gap-3 focus-within:ring-4 ring-[#2DAAB8]/10 transition-all">
+                <div className="p-2.5 bg-[#002447] rounded-xl text-[#2DAAB8]">
+                    <Search size={20} />
                 </div>
                 <input
                     type="text"
                     placeholder="Filtrar por Estudiante, RUT, Especialidad o Empresa asignada..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full py-4 bg-transparent focus:outline-none text-base font-black text-[#002447] placeholder:text-slate-300"
+                    className="w-full py-3 bg-transparent focus:outline-none text-sm font-black text-[#002447] placeholder:text-slate-300"
                 />
             </div>
 
@@ -397,12 +397,12 @@ export default function AlternanciasPage() {
                     <p className="text-slate-400 font-bold mt-4 uppercase tracking-widest text-[10px]">Sincronizando Expedientes Académicos...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredAlternancias.map((alt, idx) => (
                         <div 
                             key={alt._id} 
                             style={{ animationDelay: `${idx * 100}ms` }}
-                            className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] border border-white p-6 shadow-2xl shadow-[#002447]/5 hover:shadow-[#002447]/10 transition-all hover:-translate-y-2 group relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500"
+                            className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white p-5 shadow-2xl shadow-[#002447]/5 hover:shadow-[#002447]/10 transition-all hover:-translate-y-2 group relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500"
                         >
                             {/* Card Background Accent */}
                             <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#2DAAB8]/5 rounded-full blur-3xl group-hover:bg-[#2DAAB8]/15 transition-colors"></div>
@@ -593,11 +593,11 @@ export default function AlternanciasPage() {
             {/* Alternancia Main Modal */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
-                    <div className="bg-white/95 backdrop-blur-2xl rounded-[3rem] w-full max-w-5xl max-h-[90vh] overflow-hidden shadow-2xl flex flex-col border-4 border-white scale-in-center">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white shrink-0">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-[#2DAAB8] rounded-2xl shadow-lg shadow-[#2DAAB8]/20">
-                                    <Building2 size={24} />
+                    <div className="bg-white/95 backdrop-blur-2xl rounded-3xl w-full max-w-4xl max-h-[95vh] overflow-hidden shadow-2xl flex flex-col border-2 border-white scale-in-center">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white shrink-0">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 bg-[#2DAAB8] rounded-xl shadow-lg shadow-[#2DAAB8]/20">
+                                    <Building2 size={20} />
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-black uppercase tracking-tighter">
@@ -626,7 +626,7 @@ export default function AlternanciasPage() {
                                                 required
                                                 value={formData.estudianteId}
                                                 onChange={(e) => setFormData({ ...formData, estudianteId: e.target.value })}
-                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
+                                                className="w-full px-5 py-4 rounded-xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-xs shadow-inner outline-none transition-all"
                                             >
                                                 <option value="">Selección de Padrón...</option>
                                                 {students.map(s => (
@@ -640,7 +640,7 @@ export default function AlternanciasPage() {
                                                 required
                                                 value={formData.careerId}
                                                 onChange={(e) => setFormData({ ...formData, careerId: e.target.value })}
-                                                className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
+                                                className="w-full px-5 py-4 rounded-xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-xs shadow-inner outline-none transition-all"
                                             >
                                                 <option value="">Asignar Carrera...</option>
                                                 {careers.map(c => (
@@ -969,11 +969,11 @@ export default function AlternanciasPage() {
                             </form>
                         </div>
                         
-                        <div className="p-10 border-t border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50/50 shrink-0">
-                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-5 text-[#002447] font-black hover:bg-slate-100 rounded-3xl transition-all uppercase tracking-[0.2em] text-[10px] border-2 border-slate-100">
+                        <div className="p-6 border-t border-slate-100 flex flex-col md:flex-row gap-4 bg-slate-50/50 shrink-0">
+                            <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 py-4 text-[#002447] font-black hover:bg-slate-100 rounded-2xl transition-all uppercase tracking-[0.2em] text-[10px] border-2 border-slate-100">
                                 Descartar Cambios
                             </button>
-                            <button form="altForm" type="submit" className="flex-[2] py-5 bg-[#002447] hover:bg-[#003666] text-white rounded-3xl font-black shadow-2xl shadow-[#002447]/30 transition-all uppercase tracking-[0.2em] text-[10px] flex justify-center items-center gap-2 border-b-4 border-[#00152b]">
+                            <button form="altForm" type="submit" className="flex-[2] py-4 bg-[#002447] hover:bg-[#003666] text-white rounded-2xl font-black shadow-2xl shadow-[#002447]/30 transition-all uppercase tracking-[0.2em] text-[10px] flex justify-center items-center gap-2 border-b-4 border-[#00152b]">
                                 <CheckCircle2 size={18} className="text-[#2DAAB8]" /> 
                                 {editingId ? 'Confirmar Actualización de Expediente' : 'Generar y Activar Expediente Dual'}
                             </button>
@@ -1235,11 +1235,11 @@ export default function AlternanciasPage() {
             {/* Periodic Evaluation Modal */}
             {isEvalModalOpen && selectedAlt && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#002447]/60 backdrop-blur-md p-4 animate-in fade-in">
-                    <div className="bg-white/90 backdrop-blur-2xl rounded-[3rem] w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col scale-in-center border-4 border-white">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white">
+                    <div className="bg-white/90 backdrop-blur-2xl rounded-3xl w-full max-w-xl max-h-[95vh] overflow-hidden shadow-2xl flex flex-col scale-in-center border-2 border-white">
+                        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-[#002447] to-[#004080] text-white">
                             <div>
-                                <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3">
-                                    <Star className="text-[#2DAAB8]" size={24} fill="currentColor" /> Rúbrica de Especialidad
+                                <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3">
+                                    <Star className="text-[#2DAAB8]" size={20} fill="currentColor" /> Rúbrica de Especialidad
                                 </h2>
                                 <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
                                     Evaluación Dual: {selectedAlt.estudianteId?.nombres} {selectedAlt.estudianteId?.apellidos}
@@ -1258,10 +1258,10 @@ export default function AlternanciasPage() {
                                     { label: 'Habilidades Socio-Laborales', key: 'habilidadesLaborales' },
                                     { label: 'Asistencia, Puntualidad y Compromiso', key: 'asistencia' }
                                 ].map((field) => (
-                                    <div key={field.key} className="bg-slate-50/50 p-6 rounded-[2rem] border border-slate-200/50 group/row">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <label className="block text-[11px] font-black text-[#002447] uppercase tracking-widest">{field.label}</label>
-                                            <span className="text-xl font-black text-[#2DAAB8]">{(evalForm as any)[field.key]}</span>
+                                    <div key={field.key} className="bg-slate-50/50 p-4 rounded-2xl border border-slate-200/50 group/row">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <label className="block text-[10px] font-black text-[#002447] uppercase tracking-widest">{field.label}</label>
+                                            <span className="text-lg font-black text-[#2DAAB8]">{(evalForm as any)[field.key]}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <input 
@@ -1299,13 +1299,13 @@ export default function AlternanciasPage() {
                             </div>
 
                             {/* [PRO] Final Average Display */}
-                            <div className="bg-[#002447] p-8 rounded-[3rem] flex items-center justify-between shadow-2xl shadow-[#002447]/20 border border-white/10 group overflow-hidden relative">
+                            <div className="bg-[#002447] p-6 rounded-[2rem] flex items-center justify-between shadow-2xl shadow-[#002447]/20 border border-white/10 group overflow-hidden relative">
                                 <div className="absolute top-0 right-0 w-32 h-full bg-[#2DAAB8]/10 blur-3xl -skew-x-12 group-hover:bg-[#2DAAB8]/20 transition-all"></div>
                                 <div className="relative z-10">
-                                    <p className="text-[10px] font-black text-[#2DAAB8] uppercase tracking-[0.2em] mb-1">Calificación Promedio Final</p>
-                                    <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest leading-tight">Calculado automáticamente en base<br/>a la rúbrica de desempeño técnico</p>
+                                    <p className="text-[9px] font-black text-[#2DAAB8] uppercase tracking-[0.2em] mb-1">Calificación Promedio Final</p>
+                                    <p className="text-[8px] font-bold text-white/40 uppercase tracking-widest leading-tight">Calculado automáticamente en base<br/>a la rúbrica de desempeño técnico</p>
                                 </div>
-                                <div className="text-5xl font-black text-white relative z-10 tabular-nums">
+                                <div className="text-4xl font-black text-white relative z-10 tabular-nums">
                                     {((evalForm.desempeñoTecnico + evalForm.habilidadesLaborales + evalForm.asistencia) / 3).toFixed(1)}
                                 </div>
                             </div>

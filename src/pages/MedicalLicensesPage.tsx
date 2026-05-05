@@ -144,22 +144,22 @@ const MedicalLicensesPage = () => {
     }
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-4xl font-black text-[#11355a] tracking-tight flex items-center gap-4">
-                        <div className="p-4 bg-rose-50 rounded-3xl border border-rose-100 shadow-sm">
-                            <Plus size={40} className="text-rose-600" />
+                    <h1 className="text-2xl font-black text-[#11355a] tracking-tight flex items-center gap-3">
+                        <div className="p-3 bg-rose-50 rounded-2xl border border-rose-100 shadow-sm">
+                            <Plus size={28} className="text-rose-600" />
                         </div>
                         Gestión de Licencias Médicas
                     </h1>
-                    <p className="text-gray-500 mt-2 text-lg font-medium">Control centralizado de licencias para alumnos y funcionarios.</p>
+                    <p className="text-gray-500 mt-1 text-sm font-medium">Control centralizado de licencias para alumnos y funcionarios.</p>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="bg-[#11355a] text-white px-8 py-4 rounded-2xl font-black flex items-center gap-2 hover:bg-blue-900 transition-all shadow-xl active:scale-95"
+                    className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-black flex items-center gap-2 hover:bg-blue-900 transition-all shadow-xl active:scale-95 text-xs uppercase tracking-widest"
                 >
-                    <Plus size={24} /> NUEVA LICENCIA
+                    <Plus size={18} /> Nueva Licencia
                 </button>
             </div>
 
@@ -169,16 +169,16 @@ const MedicalLicensesPage = () => {
                 <button onClick={() => setFilterType('Funcionario')} className={`px-6 py-2 rounded-xl font-black text-xs uppercase tracking-widest border transition-all ${filterType === 'Funcionario' ? 'bg-[#11355a] text-white' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}>Funcionarios</button>
             </div>
 
-            <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-50 overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-2xl border border-slate-50 overflow-hidden">
                 <div className="divide-y divide-slate-50">
                     {filteredLicenses.length === 0 ? (
-                        <div className="p-20 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">No hay licencias registradas.</div>
+                        <div className="p-10 text-center text-slate-300 font-bold uppercase tracking-widest text-xs">No hay licencias registradas.</div>
                     ) : (
                         filteredLicenses.map(license => (
-                            <div key={license._id} className="p-8 hover:bg-slate-50/50 transition-all flex flex-col md:flex-row items-center gap-8">
-                                <div className="w-24 h-24 bg-rose-50 rounded-3xl border-2 border-rose-100 flex flex-col items-center justify-center text-center shadow-sm shrink-0">
-                                    <div className="text-2xl font-black text-rose-800">{license.diasReposo}</div>
-                                    <div className="text-[9px] font-black text-rose-400 uppercase tracking-widest">Días</div>
+                            <div key={license._id} className="p-5 hover:bg-slate-50/50 transition-all flex flex-col md:flex-row items-center gap-6">
+                                <div className="w-16 h-16 bg-rose-50 rounded-2xl border-2 border-rose-100 flex flex-col items-center justify-center text-center shadow-sm shrink-0">
+                                    <div className="text-lg font-black text-rose-800">{license.diasReposo}</div>
+                                    <div className="text-[8px] font-black text-rose-400 uppercase tracking-widest">Días</div>
                                 </div>
                                 <div className="flex-1 space-y-2">
                                     <div className="flex items-center gap-2">
@@ -187,8 +187,8 @@ const MedicalLicensesPage = () => {
                                         </span>
                                         <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Desde {new Date(license.fechaInicio).toLocaleDateString()} hasta {new Date(license.fechaFin).toLocaleDateString()}</span>
                                     </div>
-                                    <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{getUserName(license)}</h3>
-                                    <p className="text-sm font-bold text-slate-500 italic">{license.tipo} - {license.observaciones || 'Sin observaciones'}</p>
+                                    <h3 className="text-lg font-black text-slate-800 uppercase tracking-tight">{getUserName(license)}</h3>
+                                    <p className="text-xs font-bold text-slate-500 italic">{license.tipo} - {license.observaciones || 'Sin observaciones'}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className={`px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest border ${
@@ -238,14 +238,14 @@ const MedicalLicensesPage = () => {
 
             {/* Modal for new license */}
             {showModal && (
-                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 md:pl-[300px]">
-                    <div className="bg-white rounded-[3rem] w-full max-w-xl shadow-2xl border-8 border-white overflow-hidden scroll-y">
-                        <div className="bg-[#11355a] p-10 text-white relative">
-                            <h2 className="text-3xl font-black tracking-tighter uppercase leading-none mb-2">Registrar Licencia</h2>
-                            <p className="text-blue-300 font-extrabold uppercase text-[10px] tracking-[0.3em]">MÓDULO DE SALUD</p>
-                            <button onClick={() => setShowModal(false)} className="absolute top-8 right-8 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md z-[999] flex items-center justify-center p-4 md:pl-[240px]">
+                    <div className="bg-white rounded-3xl w-full max-w-lg shadow-2xl border-4 border-white overflow-hidden scroll-y">
+                        <div className="bg-[#11355a] p-6 text-white relative">
+                            <h2 className="text-xl font-black tracking-tighter uppercase leading-none mb-1">Registrar Licencia</h2>
+                            <p className="text-blue-300 font-extrabold uppercase text-[9px] tracking-[0.2em]">MÓDULO DE SALUD</p>
+                            <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
                         </div>
-                        <form onSubmit={handleSubmit} className="p-10 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Tipo de Usuario</label>
@@ -340,15 +340,15 @@ const MedicalLicensesPage = () => {
                             <div>
                                 <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Observaciones</label>
                                 <textarea 
-                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-bold text-slate-600 outline-none focus:border-blue-500 resize-none"
-                                    rows={3}
+                                    className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl font-bold text-slate-600 outline-none focus:border-blue-500 resize-none text-xs"
+                                    rows={2}
                                     placeholder="Detalles adicionales..."
                                     value={formData.observaciones}
                                     onChange={e => setFormData({ ...formData, observaciones: e.target.value })}
                                 />
                             </div>
 
-                            <button type="submit" className="w-full bg-[#11355a] text-white py-6 rounded-2xl font-black uppercase tracking-widest shadow-2xl hover:bg-blue-900 transition-all">Guardar Licencia</button>
+                            <button type="submit" className="w-full bg-[#11355a] text-white py-4 rounded-xl font-black uppercase tracking-widest shadow-2xl hover:bg-blue-900 transition-all text-sm">Guardar Licencia</button>
                         </form>
                     </div>
                 </div>
