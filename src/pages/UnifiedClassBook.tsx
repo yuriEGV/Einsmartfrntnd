@@ -20,6 +20,15 @@ const UnifiedClassBook = () => {
     const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones' | 'atrasos'>('ficha');
     const location = useLocation();
 
+    const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
+    const [courses, setCourses] = useState<any[]>([]);
+    const [subjects, setSubjects] = useState<any[]>([]);
+    const [students, setStudents] = useState<any[]>([]);
+    const [logs, setLogs] = useState<any[]>([]);
+    const [evaluations, setEvaluations] = useState<any[]>([]);
+    const [citaciones, setCitaciones] = useState<any[]>([]);
+    const [annotations, setAnnotations] = useState<any[]>([]);
+
     // Effect to handle tab selection and student auto-selection via query parameter
     useEffect(() => {
         const params = new URLSearchParams(location.search);
@@ -38,15 +47,6 @@ const UnifiedClassBook = () => {
             }
         }
     }, [location.search, students, activeTab]);
-    const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
-
-    const [courses, setCourses] = useState<any[]>([]);
-    const [subjects, setSubjects] = useState<any[]>([]);
-    const [students, setStudents] = useState<any[]>([]);
-    const [logs, setLogs] = useState<any[]>([]);
-    const [evaluations, setEvaluations] = useState<any[]>([]);
-    const [citaciones, setCitaciones] = useState<any[]>([]);
-    const [annotations, setAnnotations] = useState<any[]>([]);
 
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');

@@ -121,7 +121,7 @@ const UsersPage = () => {
 
         const confirmed = await confirm({
             title: '¿ELIMINACIÓN MASIVA?',
-            message: `Se eliminarán de forma PERMANENTE ${count} usuarios y todos sus datos relacionados. Esta acción no se puede deshacer.`,
+            message: `Se eliminarán de forma PERMANENTE ${selectedUsers.length} usuarios y todos sus datos relacionados. Esta acción no se puede deshacer.`,
             confirmText: 'SÍ, ELIMINAR TODO',
             isDanger: true
         });
@@ -131,7 +131,7 @@ const UsersPage = () => {
         setIsDeletingBulk(true);
         try {
             await api.post('/users/bulk-delete', { userIds: selectedUsers });
-            toast.success(`${count} usuarios eliminados correctamente`);
+            alert(`${selectedUsers.length} usuarios eliminados correctamente`);
             setSelectedUsers([]);
             fetchUsers();
         } catch (error: any) {

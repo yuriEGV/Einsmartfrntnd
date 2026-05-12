@@ -1,4 +1,5 @@
-import ConfirmModal from './ConfirmModal';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
+import ConfirmModal from '../components/ConfirmModal';
 import PromptModal from '../components/PromptModal';
 
 interface ConfirmationOptions {
