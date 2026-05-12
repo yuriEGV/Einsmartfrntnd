@@ -5,6 +5,7 @@ import { useLocation } from 'react-router-dom';
 import { useTenant } from '../context/TenantContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { Search, Plus, School, Mail, Printer, Trash2, Users, AlertCircle, Camera } from 'lucide-react';
+import { useConfirm } from '../context/ConfirmationContext';
 import { validateRut } from '../services/utils';
 import CertificadoAlumnoRegular from '../components/CertificadoAlumnoRegular';
 
@@ -32,6 +33,7 @@ interface Student {
 const StudentsPage = () => {
     const { canManageStudents, user } = usePermissions();
     const { tenant } = useTenant();
+    const confirm = useConfirm();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -188,7 +190,13 @@ const StudentsPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar este estudiante?')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Estudiante?',
+            message: '¿Está seguro de eliminar este estudiante? Esta acción eliminará su expediente y registros asociados.',
+            confirmText: 'Sí, Eliminar',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/estudiantes/${id}`);
             fetchStudents();

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { Plus, Edit, Trash2, Search, BookOpen, Users, GraduationCap, Library } from 'lucide-react';
+import { useConfirm } from '../context/ConfirmationContext';
 import toast from 'react-hot-toast';
 
 interface Course {
@@ -42,6 +43,7 @@ const CoursesPage = () => {
     const { canManageCourses, isStudent, isApoderado } = usePermissions();
     const isStudentOrGuardian = isStudent || isApoderado;
     const navigate = useNavigate();
+    const confirm = useConfirm();
     // const { tenant } = useTenant(); // Not used currently
     const [courses, setCourses] = useState<Course[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);
@@ -304,7 +306,13 @@ const CoursesPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar este curso? Se perderán las asociaciones con matrículas.')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Curso?',
+            message: '¿Estás seguro de eliminar este curso? Se perderán las asociaciones con matrículas y registros académicos.',
+            confirmText: 'Sí, Eliminar',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/courses/${id}`);
             fetchCourses();

@@ -1,20 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save, Eye, EyeOff } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
+import { useConfirm } from '../context/ConfirmationContext';
 import { useReactToPrint } from 'react-to-print';
 
 const UnifiedClassBook = () => {
     const { tenant } = useTenant();
     const { user } = useAuth();
     const permissions = usePermissions();
+    const { confirm, prompt } = useConfirm();
     const printRef = useRef<HTMLDivElement>(null);
     const actaPrintRef = useRef<HTMLDivElement>(null);
 
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
     const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones' | 'atrasos'>('ficha');
+    const location = useLocation();
+
+    // Effect to handle tab selection and student auto-selection via query parameter
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        const studentIdParam = params.get('studentId');
+        
+        if (tab && ['ficha', 'asistencia', 'leccionario', 'notas', 'citaciones', 'anotaciones', 'atrasos'].includes(tab)) {
+            setActiveTab(tab as any);
+        }
+
+        // Auto-select student if studentId is provided and we are on the ficha tab
+        if (studentIdParam && students.length > 0) {
+            const student = students.find(s => s._id === studentIdParam);
+            if (student) {
+                handleShowStudentDetail(student);
+            }
+        }
+    }, [location.search, students, activeTab]);
     const [attendanceViewMode, setAttendanceViewMode] = useState<'grid' | 'list'>('grid');
 
     const [courses, setCourses] = useState<any[]>([]);
@@ -39,6 +62,7 @@ const UnifiedClassBook = () => {
     const [showSignatureModal, setShowSignatureModal] = useState(false);
     const [signingLogId, setSigningLogId] = useState<string | null>(null);
     const [pin, setPin] = useState('');
+    const [showPin, setShowPin] = useState(false);
 
     // Tardiness State
     const [tardinessLogs, setTardinessLogs] = useState<any[]>([]);
@@ -436,7 +460,13 @@ const UnifiedClassBook = () => {
     };
 
     const handleBulkGradeSave = async () => {
-        if (!window.confirm('¿Está seguro de que desea guardar todos los cambios en la matriz de notas? Esta acción actualizará los registros oficiales.')) return;
+        const confirmed = await confirm({
+            title: '¿Guardar Calificaciones?',
+            message: '¿Está seguro de que desea guardar todos los cambios en la matriz de notas? Esta acción actualizará los registros oficiales.',
+            confirmText: 'Sí, Guardar Todo',
+            isDanger: false
+        });
+        if (!confirmed) return;
         setIsSavingMatrix(true);
         try {
             // 1. Identify which virtual columns have data
@@ -500,7 +530,12 @@ const UnifiedClassBook = () => {
     };
 
     const handleAddTardiness = async (student: any) => {
-        const mins = window.prompt(`Minutos de atraso para ${student.apellidos}:`, "15");
+        const mins = await prompt({
+            title: 'Registrar Atraso',
+            message: `Ingrese los minutos de atraso para ${student.apellidos}, ${student.nombres}:`,
+            defaultValue: '15'
+        });
+        
         if (!mins) return;
         try {
             await api.post('/atrasos', {
@@ -518,7 +553,13 @@ const UnifiedClassBook = () => {
     };
 
     const handleDeleteTardiness = async (id: string) => {
-        if (!window.confirm('¿Eliminar este registro de atraso?')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Atraso?',
+            message: '¿Está seguro de que desea eliminar este registro de atraso?',
+            confirmText: 'Eliminar',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/atrasos/${id}`);
             refreshTabContent();
@@ -1310,7 +1351,15 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             Terminar Clase
                                                         </button>
                                                         <button 
-                                                            onClick={() => { if(window.confirm('¿Reiniciar contador a cero?')) setEffectiveDuration(0); }}
+                                                            onClick={async () => { 
+                                                                const confirmed = await confirm({
+                                                                    title: '¿Reiniciar Contador?',
+                                                                    message: '¿Está seguro de que desea reiniciar el contador de Aula Efectiva a cero?',
+                                                                    confirmText: 'Sí, Reiniciar',
+                                                                    isDanger: true
+                                                                });
+                                                                if(confirmed) setEffectiveDuration(0); 
+                                                            }}
                                                             className="p-2 text-slate-300 hover:text-rose-500 transition-colors"
                                                             title="Reiniciar Contador"
                                                         >
@@ -1710,34 +1759,41 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                      <div className="text-[8px] text-emerald-400 mt-1 uppercase">{new Date(selectedCitacion.fechaFirmaProfesor).toLocaleString()}</div>
                                                                  </div>
                                                              ) : (
-                                                                 <div className="flex gap-2">
-                                                                     <input 
-                                                                        type="password" 
-                                                                        placeholder="PIN" 
-                                                                        className="w-20 px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-black"
-                                                                        value={pin}
-                                                                        onChange={(e) => setPin(e.target.value)}
-                                                                     />
-                                                                     <button 
-                                                                        type="button"
-                                                                        onClick={async () => {
-                                                                            if (!pin) return alert('Ingrese su PIN');
-                                                                            try {
-                                                                                await api.post(`/citaciones/${selectedCitacion._id}/sign`, { pin, signature: `Firma Profesor: ${user?.name}` });
-                                                                                alert('Acta firmada correctamente');
-                                                                                setPin('');
-                                                                                refreshTabContent();
-                                                                                setShowActaModal(false);
-                                                                            } catch (err: any) {
-                                                                                alert(err.response?.data?.message || 'Error al firmar');
-                                                                            }
-                                                                        }}
-                                                                        className="flex-1 bg-[#11355a] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest"
-                                                                     >
-                                                                         FIRMAR AHORA
-                                                                     </button>
-                                                                 </div>
-                                                             )}
+                                                                  <div className="flex gap-2 relative">
+                                                                      <input 
+                                                                         type={showPin ? "text" : "password"} 
+                                                                         placeholder="PIN" 
+                                                                         className="w-24 px-4 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl text-center font-black pr-10"
+                                                                         value={pin}
+                                                                         onChange={(e) => setPin(e.target.value)}
+                                                                      />
+                                                                      <button
+                                                                          type="button"
+                                                                          onClick={() => setShowPin(!showPin)}
+                                                                          className="absolute left-[4.2rem] top-1/2 -translate-y-1/2 text-slate-300 hover:text-[#11355a] transition-colors"
+                                                                      >
+                                                                          {showPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                                      </button>
+                                                                      <button 
+                                                                         type="button"
+                                                                         onClick={async () => {
+                                                                             if (!pin) return alert('Ingrese su PIN');
+                                                                             try {
+                                                                                 await api.post(`/citaciones/${selectedCitacion._id}/sign`, { pin, signature: `Firma Profesor: ${user?.name}` });
+                                                                                 alert('Acta firmada correctamente');
+                                                                                 setPin('');
+                                                                                 refreshTabContent();
+                                                                                 setShowActaModal(false);
+                                                                             } catch (err: any) {
+                                                                                 alert(err.response?.data?.message || 'Error al firmar');
+                                                                             }
+                                                                         }}
+                                                                         className="flex-1 bg-[#11355a] text-white rounded-2xl font-black text-[10px] uppercase tracking-widest"
+                                                                      >
+                                                                          FIRMAR AHORA
+                                                                      </button>
+                                                                  </div>
+                                                              )}
                                                          </div>
                                                          <div className="space-y-4 text-center">
                                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Firma del Apoderado</label>
@@ -1947,16 +2003,25 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                 </p>
 
                                 <div className="space-y-6">
-                                    <input
-                                        type="password"
-                                        maxLength={4}
-                                        value={pin}
-                                        onChange={e => setPin(e.target.value)}
-                                        className="w-full text-center text-4xl tracking-[1em] font-black py-6 bg-slate-50 border-4 border-slate-100 rounded-[2rem] outline-none focus:border-blue-500 transition-all"
-                                        placeholder="****"
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPin ? "text" : "password"}
+                                            maxLength={4}
+                                            value={pin}
+                                            onChange={e => setPin(e.target.value)}
+                                            className="w-full text-center text-4xl tracking-[1em] font-black py-6 bg-slate-50 border-4 border-slate-100 rounded-[2rem] outline-none focus:border-blue-500 transition-all pr-16"
+                                            placeholder="****"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPin(!showPin)}
+                                            className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-300 hover:text-blue-600 transition-colors"
+                                        >
+                                            {showPin ? <EyeOff size={24} /> : <Eye size={24} />}
+                                        </button>
+                                    </div>
                                     <div className="flex gap-4">
-                                        <button onClick={() => setShowSignatureModal(false)} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest">Cancelar</button>
+                                        <button onClick={() => {setShowSignatureModal(false); setShowPin(false);}} className="flex-1 py-5 bg-slate-100 text-slate-400 rounded-2xl font-black text-[10px] uppercase tracking-widest">Cancelar</button>
                                         <button
                                             onClick={handleSignLog}
                                             disabled={pin.length < 4}

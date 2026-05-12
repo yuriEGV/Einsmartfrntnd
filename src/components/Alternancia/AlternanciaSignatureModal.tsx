@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
-import { X, KeyRound, CheckCircle2 } from 'lucide-react';
+import { X, KeyRound, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 
 interface Props {
     alternanciaId: string;
@@ -13,6 +13,7 @@ interface Props {
 export function AlternanciaSignatureModal({ alternanciaId, bitacoraId, onSuccess, onClose }: Props) {
     const [pin, setPin] = useState(['', '', '', '']);
     const [loading, setLoading] = useState(false);
+    const [showPin, setShowPin] = useState(false);
     const inputRefs = [React.useRef<HTMLInputElement>(null), React.useRef<HTMLInputElement>(null), React.useRef<HTMLInputElement>(null), React.useRef<HTMLInputElement>(null)];
 
     const handlePinChange = (index: number, value: string) => {
@@ -75,19 +76,29 @@ export function AlternanciaSignatureModal({ alternanciaId, bitacoraId, onSuccess
                         Ingrese su PIN personal para firmar legalmente esta bitácora de alternancia.
                     </p>
 
-                    <div className="flex gap-4 justify-center mb-8">
-                        {pin.map((digit, i) => (
-                            <input
-                                key={i}
-                                ref={inputRefs[i] as any}
-                                type="password"
-                                value={digit}
-                                onChange={(e) => handlePinChange(i, e.target.value)}
-                                onKeyDown={(e) => handleKeyDown(i, e)}
-                                maxLength={1}
-                                className="w-14 h-16 text-center text-3xl font-black text-[#002447] bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-[#2DAAB8] focus:bg-white outline-none transition-all shadow-inner"
-                            />
-                        ))}
+                    <div className="relative w-full flex flex-col items-center">
+                        <div className="flex gap-4 justify-center mb-8">
+                            {pin.map((digit, i) => (
+                                <input
+                                    key={i}
+                                    ref={inputRefs[i] as any}
+                                    type={showPin ? "text" : "password"}
+                                    value={digit}
+                                    onChange={(e) => handlePinChange(i, e.target.value)}
+                                    onKeyDown={(e) => handleKeyDown(i, e)}
+                                    maxLength={1}
+                                    className="w-14 h-16 text-center text-3xl font-black text-[#002447] bg-slate-50 border-2 border-slate-200 rounded-2xl focus:border-[#2DAAB8] focus:bg-white outline-none transition-all shadow-inner"
+                                />
+                            ))}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowPin(!showPin)}
+                            className="absolute -right-2 top-4 p-2 text-slate-300 hover:text-[#2DAAB8] transition-colors"
+                            title={showPin ? "Ocultar PIN" : "Mostrar PIN"}
+                        >
+                            {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
                     </div>
 
                     <button

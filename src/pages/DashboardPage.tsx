@@ -4,6 +4,7 @@ import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
+import { useConfirm } from '../context/ConfirmationContext';
 import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase, Send } from 'lucide-react';
 import CitationResponseModal from '../components/Citacion/CitationResponseModal';
 import EinsmartDashboardPage from './EinsmartDashboardPage';
@@ -12,6 +13,7 @@ const DashboardPage = () => {
     const { user } = useAuth();
     const { tenant } = useTenant();
     const { isSuperAdmin, canManageStudents, isTutor } = usePermissions();
+    const confirm = useConfirm();
 
     const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
     const [updateInfo, setUpdateInfo] = useState<{hasUpdate: boolean, localHash?: string, remoteHash?: string} | null>(null);
@@ -123,7 +125,13 @@ const DashboardPage = () => {
                         </div>
                         <button
                             onClick={async () => {
-                                if (window.confirm('¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.')) {
+                                const confirmed = await confirm({
+                                    title: 'Instalar Actualización',
+                                    message: '¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.',
+                                    confirmText: 'Sí, Instalar Ahora',
+                                    isDanger: false
+                                });
+                                if (confirmed) {
                                     setIsUpdating(true);
                                     try {
                                         await api.post('/updates/run');
@@ -163,7 +171,13 @@ const DashboardPage = () => {
                     </div>
                     <button
                         onClick={async () => {
-                            if (window.confirm('¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.')) {
+                            const confirmed = await confirm({
+                                title: 'Instalar Actualización',
+                                message: '¿Estás seguro que deseas instalar la actualización? El sistema se reiniciará durante unos minutos para aplicar los cambios.',
+                                confirmText: 'Sí, Instalar Ahora',
+                                isDanger: false
+                            });
+                            if (confirmed) {
                                 setIsUpdating(true);
                                 try {
                                     await api.post('/updates/run');
@@ -259,7 +273,13 @@ const DashboardPage = () => {
                                 {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
                                     <button
                                         onClick={async () => {
-                                            if (window.confirm('¿Eliminar esta citación?')) {
+                                            const confirmed = await confirm({
+                                                title: '¿Eliminar Citación?',
+                                                message: '¿Está seguro de que desea eliminar esta citación?',
+                                                confirmText: 'Eliminar',
+                                                isDanger: true
+                                            });
+                                            if (confirmed) {
                                                 await api.delete(`/citaciones/${cit._id}`);
                                                 window.location.reload();
                                             }
@@ -304,7 +324,13 @@ const DashboardPage = () => {
                                 {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
                                     <button
                                         onClick={async () => {
-                                            if (window.confirm('¿Eliminar esta petición?')) {
+                                            const confirmed = await confirm({
+                                                title: '¿Eliminar Petición?',
+                                                message: '¿Está seguro de que desea eliminar esta petición?',
+                                                confirmText: 'Eliminar',
+                                                isDanger: true
+                                            });
+                                            if (confirmed) {
                                                 await api.delete(`/citaciones/${cit._id}`);
                                                 window.location.reload();
                                             }

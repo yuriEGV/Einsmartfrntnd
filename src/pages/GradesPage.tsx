@@ -16,6 +16,7 @@ import {
     Printer,
     ShieldCheck
 } from 'lucide-react';
+import { useConfirm } from '../context/ConfirmationContext';
 
 interface Grade {
     _id: string;
@@ -47,6 +48,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
     const navigate = useNavigate();
+    const confirm = useConfirm();
     const canManageGrades = permissions.canEditGrades;
 
     const [grades, setGrades] = useState<Grade[]>([]);
@@ -149,7 +151,13 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Seguro que deseas ELIMINAR esta nota? Esta acción quedará registrada en el sistema de auditoría.')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Nota?',
+            message: '¿Seguro que deseas ELIMINAR esta nota? Esta acción quedará registrada en el sistema de auditoría.',
+            confirmText: 'Sí, Eliminar',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/grades/${id}`);
             fetchInitialData();

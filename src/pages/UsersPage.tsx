@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Edit, Trash2, Search, Shield, Save, Key, X } from 'lucide-react';
+import { Plus, Edit, Trash2, Search, Shield, Save, Key, X, Eye, EyeOff } from 'lucide-react';
+import { useConfirm } from '../context/ConfirmationContext';
 import { toast } from 'react-hot-toast';
 import { validarRUT } from '../utils/rutValidator';
 
@@ -20,6 +21,7 @@ interface UserData {
 
 const UsersPage = () => {
     const { canManageUsers, isSuperAdmin, user: currentUser } = usePermissions();
+    const confirm = useConfirm();
     const [users, setUsers] = useState<UserData[]>([]);
     const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,6 +38,8 @@ const UsersPage = () => {
     const [showResetModal, setShowResetModal] = useState(false);
     const [userToReset, setUserToReset] = useState<UserData | null>(null);
     const [newAdminPassword, setNewAdminPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showResetPassword, setShowResetPassword] = useState(false);
 
     useEffect(() => {
         fetchUsers();
@@ -96,7 +100,13 @@ const UsersPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar este usuario?')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Usuario?',
+            message: '¿Está seguro de eliminar este usuario? Esta acción es irreversible.',
+            confirmText: 'Sí, Eliminar',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/users/${id}`);
             fetchUsers();
@@ -109,10 +119,14 @@ const UsersPage = () => {
     const handleBulkDelete = async () => {
         if (selectedUsers.length === 0) return;
 
-        const count = selectedUsers.length;
-        const confirmMsg = `¿ESTÁS ABSOLUTAMENTE SEGURO?\n\nSe eliminarán de forma PERMANENTE ${count} usuarios y todos sus datos relacionados.\nEsta acción no se puede deshacer.`;
+        const confirmed = await confirm({
+            title: '¿ELIMINACIÓN MASIVA?',
+            message: `Se eliminarán de forma PERMANENTE ${count} usuarios y todos sus datos relacionados. Esta acción no se puede deshacer.`,
+            confirmText: 'SÍ, ELIMINAR TODO',
+            isDanger: true
+        });
 
-        if (!window.confirm(confirmMsg)) return;
+        if (!confirmed) return;
 
         setIsDeletingBulk(true);
         try {
@@ -526,14 +540,23 @@ const UsersPage = () => {
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">
                                         {modalMode === 'create' ? 'CONTRASEÑA SEGURA' : 'ACTUALIZAR CONTRASEÑA'}
                                     </label>
-                                    <input
-                                        type="password"
-                                        required={modalMode === 'create'}
-                                        className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 transition-all outline-none font-black text-slate-700"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        placeholder={modalMode === 'create' ? 'Min. 6 caracteres' : 'Dejar en blanco para mantener'}
-                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            required={modalMode === 'create'}
+                                            className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-indigo-500 transition-all outline-none font-black text-slate-700 pr-14"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            placeholder={modalMode === 'create' ? 'Min. 6 caracteres' : 'Dejar en blanco para mantener'}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-indigo-600 transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="group text-start">
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1 text-start">VINCULACIÓN A PERFIL, CURSO O CARRERA (ID)</label>
@@ -603,15 +626,24 @@ const UsersPage = () => {
                                 <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                                     Nueva Contraseña Genérica
                                 </label>
-                                <input
-                                    type="password"
-                                    required
-                                    className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700"
-                                    value={newAdminPassword}
-                                    onChange={e => setNewAdminPassword(e.target.value)}
-                                    placeholder="Ingrese nueva contraseña"
-                                    minLength={6}
-                                />
+                                <div className="relative">
+                                    <input
+                                        type={showResetPassword ? 'text' : 'password'}
+                                        required
+                                        className="w-full px-4 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-amber-500 outline-none font-bold text-slate-700 pr-12"
+                                        value={newAdminPassword}
+                                        onChange={e => setNewAdminPassword(e.target.value)}
+                                        placeholder="Ingrese nueva contraseña"
+                                        minLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowResetPassword(!showResetPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-amber-600 transition-colors"
+                                    >
+                                        {showResetPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
                                 <p className="text-[10px] text-amber-600 font-bold mt-2 leading-tight">
                                     El usuario será forzado a cambiar esta contraseña administrativa en su próximo inicio de sesión.
                                 </p>

@@ -1,9 +1,10 @@
 // Build trigger: 2026-02-08
 import { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useConfirm } from '../context/ConfirmationContext';
 import { useTenant } from '../context/TenantContext';
 import {
     LogOut, Home, Users, UserPlus, FileText,
@@ -18,6 +19,8 @@ import { useUpdateCheck } from '../hooks/useUpdateCheck';
 
 const Layout = () => {
     const { user, logout } = useAuth();
+    const navigate = useNavigate();
+    const confirm = useConfirm();
     const { tenant } = useTenant();
     const permissions = usePermissions();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -42,8 +45,14 @@ const Layout = () => {
 
     const location = useLocation();
 
-    const handleLogout = () => {
-        if (window.confirm('¿Estás seguro que deseas salir del sistema?')) {
+    const handleLogout = async () => {
+        const confirmed = await confirm({
+            title: '¿Cerrar Sesión?',
+            message: '¿Está seguro que desea salir del sistema?',
+            confirmText: 'Sí, Salir',
+            isDanger: true
+        });
+        if (confirmed) {
             logout();
         }
     };
@@ -81,10 +90,14 @@ const Layout = () => {
         }
     }, [user]);
 
-    const markAsRead = async (id: string) => {
+    const markAsRead = async (id: string, link?: string) => {
         try {
             await api.put(`/user-notifications/${id}/read`);
             fetchNotifications();
+            if (link) {
+                navigate(link);
+                setIsNotifOpen(false);
+            }
         } catch (error) {
             console.error(error);
         }
@@ -463,7 +476,7 @@ const Layout = () => {
                                         notifications.map((n) => (
                                             <div
                                                 key={n._id}
-                                                onClick={() => markAsRead(n._id)}
+                                                onClick={() => markAsRead(n._id, n.link)}
                                                 className={`p-5 border-b border-slate-50 hover:bg-slate-50 cursor-pointer transition-colors relative ${!n.isRead ? 'bg-blue-50/30' : ''}`}
                                             >
                                                 {!n.isRead && <div className="absolute top-6 left-2 w-1.5 h-1.5 bg-blue-500 rounded-full"></div>}

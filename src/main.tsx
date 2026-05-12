@@ -4,12 +4,15 @@ import './index.css'
 import App from './App.tsx'
 import { AuthProvider } from './context/AuthContext.tsx'
 import { TenantProvider } from './context/TenantContext.tsx'
+import { ConfirmationProvider } from './context/ConfirmationContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider>
       <TenantProvider>
-        <App />
+        <ConfirmationProvider>
+          <App />
+        </ConfirmationProvider>
       </TenantProvider>
     </AuthProvider>
   </StrictMode>,

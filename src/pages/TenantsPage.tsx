@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
+import { useConfirm } from '../context/ConfirmationContext';
 import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail, DollarSign, Save } from 'lucide-react';
 
 interface Tenant {
@@ -23,6 +24,7 @@ interface Tenant {
 
 const TenantsPage = () => {
     const { isSuperAdmin } = usePermissions();
+    const confirm = useConfirm();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -104,7 +106,13 @@ const TenantsPage = () => {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('¿Estás seguro de eliminar esta institución? Esta acción es irreversible.')) return;
+        const confirmed = await confirm({
+            title: '¿Eliminar Institución?',
+            message: '¿Estás seguro de eliminar esta institución? Esta acción es irreversible y eliminará todos los datos asociados.',
+            confirmText: 'Sí, Eliminar Permanentemente',
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await api.delete(`/tenants/${id}`);
             fetchTenants();
