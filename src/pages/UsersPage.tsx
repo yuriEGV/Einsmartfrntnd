@@ -1,28 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useConfirm } from '../context/ConfirmationContext';
 import {
-    UserPlus,
-    Users,
     Edit,
     Trash2,
     Shield,
-    Mail,
     Search,
-    ShieldAlert,
-    CheckCircle2,
-    ChevronLeft,
-    ChevronRight,
     Eye,
     EyeOff,
-    Lock,
-    X,
-    Filter,
-    FileText,
     Key,
-    Plus
+    Plus,
+    X,
+    Save
 } from 'lucide-react';
 import { validarRUT } from '../utils/rutValidator';
 
@@ -39,8 +29,8 @@ interface UserData {
 }
 
 const UsersPage = () => {
-    const { canManageUsers, isSuperAdmin, user: currentUser } = usePermissions();
-    const confirm = useConfirm();
+    const { canManageUsers, isSuperAdmin } = usePermissions();
+    const { confirm } = useConfirm();
     const [users, setUsers] = useState<UserData[]>([]);
     const [tenants, setTenants] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
