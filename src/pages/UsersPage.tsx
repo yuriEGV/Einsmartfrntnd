@@ -29,7 +29,7 @@ interface UserData {
 }
 
 const UsersPage = () => {
-    const { canManageUsers, isSuperAdmin } = usePermissions();
+    const { canManageUsers, isSuperAdmin, user: currentUser } = usePermissions();
     const { confirm } = useConfirm();
     const [users, setUsers] = useState<UserData[]>([]);
     const [tenants, setTenants] = useState<any[]>([]);
