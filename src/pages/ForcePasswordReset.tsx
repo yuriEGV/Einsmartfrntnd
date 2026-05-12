@@ -3,11 +3,13 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { Lock, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { Lock, ShieldCheck, AlertTriangle, Eye, EyeOff } from 'lucide-react';
 
 const ForcePasswordReset: React.FC = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPass, setShowPass] = useState(false);
+    const [showConf, setShowConf] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const { user, setUser, logout } = useAuth();
@@ -74,28 +76,46 @@ const ForcePasswordReset: React.FC = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">NUEVA CONTRASEÑA</label>
-                            <input
-                                type="password"
-                                required
-                                disabled={loading}
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold text-slate-700"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={e => setPassword(e.target.value)}
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showPass ? "text" : "password"}
+                                    required
+                                    disabled={loading}
+                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold text-slate-700 pr-14"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={e => setPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPass(!showPass)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors p-2"
+                                >
+                                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
 
                         <div>
                             <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">CONFIRMAR CONTRASEÑA</label>
-                            <input
-                                type="password"
-                                required
-                                disabled={loading}
-                                className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold text-slate-700"
-                                placeholder="••••••••"
-                                value={confirmPassword}
-                                onChange={e => setConfirmPassword(e.target.value)}
-                            />
+                            <div className="relative">
+                                <input
+                                    type={showConf ? "text" : "password"}
+                                    required
+                                    disabled={loading}
+                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-blue-500 focus:bg-white transition-all outline-none font-bold text-slate-700 pr-14"
+                                    placeholder="••••••••"
+                                    value={confirmPassword}
+                                    onChange={e => setConfirmPassword(e.target.value)}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConf(!showConf)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors p-2"
+                                >
+                                    {showConf ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
                         </div>
 
                         <button

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/authService';
 import api from '../services/api';
-import { User, Lock, Save, ShieldCheck, AlertCircle } from 'lucide-react';
+import { User, Lock, Save, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
     const { user } = useAuth();
@@ -19,6 +19,11 @@ const ProfilePage: React.FC = () => {
         confirmPin: ''
     });
     const [loading, setLoading] = useState(false);
+    const [showPass, setShowPass] = useState(false);
+    const [showConf, setShowConf] = useState(false);
+    const [showCurPin, setShowCurPin] = useState(false);
+    const [showNewPin, setShowNewPin] = useState(false);
+    const [showConfPin, setShowConfPin] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -150,25 +155,43 @@ const ProfilePage: React.FC = () => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nueva Contraseña</label>
-                                            <input
-                                                type="password"
-                                                name="password"
-                                                placeholder="••••••••"
-                                                value={formData.password}
-                                                onChange={handleChange}
-                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showPass ? "text" : "password"}
+                                                    name="password"
+                                                    placeholder="••••••••"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner pr-14"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPass(!showPass)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors p-2"
+                                                >
+                                                    {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirmar Contraseña</label>
-                                            <input
-                                                type="password"
-                                                name="confirmPassword"
-                                                placeholder="••••••••"
-                                                value={formData.confirmPassword}
-                                                onChange={handleChange}
-                                                className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner"
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showConf ? "text" : "password"}
+                                                    name="confirmPassword"
+                                                    placeholder="••••••••"
+                                                    value={formData.confirmPassword}
+                                                    onChange={handleChange}
+                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner pr-14"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowConf(!showConf)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors p-2"
+                                                >
+                                                    {showConf ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                     <p className="text-[10px] text-slate-400 mt-4 italic font-medium">
@@ -187,39 +210,66 @@ const ProfilePage: React.FC = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">PIN Actual</label>
-                                                <input
-                                                    type="password"
-                                                    name="currentPin"
-                                                    placeholder="••••"
-                                                    maxLength={4}
-                                                    value={pinData.currentPin}
-                                                    onChange={handlePinChange}
-                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type={showCurPin ? "text" : "password"}
+                                                        name="currentPin"
+                                                        placeholder="••••"
+                                                        maxLength={4}
+                                                        value={pinData.currentPin}
+                                                        onChange={handlePinChange}
+                                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest pr-12"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowCurPin(!showCurPin)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                                                    >
+                                                        {showCurPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nuevo PIN</label>
-                                                <input
-                                                    type="password"
-                                                    name="newPin"
-                                                    placeholder="••••"
-                                                    maxLength={4}
-                                                    value={pinData.newPin}
-                                                    onChange={handlePinChange}
-                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type={showNewPin ? "text" : "password"}
+                                                        name="newPin"
+                                                        placeholder="••••"
+                                                        maxLength={4}
+                                                        value={pinData.newPin}
+                                                        onChange={handlePinChange}
+                                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest pr-12"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowNewPin(!showNewPin)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                                                    >
+                                                        {showNewPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirmar PIN</label>
-                                                <input
-                                                    type="password"
-                                                    name="confirmPin"
-                                                    placeholder="••••"
-                                                    maxLength={4}
-                                                    value={pinData.confirmPin}
-                                                    onChange={handlePinChange}
-                                                    className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest"
-                                                />
+                                                <div className="relative">
+                                                    <input
+                                                        type={showConfPin ? "text" : "password"}
+                                                        name="confirmPin"
+                                                        placeholder="••••"
+                                                        maxLength={4}
+                                                        value={pinData.confirmPin}
+                                                        onChange={handlePinChange}
+                                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-transparent focus:border-blue-500 focus:bg-white rounded-2xl outline-none transition-all font-bold text-slate-700 shadow-inner text-center text-2xl tracking-widest pr-12"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfPin(!showConfPin)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors"
+                                                    >
+                                                        {showConfPin ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                         <p className="text-[10px] text-slate-400 mt-4 italic font-medium">
