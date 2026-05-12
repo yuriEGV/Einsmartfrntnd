@@ -92,14 +92,16 @@ const Layout = () => {
 
     const markAsRead = async (id: string, link?: string) => {
         try {
+            console.log('Notification clicked:', id, 'Link:', link);
             await api.put(`/user-notifications/${id}/read`);
             fetchNotifications();
             if (link) {
+                console.log('Navigating to:', link);
                 navigate(link);
                 setIsNotifOpen(false);
             }
         } catch (error) {
-            console.error(error);
+            console.error('Error in markAsRead:', error);
         }
     };
 

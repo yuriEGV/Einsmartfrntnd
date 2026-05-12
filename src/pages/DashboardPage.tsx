@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import { useTenant } from '../context/TenantContext';
@@ -672,9 +673,9 @@ const DashboardPage = () => {
                                         <h4 className="font-bold text-slate-800 text-sm leading-tight mb-1">{notif.title}</h4>
                                         <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{notif.message}</p>
                                         {notif.link && (
-                                            <a href={notif.link} className="inline-block mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                                            <Link to={notif.link} className="inline-block mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
                                                 Ver Detalles →
-                                            </a>
+                                            </Link>
                                         )}
                                     </div>
                                 </div>

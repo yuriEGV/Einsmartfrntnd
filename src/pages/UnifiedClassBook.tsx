@@ -29,24 +29,57 @@ const UnifiedClassBook = () => {
     const [citaciones, setCitaciones] = useState<any[]>([]);
     const [annotations, setAnnotations] = useState<any[]>([]);
 
-    // Effect to handle tab selection and student auto-selection via query parameter
+    // Effect to handle tab selection and deep linking via query parameters
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
         const studentIdParam = params.get('studentId');
+        const courseIdParam = params.get('courseId');
+        const citationIdParam = params.get('citationId');
         
+        if (courseIdParam && selectedCourse !== courseIdParam) {
+            setSelectedCourse(courseIdParam);
+        }
+
         if (tab && ['ficha', 'asistencia', 'leccionario', 'notas', 'citaciones', 'anotaciones', 'atrasos'].includes(tab)) {
             setActiveTab(tab as any);
         }
 
-        // Auto-select student if studentId is provided and we are on the ficha tab
-        if (studentIdParam && students.length > 0) {
+        // Auto-select student if studentId is provided
+        if (studentIdParam && students.length > 0 && lastHandledStudentId.current !== studentIdParam) {
             const student = students.find(s => s._id === studentIdParam);
-            if (student) {
+            if (student && activeTab === 'ficha') {
+                console.log('Deep Linking: Opening student detail', studentIdParam);
                 handleShowStudentDetail(student);
+                lastHandledStudentId.current = studentIdParam;
             }
         }
-    }, [location.search, students, activeTab]);
+
+        // Auto-open citation if citationId is provided
+        if (citationIdParam && activeTab === 'citaciones' && lastHandledCitationId.current !== citationIdParam) {
+            const openDeepLinkedCitation = async () => {
+                try {
+                    console.log('Deep Linking: Handling citation', citationIdParam);
+                    // Try to find in already loaded citaciones
+                    const existing = citaciones.find(c => c._id === citationIdParam);
+                    if (existing) {
+                        openActaModal(existing);
+                        lastHandledCitationId.current = citationIdParam;
+                    } else {
+                        // Fetch specific citation if not in list
+                        const res = await api.get(`/citaciones/${citationIdParam}`);
+                        if (res.data) {
+                            openActaModal(res.data);
+                            lastHandledCitationId.current = citationIdParam;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error opening deep linked citation:', e);
+                }
+            };
+            openDeepLinkedCitation();
+        }
+    }, [location.search, students.length, citaciones.length, activeTab]);
 
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -77,6 +110,10 @@ const UnifiedClassBook = () => {
     const [isTimerPaused, setIsTimerPaused] = useState(false);
     const [effectiveDuration, setEffectiveDuration] = useState(0); // in seconds
     const currentSessionRef = useRef({ course: '', subject: '', block: '' });
+
+    // Deep Linking Ref to prevent infinite loops or redundant calls
+    const lastHandledCitationId = useRef<string | null>(null);
+    const lastHandledStudentId = useRef<string | null>(null);
 
     // Student Detail Modal
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
