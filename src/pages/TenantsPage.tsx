@@ -24,7 +24,7 @@ interface Tenant {
 
 const TenantsPage = () => {
     const { isSuperAdmin } = usePermissions();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     const [tenants, setTenants] = useState<Tenant[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');

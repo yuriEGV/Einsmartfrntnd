@@ -13,7 +13,7 @@ const DashboardPage = () => {
     const { user } = useAuth();
     const { tenant } = useTenant();
     const { isSuperAdmin, canManageStudents, isTutor } = usePermissions();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
 
     const [stats, setStats] = useState<any>({ studentCount: 0, courseCount: 0, tenantCount: 0, isPlatformView: false });
     const [updateInfo, setUpdateInfo] = useState<{hasUpdate: boolean, localHash?: string, remoteHash?: string} | null>(null);

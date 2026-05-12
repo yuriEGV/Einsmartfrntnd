@@ -20,7 +20,7 @@ import { useUpdateCheck } from '../hooks/useUpdateCheck';
 const Layout = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     const { tenant } = useTenant();
     const permissions = usePermissions();
     const [isMenuOpen, setIsMenuOpen] = useState(false);

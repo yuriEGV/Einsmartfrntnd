@@ -48,7 +48,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const permissions = usePermissions();
     const { tenant } = useTenant();
     const navigate = useNavigate();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     const canManageGrades = permissions.canEditGrades;
 
     const [grades, setGrades] = useState<Grade[]>([]);

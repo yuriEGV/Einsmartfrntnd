@@ -43,7 +43,7 @@ const CoursesPage = () => {
     const { canManageCourses, isStudent, isApoderado } = usePermissions();
     const isStudentOrGuardian = isStudent || isApoderado;
     const navigate = useNavigate();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     // const { tenant } = useTenant(); // Not used currently
     const [courses, setCourses] = useState<Course[]>([]);
     const [teachers, setTeachers] = useState<Teacher[]>([]);

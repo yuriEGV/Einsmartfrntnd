@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, type ReactNode } from 'react';
 import ConfirmModal from '../components/ConfirmModal';
 import PromptModal from '../components/PromptModal';
 
@@ -22,7 +22,7 @@ export const useConfirm = () => {
     if (!context) {
         throw new Error('useConfirm must be used within a ConfirmationProvider');
     }
-    return context.confirm;
+    return context;
 };
 
 export const ConfirmationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {

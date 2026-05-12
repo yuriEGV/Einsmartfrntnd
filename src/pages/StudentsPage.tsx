@@ -33,7 +33,7 @@ interface Student {
 const StudentsPage = () => {
     const { canManageStudents, user } = usePermissions();
     const { tenant } = useTenant();
-    const confirm = useConfirm();
+    const { confirm } = useConfirm();
     const [students, setStudents] = useState<Student[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
