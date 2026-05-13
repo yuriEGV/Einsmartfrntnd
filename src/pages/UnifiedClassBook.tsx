@@ -425,9 +425,11 @@ const UnifiedClassBook = () => {
             const allAtrs = atrRes.data;
             const allAlts = altRes.data;
 
-            // [FIX] Filter subjects to be unique and potentially relevant to this course
+            const normalizeName = (name: string) => (name || '').trim().toLowerCase();
+
+            // [FIX] Filter subjects to be unique to avoid duplicated columns
             const uniqueSubjects = subjects.filter((sub, index, self) =>
-                index === self.findIndex((t) => t.name === sub.name)
+                index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name))
             );
 
             // Map student averages per subject
@@ -439,14 +441,15 @@ const UnifiedClassBook = () => {
                     if (evaluation) {
                         // Use subject name as key for robustness if IDs are inconsistent
                         const subjectName = evaluation.subjectId?.name || evaluation.subject || 'General';
-                        if (!subjectAverages[subjectName]) subjectAverages[subjectName] = { sum: 0, count: 0 };
-                        subjectAverages[subjectName].sum += g.score;
-                        subjectAverages[subjectName].count += 1;
+                        const normName = normalizeName(subjectName);
+                        if (!subjectAverages[normName]) subjectAverages[normName] = { sum: 0, count: 0 };
+                        subjectAverages[normName].sum += g.score;
+                        subjectAverages[normName].count += 1;
                     }
                 });
 
                 const finalAverages: any[] = uniqueSubjects.map(sub => {
-                    const data = subjectAverages[sub.name];
+                    const data = subjectAverages[normalizeName(sub.name)];
                     return {
                         subjectName: sub.name,
                         isTechnical: sub.isTechnical || false,
@@ -2502,7 +2505,8 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                 <div className="rounded-[3rem] border border-slate-100 shadow-sm print:overflow-visible">
                                     <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-0 print:w-full text-[8px]">
                                         {(() => {
-                                            const uniqueSubjects = subjects.filter((sub, index, self) => index === self.findIndex((t) => t.name === sub.name));
+                                            const normalizeName = (name: string) => (name || '').trim().toLowerCase();
+                                            const uniqueSubjects = subjects.filter((sub, index, self) => index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name)));
                                             
                                             const isTechnicalFallback = (name: string) => {
                                                 const n = name.toLowerCase();
