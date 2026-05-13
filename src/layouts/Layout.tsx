@@ -10,7 +10,7 @@ import {
     LogOut, Home, Users, UserPlus, FileText,
     ClipboardList, Calendar, DollarSign, Settings,
     School, TrendingUp, GraduationCap,
-    CheckCircle2, Menu, X, ChevronRight,
+    CheckCircle2, Menu, X, ChevronRight, Award,
     Bell, BookOpen, CreditCard, User, Clock,
     Wand2, Building, Briefcase, Cloud, Library, ShieldCheck, RefreshCw
 } from 'lucide-react';

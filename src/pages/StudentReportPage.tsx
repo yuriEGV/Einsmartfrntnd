@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { 
-    GraduationCap, ClipboardList, Calendar, BookOpen, 
+    GraduationCap, ClipboardList, BookOpen, FileText, 
     Printer, TrendingUp, AlertCircle, CheckCircle2, 
     User, Phone, MapPin, Mail, Award, Clock
 } from 'lucide-react';
@@ -78,7 +78,7 @@ const StudentReportPage = () => {
         );
     }
 
-    const { student, school, gradesBySubject, overallAverage, attendance, annotations, guardian } = data;
+    const { student, school, gradesBySubject, overallAverage, attendance, annotations, guardian, atrasos } = data;
 
     return (
         <div className="min-h-screen bg-slate-50 pb-20 font-sans">
