@@ -1657,12 +1657,12 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => (
-                                                                              <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
+                                                            <tr key={student._id} className="hover:bg-blue-50/20 transition-all group">
+                                                                <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
                                                                     <div className="truncate w-40 px-1">{student.apellidos}, {student.nombres}</div>
                                                                 </td>
                                                                 <td className="p-1 text-center bg-blue-50/20">
                                                                     {(() => {
-                                                                        // Only calculate average based on evaluations visible in the current subject
                                                                         const visibleEvalIds = [
                                                                             ...evaluations.slice(0, 8).map(ev => ev._id),
                                                                             ...Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
@@ -1680,7 +1680,6 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                             </span>
                                                                         );
                                                                     })()}
-                                                                </td>                                               })()}
                                                                 </td>
                                                                 {/* Real Evaluations Inputs */}
                                                                 {evaluations.slice(0, 8).map(ev => (
@@ -1738,9 +1737,9 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                 </table>
                                             </div>
                                         )}
-                                    </div>
-                                </div>
-                            )}
+                                     </div>
+                                 </div>
+                             )}
 
                             {/* TAB CONTEXT: CITACIONES */}
                             {activeTab === 'citaciones' && (
