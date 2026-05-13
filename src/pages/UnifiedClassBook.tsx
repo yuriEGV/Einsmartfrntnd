@@ -173,8 +173,8 @@ const UnifiedClassBook = () => {
         date: new Date().toISOString().split('T')[0],
         weight: 1,
         description: '',
-        type: 'test',
-        category: 'planned'
+        type: 'sumativa',
+        category: 'planificada'
     });
 
     useEffect(() => {
@@ -412,8 +412,8 @@ const UnifiedClassBook = () => {
                 date: new Date().toISOString().split('T')[0],
                 weight: 1,
                 description: '',
-                type: 'test',
-                category: 'planned'
+                type: 'sumativa',
+                category: 'planificada'
             });
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al crear la evaluación.');
@@ -539,8 +539,8 @@ const UnifiedClassBook = () => {
                     title: `Nota ${colNumber}`,
                     date: new Date().toISOString().split('T')[0],
                     weight: 10,
-                    type: 'test',
-                    category: 'planned',
+                    type: 'sumativa',
+                    category: 'planificada',
                     courseId: selectedCourse,
                     subjectId: selectedSubject
                 });
@@ -2254,6 +2254,31 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                         value={evaluationFormData.weight}
                                         onChange={e => setEvaluationFormData({...evaluationFormData, weight: parseInt(e.target.value)})}
                                     />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Tipo</label>
+                                    <select
+                                        required
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                        value={evaluationFormData.type}
+                                        onChange={e => setEvaluationFormData({...evaluationFormData, type: e.target.value})}
+                                    >
+                                        <option value="sumativa">Sumativa</option>
+                                        <option value="formativa">Formativa</option>
+                                        <option value="diagnostica">Diagnóstica</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-4">Categoría</label>
+                                    <select
+                                        required
+                                        className="w-full px-8 py-5 bg-slate-50 border-2 border-slate-100 rounded-3xl font-bold focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                        value={evaluationFormData.category}
+                                        onChange={e => setEvaluationFormData({...evaluationFormData, category: e.target.value})}
+                                    >
+                                        <option value="planificada">Planificada</option>
+                                        <option value="sorpresa">Sorpresa</option>
+                                    </select>
                                 </div>
                             </div>
 
