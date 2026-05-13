@@ -117,6 +117,9 @@ const UnifiedClassBook = () => {
     // Grades Matrix State
     const [gradeMatrix, setGradeMatrix] = useState<Record<string, Record<string, string>>>({});
     const [isSavingMatrix, setIsSavingMatrix] = useState(false);
+    const [showGradesSummaryModal, setShowGradesSummaryModal] = useState(false);
+    const [gradesSummaryData, setGradesSummaryData] = useState<any[]>([]);
+    const [summaryLoading, setSummaryLoading] = useState(false);
 
     // Aula Efectiva (Timer)
     const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -377,7 +380,11 @@ const UnifiedClassBook = () => {
         } catch (err) { console.error('REFRESH ERROR:', err); }
     };
 
-    useEffect(() => { refreshTabContent(); }, [selectedCourse, selectedSubject, activeTab, attendanceDate, selectedBlock]);
+    useEffect(() => { 
+        // Clear matrix on subject change to prevent leak
+        if (activeTab === 'notas') setGradeMatrix({});
+        refreshTabContent(); 
+    }, [selectedCourse, selectedSubject, activeTab, attendanceDate, selectedBlock]);
 
     // [NEW] Log Access to Class Book
     useEffect(() => {
@@ -396,6 +403,62 @@ const UnifiedClassBook = () => {
             logAccess();
         }
     }, [selectedCourse, activeTab]);
+
+    const handleOpenGradesSummary = async () => {
+        if (!selectedCourse) return;
+        setSummaryLoading(true);
+        setShowGradesSummaryModal(true);
+        try {
+            const [gradesRes, evalsRes] = await Promise.all([
+                api.get(`/grades?courseId=${selectedCourse}`),
+                api.get(`/evaluations?courseId=${selectedCourse}`)
+            ]);
+
+            const allGrades = gradesRes.data;
+            const allEvals = evalsRes.data;
+
+            // Map student averages per subject
+            const studentSummary = students.map(student => {
+                const subjectAverages: Record<string, { sum: number, count: number }> = {};
+                
+                allGrades.filter((g: any) => (g.estudianteId?._id || g.estudianteId) === student._id).forEach((g: any) => {
+                    const evaluation = allEvals.find((e: any) => e._id === (g.evaluationId?._id || g.evaluationId));
+                    if (evaluation && evaluation.subjectId) {
+                        const subId = typeof evaluation.subjectId === 'object' ? evaluation.subjectId._id : evaluation.subjectId;
+                        if (!subjectAverages[subId]) subjectAverages[subId] = { sum: 0, count: 0 };
+                        subjectAverages[subId].sum += g.score;
+                        subjectAverages[subId].count += 1;
+                    }
+                });
+
+                const finalAverages: any[] = subjects.map(sub => {
+                    const data = subjectAverages[sub._id];
+                    return {
+                        subjectName: sub.name,
+                        average: data ? (data.sum / data.count) : null
+                    };
+                });
+
+                const totalAvgData = finalAverages.filter(a => a.average !== null);
+                const generalAverage = totalAvgData.length > 0 
+                    ? (totalAvgData.reduce((acc, curr) => acc + curr.average, 0) / totalAvgData.length)
+                    : null;
+
+                return {
+                    _id: student._id,
+                    name: `${student.apellidos}, ${student.nombres}`,
+                    subjectAverages: finalAverages,
+                    generalAverage
+                };
+            });
+
+            setGradesSummaryData(studentSummary.sort((a,b) => a.name.localeCompare(b.name)));
+        } catch (err) {
+            console.error('Error fetching summary:', err);
+        } finally {
+            setSummaryLoading(false);
+        }
+    };
 
     const handleCreateEvaluation = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -1533,6 +1596,12 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
 
                                         <div className="flex items-center gap-4 w-full xl:w-auto">
                                             <button 
+                                                onClick={() => handleOpenGradesSummary()}
+                                                className="flex items-center gap-3 px-8 py-4 bg-white border-2 border-slate-100 text-slate-600 rounded-3xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-blue-200 hover:text-blue-600 transition-all shadow-sm group"
+                                            >
+                                                <Printer size={18} className="group-hover:scale-110 transition-transform" /> Reporte de Calificaciones
+                                            </button>
+                                            <button 
                                                 onClick={() => setShowEvaluationModal(true)}
                                                 disabled={!selectedSubject}
                                                 className="flex-1 xl:flex-none bg-[#11355a] text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
@@ -1588,14 +1657,21 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => (
-                                                            <tr key={student._id} className="hover:bg-blue-50/20 transition-all group">
-                                                                <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
+                                                                              <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
                                                                     <div className="truncate w-40 px-1">{student.apellidos}, {student.nombres}</div>
                                                                 </td>
                                                                 <td className="p-1 text-center bg-blue-50/20">
                                                                     {(() => {
-                                                                        const studentGrades = Object.values(gradeMatrix[student._id] || {});
-                                                                        const numericGrades = studentGrades.map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+                                                                        // Only calculate average based on evaluations visible in the current subject
+                                                                        const visibleEvalIds = [
+                                                                            ...evaluations.slice(0, 8).map(ev => ev._id),
+                                                                            ...Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
+                                                                        ];
+                                                                        
+                                                                        const numericGrades = visibleEvalIds
+                                                                            .map(id => parseFloat(gradeMatrix[student._id]?.[id] || ''))
+                                                                            .filter(v => !isNaN(v) && v > 0);
+
                                                                         if (numericGrades.length === 0) return <span className="text-slate-300 font-bold">--</span>;
                                                                         const avg = numericGrades.reduce((a, b) => a + b, 0) / numericGrades.length;
                                                                         return (
@@ -1604,6 +1680,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                             </span>
                                                                         );
                                                                     })()}
+                                                                </td>                                               })()}
                                                                 </td>
                                                                 {/* Real Evaluations Inputs */}
                                                                 {evaluations.slice(0, 8).map(ev => (
@@ -2317,6 +2394,113 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+            {showGradesSummaryModal && (
+                <div className="fixed inset-0 bg-[#0a192f]/90 backdrop-blur-2xl z-[70] flex items-center justify-center p-4 md:p-12 animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-7xl h-full max-h-[90vh] rounded-[4rem] shadow-2xl border border-white/20 flex flex-col overflow-hidden animate-in zoom-in-95 duration-500">
+                        {/* Header */}
+                        <div className="p-12 pb-8 flex justify-between items-center bg-gradient-to-br from-slate-50 to-white">
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 bg-blue-600 rounded-[2rem] flex items-center justify-center text-white shadow-2xl shadow-blue-500/20">
+                                    <ClipboardList size={36} />
+                                </div>
+                                <div>
+                                    <h3 className="text-4xl font-black text-[#11355a] tracking-tight uppercase">Resumen Consolidado de Calificaciones</h3>
+                                    <p className="text-slate-400 font-bold text-sm uppercase tracking-widest mt-2">
+                                        Curso: {courses.find(c => c._id === selectedCourse)?.name} • Periodo Académico Actual
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <button 
+                                    onClick={() => window.print()}
+                                    className="p-5 bg-slate-100 text-slate-600 rounded-3xl hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                                >
+                                    <Printer size={24} />
+                                </button>
+                                <button 
+                                    onClick={() => setShowGradesSummaryModal(false)}
+                                    className="p-5 bg-slate-50 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-3xl transition-all"
+                                >
+                                    <X size={28} />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Content */}
+                        <div className="flex-1 overflow-auto p-12 pt-0">
+                            {summaryLoading ? (
+                                <div className="flex flex-col items-center justify-center h-full space-y-6">
+                                    <div className="w-16 h-16 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                    <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Calculando promedios institucionales...</p>
+                                </div>
+                            ) : (
+                                <div className="rounded-[3rem] border border-slate-100 overflow-hidden shadow-sm">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-slate-50/80 sticky top-0 z-20 backdrop-blur-md">
+                                                <th className="p-6 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 w-64">Estudiante</th>
+                                                {subjects.map(sub => (
+                                                    <th key={sub._id} className="p-6 border-b text-center text-[10px] font-black text-[#11355a] uppercase tracking-tight min-w-[120px]">
+                                                        {sub.name}
+                                                    </th>
+                                                ))}
+                                                <th className="p-6 border-b text-center text-[10px] font-black text-blue-700 uppercase tracking-widest bg-blue-50/50">Prom. Gral</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-50">
+                                            {gradesSummaryData.map(row => (
+                                                <tr key={row._id} className="hover:bg-slate-50/50 transition-colors group">
+                                                    <td className="p-6 font-black text-[#11355a] text-xs uppercase sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50">
+                                                        {row.name}
+                                                    </td>
+                                                    {row.subjectAverages.map((avg: any, idx: number) => (
+                                                        <td key={idx} className="p-6 text-center">
+                                                            {avg.average !== null ? (
+                                                                <span className={`text-sm font-black ${avg.average >= 4.0 ? 'text-slate-700' : 'text-rose-500'}`}>
+                                                                    {avg.average.toFixed(1)}
+                                                                </span>
+                                                            ) : (
+                                                                <span className="text-slate-200 font-bold">--</span>
+                                                            )}
+                                                        </td>
+                                                    ))}
+                                                    <td className="p-6 text-center bg-blue-50/30">
+                                                        {row.generalAverage !== null ? (
+                                                            <div className="flex flex-col items-center">
+                                                                <span className={`text-base font-black ${row.generalAverage >= 4.0 ? 'text-blue-700' : 'text-rose-600'}`}>
+                                                                    {row.generalAverage.toFixed(1)}
+                                                                </span>
+                                                                <div className={`h-1 w-8 rounded-full mt-1 ${row.generalAverage >= 4.0 ? 'bg-blue-600/30' : 'bg-rose-500/30'}`}></div>
+                                                            </div>
+                                                        ) : (
+                                                            <span className="text-slate-300 font-bold">--</span>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Footer Info */}
+                        <div className="p-10 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                            <div className="flex gap-10">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 bg-blue-600 rounded-full"></div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Suficiencia Académica</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-3 h-3 bg-rose-500 rounded-full"></div>
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Riesgo Repitencia</span>
+                                </div>
+                            </div>
+                            <p className="text-[10px] font-bold text-slate-300 italic">EinSmart Digital ClassBook • Reporte Generado {new Date().toLocaleString()}</p>
+                        </div>
                     </div>
                 </div>
             )}
