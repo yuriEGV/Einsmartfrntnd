@@ -349,7 +349,7 @@ const UnifiedClassBook = () => {
                     setLogs(res.data);
                 } else if (activeTab === 'notas') {
                     const [gradesRes, evalsRes, studRes] = await Promise.all([
-                        api.get(`/grades?courseId=${selectedCourse}`),
+                        api.get(`/grades?courseId=${selectedCourse}&subjectId=${selectedSubject}`),
                         api.get(`/evaluations?courseId=${selectedCourse}&subjectId=${selectedSubject}`),
                         api.get(`/estudiantes?cursoId=${selectedCourse}`)
                     ]);
