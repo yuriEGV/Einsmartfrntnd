@@ -2511,29 +2511,27 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     <thead>
                                                         <tr className="bg-slate-50/80 sticky top-0 z-20 backdrop-blur-md print:static">
                                                             <th colSpan={4} className="p-1 border-b border-r text-center font-black text-slate-400 uppercase bg-slate-100">Datos Alumno</th>
-                                                            {fgSubjects.length > 0 && (
-                                                                <th colSpan={fgSubjects.length} className="p-1 border-b border-r text-center font-black text-blue-800 uppercase bg-blue-50/80">Formación General</th>
-                                                            )}
-                                                            {ftSubjects.length > 0 && (
-                                                                <th colSpan={ftSubjects.length} className="p-1 border-b border-r text-center font-black text-emerald-800 uppercase bg-emerald-50/80">Formación Técnica</th>
-                                                            )}
+                                                            <th colSpan={Math.max(1, fgSubjects.length)} className="p-1 border-b border-r text-center font-black text-blue-800 uppercase bg-blue-50/80">Formación General</th>
+                                                            <th colSpan={Math.max(1, ftSubjects.length)} className="p-1 border-b border-r text-center font-black text-emerald-800 uppercase bg-emerald-50/80">Formación Técnica</th>
                                                             <th className="p-1 border-b border-r text-center font-black text-purple-800 uppercase bg-purple-50/80">Alternancia</th>
-                                                            <th colSpan={4} className="p-1 border-b text-center font-black text-slate-800 uppercase bg-slate-100 sticky right-0 z-30 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)] print:static print:shadow-none">Promedios Finales</th>
+                                                            <th colSpan={4} className="p-1 border-b text-center font-black text-slate-800 uppercase bg-slate-100 print:static print:shadow-none">Promedios Finales</th>
                                                         </tr>
                                                         <tr className="bg-slate-50/80 sticky top-[22px] z-20 backdrop-blur-md print:static">
-                                                            <th className="p-1 border-b border-r text-[7px] font-black text-slate-500 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 min-w-[100px] max-w-[120px] shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)] print:static print:shadow-none">Estudiante</th>
+                                                            <th className="p-1 border-b border-r text-[7px] font-black text-slate-500 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 min-w-[80px] max-w-[100px] shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)] print:static print:shadow-none">Estudiante</th>
                                                             <th className="p-1 border-b border-r text-[7px] font-black text-slate-500 text-center uppercase" title="Asistencia %">Asis.</th>
                                                             <th className="p-1 border-b border-r text-[7px] font-black text-slate-500 text-center uppercase" title="Atrasos">Atr.</th>
                                                             <th className="p-1 border-b border-r text-[7px] font-black text-slate-500 text-center uppercase" title="Anotaciones">Anot.</th>
                                                             
+                                                            {fgSubjects.length === 0 && <th className="p-1 border-b border-r text-center text-[7px] font-black text-slate-300 uppercase bg-blue-50/30">Sin Ramos</th>}
                                                             {fgSubjects.map(sub => (
-                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-[#11355a] uppercase tracking-tight max-w-[50px] break-words leading-tight bg-blue-50/30" title={sub.name}>
+                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-[#11355a] uppercase tracking-tight max-w-[40px] break-words leading-tight bg-blue-50/30" title={sub.name}>
                                                                     {sub.name}
                                                                 </th>
                                                             ))}
                                                             
+                                                            {ftSubjects.length === 0 && <th className="p-1 border-b border-r text-center text-[7px] font-black text-slate-300 uppercase bg-emerald-50/30">Sin Ramos</th>}
                                                             {ftSubjects.map(sub => (
-                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-emerald-900 uppercase tracking-tight max-w-[50px] break-words leading-tight bg-emerald-50/30" title={sub.name}>
+                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-emerald-900 uppercase tracking-tight max-w-[40px] break-words leading-tight bg-emerald-50/30" title={sub.name}>
                                                                     {sub.name}
                                                                 </th>
                                                             ))}
@@ -2543,13 +2541,13 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             <th className="p-1 border-b border-r text-center text-[7px] font-black text-blue-700 uppercase tracking-tight bg-slate-100" title="Promedio Formación General">P.FG</th>
                                                             <th className="p-1 border-b border-r text-center text-[7px] font-black text-emerald-700 uppercase tracking-tight bg-slate-100" title="Promedio Formación Técnica">P.FT</th>
                                                             <th className="p-1 border-b border-r text-center text-[7px] font-black text-purple-700 uppercase tracking-tight bg-slate-100" title="Promedio Alternancia">P.ALT</th>
-                                                            <th className="p-1 border-b text-center text-[8px] font-black text-[#11355a] uppercase tracking-widest bg-blue-100/50 sticky right-0 z-30 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)] print:static print:shadow-none">P.GRAL</th>
+                                                            <th className="p-1 border-b border-r text-center text-[8px] font-black text-[#11355a] uppercase tracking-widest bg-blue-100/50 print:static print:shadow-none">P.GRAL</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody className="divide-y divide-slate-50">
                                                         {gradesSummaryData.map(row => (
                                                             <tr key={row._id} className="hover:bg-slate-50/80 transition-colors group text-[8px]">
-                                                                <td className="p-1 font-black text-[#11355a] uppercase sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-b border-slate-100 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] truncate min-w-[100px] max-w-[120px] print:static print:shadow-none" title={row.name}>
+                                                                <td className="p-1 font-black text-[#11355a] uppercase sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-b border-slate-100 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] truncate min-w-[80px] max-w-[100px] print:static print:shadow-none" title={row.name}>
                                                                     {row.name}
                                                                 </td>
                                                                 <td className="p-1 text-center font-bold text-slate-600 border-r border-b border-slate-100">
@@ -2562,6 +2560,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                     <span className="text-emerald-500">{row.annotations?.pos || 0}</span>/<span className="text-rose-500">{row.annotations?.neg || 0}</span>
                                                                 </td>
                                                                 
+                                                                {fgSubjects.length === 0 && <td className="p-1 text-center border-r border-b border-slate-100 bg-blue-50/10"><span className="text-slate-200">--</span></td>}
                                                                 {fgSubjects.map(sub => {
                                                                     const val = row.subjectAverages.find((a: any) => a.subjectName === sub.name)?.average;
                                                                     return (
@@ -2573,6 +2572,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                     );
                                                                 })}
                                                                 
+                                                                {ftSubjects.length === 0 && <td className="p-1 text-center border-r border-b border-slate-100 bg-emerald-50/10"><span className="text-slate-200">--</span></td>}
                                                                 {ftSubjects.map(sub => {
                                                                     const val = row.subjectAverages.find((a: any) => a.subjectName === sub.name)?.average;
                                                                     return (
@@ -2605,7 +2605,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                         <span className={`font-black ${row.altAverage >= 4.0 ? 'text-purple-700' : 'text-rose-500'}`}>{row.altAverage.toFixed(1)}</span>
                                                                     ) : (<span className="text-slate-200 font-bold">--</span>)}
                                                                 </td>
-                                                                <td className="p-1 text-center bg-blue-100/30 border-b border-slate-200 sticky right-0 z-10 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.05)] print:static print:shadow-none">
+                                                                <td className="p-1 text-center bg-blue-100/30 border-r border-b border-slate-200 print:static print:shadow-none">
                                                                     {row.generalAverage !== null && row.generalAverage !== undefined ? (
                                                                         <span className={`text-[9px] font-black ${row.generalAverage >= 4.0 ? 'text-[#11355a]' : 'text-rose-600'}`}>{row.generalAverage.toFixed(1)}</span>
                                                                     ) : (<span className="text-slate-300 font-bold">--</span>)}
