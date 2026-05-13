@@ -417,22 +417,28 @@ const UnifiedClassBook = () => {
             const allGrades = gradesRes.data;
             const allEvals = evalsRes.data;
 
+            // [FIX] Filter subjects to be unique and potentially relevant to this course
+            const uniqueSubjects = subjects.filter((sub, index, self) =>
+                index === self.findIndex((t) => t.name === sub.name)
+            );
+
             // Map student averages per subject
             const studentSummary = students.map(student => {
                 const subjectAverages: Record<string, { sum: number, count: number }> = {};
                 
                 allGrades.filter((g: any) => (g.estudianteId?._id || g.estudianteId) === student._id).forEach((g: any) => {
                     const evaluation = allEvals.find((e: any) => e._id === (g.evaluationId?._id || g.evaluationId));
-                    if (evaluation && evaluation.subjectId) {
-                        const subId = typeof evaluation.subjectId === 'object' ? evaluation.subjectId._id : evaluation.subjectId;
-                        if (!subjectAverages[subId]) subjectAverages[subId] = { sum: 0, count: 0 };
-                        subjectAverages[subId].sum += g.score;
-                        subjectAverages[subId].count += 1;
+                    if (evaluation) {
+                        // Use subject name as key for robustness if IDs are inconsistent
+                        const subjectName = evaluation.subjectId?.name || evaluation.subject || 'General';
+                        if (!subjectAverages[subjectName]) subjectAverages[subjectName] = { sum: 0, count: 0 };
+                        subjectAverages[subjectName].sum += g.score;
+                        subjectAverages[subjectName].count += 1;
                     }
                 });
 
-                const finalAverages: any[] = subjects.map(sub => {
-                    const data = subjectAverages[sub._id];
+                const finalAverages: any[] = uniqueSubjects.map(sub => {
+                    const data = subjectAverages[sub.name];
                     return {
                         subjectName: sub.name,
                         average: data ? (data.sum / data.count) : null
@@ -1094,7 +1100,11 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
     };
 
 
-    const filteredSubjects = selectedCourse ? subjects.filter((s: any) => (s.courseId?._id || s.courseId) === selectedCourse) : [];
+    const filteredSubjects = selectedCourse 
+        ? subjects
+            .filter((s: any) => (s.courseId?._id || s.courseId) === selectedCourse)
+            .filter((sub, index, self) => index === self.findIndex((t) => t.name === sub.name))
+        : [];
 
 
     // -------------------------------------------------------------------------
@@ -2436,27 +2446,28 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                     <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Calculando promedios institucionales...</p>
                                 </div>
                             ) : (
-                                <div className="rounded-[3rem] border border-slate-100 overflow-hidden shadow-sm">
-                                    <table className="w-full text-left border-collapse">
+                                <div className="rounded-[3rem] border border-slate-100 overflow-x-auto shadow-sm custom-scrollbar">
+                                    <table className="w-full text-left border-collapse min-w-[1200px]">
                                         <thead>
                                             <tr className="bg-slate-50/80 sticky top-0 z-20 backdrop-blur-md">
-                                                <th className="p-6 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 w-64">Estudiante</th>
-                                                {subjects.map(sub => (
-                                                    <th key={sub._id} className="p-6 border-b text-center text-[10px] font-black text-[#11355a] uppercase tracking-tight min-w-[120px]">
+                                                <th className="p-4 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 w-64 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)]">Estudiante</th>
+                                                {/* Calculate unique subjects for header */}
+                                                {subjects.filter((sub, index, self) => index === self.findIndex((t) => t.name === sub.name)).map(sub => (
+                                                    <th key={sub._id} className="p-4 border-b text-center text-[10px] font-black text-[#11355a] uppercase tracking-tight min-w-[100px]">
                                                         {sub.name}
                                                     </th>
                                                 ))}
-                                                <th className="p-6 border-b text-center text-[10px] font-black text-blue-700 uppercase tracking-widest bg-blue-50/50">Prom. Gral</th>
+                                                <th className="p-4 border-b text-center text-[10px] font-black text-blue-700 uppercase tracking-widest bg-blue-50/50 sticky right-0 z-30 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">Prom. Gral</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {gradesSummaryData.map(row => (
                                                 <tr key={row._id} className="hover:bg-slate-50/50 transition-colors group">
-                                                    <td className="p-6 font-black text-[#11355a] text-xs uppercase sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50">
+                                                    <td className="p-4 font-black text-[#11355a] text-[11px] uppercase sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)]">
                                                         {row.name}
                                                     </td>
                                                     {row.subjectAverages.map((avg: any, idx: number) => (
-                                                        <td key={idx} className="p-6 text-center">
+                                                        <td key={idx} className="p-4 text-center">
                                                             {avg.average !== null ? (
                                                                 <span className={`text-sm font-black ${avg.average >= 4.0 ? 'text-slate-700' : 'text-rose-500'}`}>
                                                                     {avg.average.toFixed(1)}
@@ -2466,13 +2477,13 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             )}
                                                         </td>
                                                     ))}
-                                                    <td className="p-6 text-center bg-blue-50/30">
+                                                    <td className="p-4 text-center bg-blue-50/30 sticky right-0 z-10 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">
                                                         {row.generalAverage !== null ? (
                                                             <div className="flex flex-col items-center">
-                                                                <span className={`text-base font-black ${row.generalAverage >= 4.0 ? 'text-blue-700' : 'text-rose-600'}`}>
+                                                                <span className={`text-sm font-black ${row.generalAverage >= 4.0 ? 'text-blue-700' : 'text-rose-600'}`}>
                                                                     {row.generalAverage.toFixed(1)}
                                                                 </span>
-                                                                <div className={`h-1 w-8 rounded-full mt-1 ${row.generalAverage >= 4.0 ? 'bg-blue-600/30' : 'bg-rose-500/30'}`}></div>
+                                                                <div className={`h-0.5 w-6 rounded-full mt-1 ${row.generalAverage >= 4.0 ? 'bg-blue-600/30' : 'bg-rose-500/30'}`}></div>
                                                             </div>
                                                         ) : (
                                                             <span className="text-slate-300 font-bold">--</span>

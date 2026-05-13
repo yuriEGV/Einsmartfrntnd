@@ -47,6 +47,7 @@ import TeacherTimeReportPage from './pages/TeacherTimeReportPage';
 import ClassroomEfficiencyPage from './pages/ClassroomEfficiencyPage';
 import GlobalAcademicPerformancePage from './pages/GlobalAcademicPerformancePage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
+import StudentReportPage from './pages/StudentReportPage';
 
 function App() {
   return (
@@ -102,7 +103,8 @@ function App() {
             <Route path="/global-analytics" element={<GlobalAcademicPerformancePage />} />
             <Route path="/payroll/new" element={<PayrollForm />} />
             <Route path="/payroll/edit/:id" element={<PayrollForm isEditing={true} />} />
-            <Route path="/system-updates" element={<SystemSettingsPage />} />
+             <Route path="/system-updates" element={<SystemSettingsPage />} />
+             <Route path="/student-report" element={<StudentReportPage />} />
 
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

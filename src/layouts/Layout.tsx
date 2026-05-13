@@ -242,6 +242,10 @@ const Layout = () => {
                     </div>
 
                     <NavLink to="/" icon={Home}>{!isCollapsed && "Escritorio"}</NavLink>
+                    
+                    {(user?.role === 'student' || user?.role === 'apoderado' || user?.role === 'admin' || user?.role === 'director' || user?.role === 'utp') && (
+                        <NavLink to="/student-report" icon={Award}>{!isCollapsed && "Informe Académico"}</NavLink>
+                    )}
 
                     {permissions.canManageEnrollments && permissions.user?.role !== 'student' && (
                         <NavLink to="/enrollments" icon={UserPlus}>{!isCollapsed && "Matrículas"}</NavLink>
