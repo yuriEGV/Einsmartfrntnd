@@ -2499,12 +2499,19 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                     <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Calculando promedios institucionales...</p>
                                 </div>
                             ) : (
-                                <div className="rounded-[3rem] border border-slate-100 overflow-x-auto shadow-sm custom-scrollbar print:overflow-visible">
+                                <div className="rounded-[3rem] border border-slate-100 shadow-sm print:overflow-visible">
                                     <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-0 print:w-full text-[8px]">
                                         {(() => {
                                             const uniqueSubjects = subjects.filter((sub, index, self) => index === self.findIndex((t) => t.name === sub.name));
-                                            const fgSubjects = uniqueSubjects.filter(sub => !sub.isTechnical);
-                                            const ftSubjects = uniqueSubjects.filter(sub => sub.isTechnical);
+                                            
+                                            const isTechnicalFallback = (name: string) => {
+                                                const n = name.toLowerCase();
+                                                const kws = ['elaboración', 'elaboracion', 'cocina', 'análisis', 'analisis', 'almacenaje', 'bodega', 'calidad', 'consolidación', 'consolidacion', 'control', 'registro', 'cuidado', 'medio ambiente', 'documentación', 'documentacion', 'emprendimiento', 'empleabilidad', 'taller', 'módulo', 'modulo', 'gastronomía', 'gastronomia', 'menús', 'carta', 'bebidas', 'masas'];
+                                                return kws.some(kw => n.includes(kw));
+                                            };
+
+                                            const fgSubjects = uniqueSubjects.filter(sub => !(sub.isTechnical || isTechnicalFallback(sub.name)));
+                                            const ftSubjects = uniqueSubjects.filter(sub => sub.isTechnical || isTechnicalFallback(sub.name));
                                             
                                             return (
                                                 <>
@@ -2524,15 +2531,19 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             
                                                             {fgSubjects.length === 0 && <th className="p-1 border-b border-r text-center text-[7px] font-black text-slate-300 uppercase bg-blue-50/30">Sin Ramos</th>}
                                                             {fgSubjects.map(sub => (
-                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-[#11355a] uppercase tracking-tight max-w-[40px] break-words leading-tight bg-blue-50/30" title={sub.name}>
-                                                                    {sub.name}
+                                                                <th key={sub._id} className="p-1 border-b border-r bg-blue-50/30 align-bottom" title={sub.name}>
+                                                                    <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }} className="max-h-[140px] text-[7px] font-black text-[#11355a] uppercase tracking-widest mx-auto pb-2 flex items-center justify-start text-left">
+                                                                        {sub.name}
+                                                                    </div>
                                                                 </th>
                                                             ))}
                                                             
                                                             {ftSubjects.length === 0 && <th className="p-1 border-b border-r text-center text-[7px] font-black text-slate-300 uppercase bg-emerald-50/30">Sin Ramos</th>}
                                                             {ftSubjects.map(sub => (
-                                                                <th key={sub._id} className="p-1 border-b border-r text-center text-[7px] font-black text-emerald-900 uppercase tracking-tight max-w-[40px] break-words leading-tight bg-emerald-50/30" title={sub.name}>
-                                                                    {sub.name}
+                                                                <th key={sub._id} className="p-1 border-b border-r bg-emerald-50/30 align-bottom" title={sub.name}>
+                                                                    <div style={{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }} className="max-h-[140px] text-[7px] font-black text-emerald-900 uppercase tracking-widest mx-auto pb-2 flex items-center justify-start text-left">
+                                                                        {sub.name}
+                                                                    </div>
                                                                 </th>
                                                             ))}
                                                             
