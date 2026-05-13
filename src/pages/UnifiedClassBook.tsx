@@ -409,13 +409,19 @@ const UnifiedClassBook = () => {
         setSummaryLoading(true);
         setShowGradesSummaryModal(true);
         try {
-            const [gradesRes, evalsRes] = await Promise.all([
+            const [gradesRes, evalsRes, attRes, annRes, atrRes] = await Promise.all([
                 api.get(`/grades?courseId=${selectedCourse}`),
-                api.get(`/evaluations?courseId=${selectedCourse}`)
+                api.get(`/evaluations?courseId=${selectedCourse}`),
+                api.get(`/attendance?courseId=${selectedCourse}`),
+                api.get(`/anotaciones?cursoId=${selectedCourse}`),
+                api.get(`/atrasos?courseId=${selectedCourse}`)
             ]);
 
             const allGrades = gradesRes.data;
             const allEvals = evalsRes.data;
+            const allAtts = attRes.data;
+            const allAnns = annRes.data;
+            const allAtrs = atrRes.data;
 
             // [FIX] Filter subjects to be unique and potentially relevant to this course
             const uniqueSubjects = subjects.filter((sub, index, self) =>
@@ -450,11 +456,26 @@ const UnifiedClassBook = () => {
                     ? (totalAvgData.reduce((acc, curr) => acc + curr.average, 0) / totalAvgData.length)
                     : null;
 
+                // Additional stats
+                const studentAtts = allAtts.filter((a: any) => (a.estudianteId?._id || a.estudianteId) === student._id);
+                const attTotal = studentAtts.length;
+                const attPresent = studentAtts.filter((a:any) => a.estado === 'presente' || a.estado === 'justificado').length;
+                const attendancePct = attTotal > 0 ? Math.round((attPresent / attTotal) * 100) : 100;
+
+                const atrasosCount = allAtrs.filter((a: any) => (a.estudianteId?._id || a.estudianteId) === student._id).length;
+
+                const studentAnns = allAnns.filter((a: any) => (a.estudianteId?._id || a.estudianteId) === student._id);
+                const annotationsPos = studentAnns.filter((a:any) => a.tipo === 'positiva').length;
+                const annotationsNeg = studentAnns.filter((a:any) => a.tipo === 'negativa').length;
+
                 return {
                     _id: student._id,
                     name: `${student.apellidos}, ${student.nombres}`,
                     subjectAverages: finalAverages,
-                    generalAverage
+                    generalAverage,
+                    attendancePct,
+                    atrasosCount,
+                    annotations: { pos: annotationsPos, neg: annotationsNeg }
                 };
             });
 
@@ -2450,43 +2471,54 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                     <table className="w-full text-left border-collapse min-w-[1200px]">
                                         <thead>
                                             <tr className="bg-slate-50/80 sticky top-0 z-20 backdrop-blur-md">
-                                                <th className="p-4 border-b text-[10px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 w-64 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)]">Estudiante</th>
+                                                <th className="p-2 border-b text-[9px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50 z-30 min-w-[150px] shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)]">Estudiante</th>
+                                                <th className="p-2 border-b text-[9px] font-black text-slate-400 text-center uppercase">Asist.</th>
+                                                <th className="p-2 border-b text-[9px] font-black text-slate-400 text-center uppercase">Atrs.</th>
+                                                <th className="p-2 border-b text-[9px] font-black text-slate-400 text-center uppercase">Anot.</th>
                                                 {/* Calculate unique subjects for header */}
                                                 {subjects.filter((sub, index, self) => index === self.findIndex((t) => t.name === sub.name)).map(sub => (
-                                                    <th key={sub._id} className="p-4 border-b text-center text-[10px] font-black text-[#11355a] uppercase tracking-tight min-w-[100px]">
+                                                    <th key={sub._id} className="p-2 border-b text-center text-[9px] font-black text-[#11355a] uppercase tracking-tight max-w-[80px] break-words">
                                                         {sub.name}
                                                     </th>
                                                 ))}
-                                                <th className="p-4 border-b text-center text-[10px] font-black text-blue-700 uppercase tracking-widest bg-blue-50/50 sticky right-0 z-30 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">Prom. Gral</th>
+                                                <th className="p-2 border-b text-center text-[9px] font-black text-blue-700 uppercase tracking-widest bg-blue-50/50 sticky right-0 z-30 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">Prom. Gral</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-50">
                                             {gradesSummaryData.map(row => (
                                                 <tr key={row._id} className="hover:bg-slate-50/50 transition-colors group">
-                                                    <td className="p-4 font-black text-[#11355a] text-[11px] uppercase sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)]">
+                                                    <td className="p-2 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-slate-50/50 z-10 border-r border-slate-50 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.1)] truncate max-w-[150px]" title={row.name}>
                                                         {row.name}
                                                     </td>
+                                                    <td className="p-2 text-center text-[10px] font-bold text-slate-600 border-r border-slate-50/50">
+                                                        <span className={row.attendancePct < 85 ? 'text-rose-500' : ''}>{row.attendancePct}%</span>
+                                                    </td>
+                                                    <td className="p-2 text-center text-[10px] font-bold text-slate-600 border-r border-slate-50/50">
+                                                        <span className={row.atrasosCount > 3 ? 'text-amber-500' : ''}>{row.atrasosCount}</span>
+                                                    </td>
+                                                    <td className="p-2 text-center text-[10px] font-bold border-r border-slate-50/50 whitespace-nowrap">
+                                                        <span className="text-emerald-500">{row.annotations?.pos || 0}</span> / <span className="text-rose-500">{row.annotations?.neg || 0}</span>
+                                                    </td>
                                                     {row.subjectAverages.map((avg: any, idx: number) => (
-                                                        <td key={idx} className="p-4 text-center">
+                                                        <td key={idx} className="p-2 text-center border-r border-slate-50/30">
                                                             {avg.average !== null ? (
-                                                                <span className={`text-sm font-black ${avg.average >= 4.0 ? 'text-slate-700' : 'text-rose-500'}`}>
+                                                                <span className={`text-[11px] font-black ${avg.average >= 4.0 ? 'text-slate-700' : 'text-rose-500'}`}>
                                                                     {avg.average.toFixed(1)}
                                                                 </span>
                                                             ) : (
-                                                                <span className="text-slate-200 font-bold">--</span>
+                                                                <span className="text-slate-200 font-bold text-[10px]">--</span>
                                                             )}
                                                         </td>
                                                     ))}
-                                                    <td className="p-4 text-center bg-blue-50/30 sticky right-0 z-10 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">
+                                                    <td className="p-2 text-center bg-blue-50/30 sticky right-0 z-10 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.1)]">
                                                         {row.generalAverage !== null ? (
                                                             <div className="flex flex-col items-center">
-                                                                <span className={`text-sm font-black ${row.generalAverage >= 4.0 ? 'text-blue-700' : 'text-rose-600'}`}>
+                                                                <span className={`text-[12px] font-black ${row.generalAverage >= 4.0 ? 'text-blue-700' : 'text-rose-600'}`}>
                                                                     {row.generalAverage.toFixed(1)}
                                                                 </span>
-                                                                <div className={`h-0.5 w-6 rounded-full mt-1 ${row.generalAverage >= 4.0 ? 'bg-blue-600/30' : 'bg-rose-500/30'}`}></div>
                                                             </div>
                                                         ) : (
-                                                            <span className="text-slate-300 font-bold">--</span>
+                                                            <span className="text-slate-300 font-bold text-[11px]">--</span>
                                                         )}
                                                     </td>
                                                 </tr>
