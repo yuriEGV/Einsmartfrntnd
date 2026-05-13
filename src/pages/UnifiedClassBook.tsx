@@ -531,20 +531,38 @@ const UnifiedClassBook = () => {
                 });
             });
 
-            // 2. Create real evaluations for those virtual columns
+            // 2. Find-or-create real evaluations for those virtual columns
+            // First, fetch existing evaluations for this course+subject to reuse them
             const virtualToRealMap: Record<string, string> = {};
-            for (const vId of virtualIdsToCreate) {
-                const colNumber = vId.split('_')[1];
-                const res = await api.post('/evaluations', {
-                    title: `Nota ${colNumber}`,
-                    date: new Date().toISOString().split('T')[0],
-                    weight: 10,
-                    type: 'sumativa',
-                    category: 'planificada',
-                    courseId: selectedCourse,
-                    subjectId: selectedSubject
-                });
-                virtualToRealMap[vId] = res.data._id;
+            if (virtualIdsToCreate.length > 0) {
+                let existingEvals: any[] = [];
+                try {
+                    const evRes = await api.get('/evaluations', { params: { courseId: selectedCourse, subjectId: selectedSubject } });
+                    existingEvals = evRes.data || [];
+                } catch (_) { existingEvals = []; }
+
+                for (const vId of virtualIdsToCreate) {
+                    const colNumber = vId.split('_')[1];
+                    const notaTitle = `Nota ${colNumber}`;
+
+                    // Try to find an existing evaluation with this title
+                    const found = existingEvals.find((e: any) => e.title === notaTitle);
+                    if (found) {
+                        virtualToRealMap[vId] = found._id;
+                    } else {
+                        // Create a new evaluation (backend now returns existing if title+course+subject match)
+                        const res = await api.post('/evaluations', {
+                            title: notaTitle,
+                            date: new Date().toISOString().split('T')[0],
+                            weight: 10,
+                            type: 'sumativa',
+                            category: 'planificada',
+                            courseId: selectedCourse,
+                            subjectId: selectedSubject
+                        });
+                        virtualToRealMap[vId] = res.data._id;
+                    }
+                }
             }
 
             // 3. Prepare final bulk payload
