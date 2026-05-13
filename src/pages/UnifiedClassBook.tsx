@@ -427,10 +427,22 @@ const UnifiedClassBook = () => {
 
             const normalizeName = (name: string) => (name || '').trim().toLowerCase();
 
+            const courseSubjectNames = new Set();
+            allEvals.forEach((e: any) => {
+                courseSubjectNames.add(normalizeName(e.subjectId?.name || e.subject || 'General'));
+            });
+
             // [FIX] Filter subjects to be unique to avoid duplicated columns
-            const uniqueSubjects = subjects.filter((sub, index, self) =>
-                index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name))
-            );
+            // And strictly filter by course relevance (explicitly assigned OR has evaluations)
+            const uniqueSubjects = subjects.filter((sub, index, self) => {
+                const isUnique = index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name));
+                if (!isUnique) return false;
+                
+                const cid = sub.courseId?._id || sub.courseId;
+                const isAssigned = cid === selectedCourse;
+                const hasEvals = courseSubjectNames.has(normalizeName(sub.name));
+                return isAssigned || hasEvals;
+            });
 
             // Map student averages per subject
             const studentSummary = students.map(student => {
@@ -2506,7 +2518,22 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                     <table className="w-full text-left border-collapse min-w-[1200px] print:min-w-0 print:w-full text-[8px]">
                                         {(() => {
                                             const normalizeName = (name: string) => (name || '').trim().toLowerCase();
-                                            const uniqueSubjects = subjects.filter((sub, index, self) => index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name)));
+                                            const courseSubjectNames = new Set(evaluations.map((e: any) => normalizeName(e.subjectId?.name || e.subject || 'General')));
+                                            
+                                            // Fallback to checking subjectAverages from gradesSummaryData if evaluations state is partial
+                                            gradesSummaryData.forEach(row => {
+                                                row.subjectAverages.forEach((avg: any) => {
+                                                    courseSubjectNames.add(normalizeName(avg.subjectName));
+                                                });
+                                            });
+
+                                            const uniqueSubjects = subjects.filter((sub, index, self) => {
+                                                const isUnique = index === self.findIndex((t) => normalizeName(t.name) === normalizeName(sub.name));
+                                                if (!isUnique) return false;
+                                                
+                                                const cid = sub.courseId?._id || sub.courseId;
+                                                return cid === selectedCourse || courseSubjectNames.has(normalizeName(sub.name));
+                                            });
                                             
                                             const isTechnicalFallback = (name: string) => {
                                                 const n = name.toLowerCase();
