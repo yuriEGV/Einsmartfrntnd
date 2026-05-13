@@ -50,6 +50,20 @@ const StudentsPage = () => {
         fetchStudents();
     }, [location.search]);
 
+    // Auto-open edit modal if ?edit=<studentId> is in the URL
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const editId = params.get('edit');
+        if (editId && students.length > 0) {
+            const student = students.find(s => s._id === editId);
+            if (student) {
+                setModalMode('edit');
+                setCurrentStudent(student);
+                setShowModal(true);
+            }
+        }
+    }, [location.search, students]);
+
     const fetchStudents = async () => {
         try {
             setLoading(true);

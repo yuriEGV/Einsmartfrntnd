@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save, Eye, EyeOff } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save, Eye, EyeOff, Pencil } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -15,6 +15,7 @@ const UnifiedClassBook = () => {
     const { confirm, prompt } = useConfirm();
     const printRef = useRef<HTMLDivElement>(null);
     const actaPrintRef = useRef<HTMLDivElement>(null);
+    const navigate = useNavigate();
 
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
     const [activeTab, setActiveTab] = useState<'ficha' | 'asistencia' | 'leccionario' | 'notas' | 'citaciones' | 'anotaciones' | 'atrasos'>('ficha');
@@ -45,6 +46,11 @@ const UnifiedClassBook = () => {
             setActiveTab(tab as any);
         }
 
+        // Store pending citationId to open once citaciones are loaded
+        if (citationIdParam && lastHandledCitationId.current !== citationIdParam) {
+            pendingCitationIdRef.current = citationIdParam;
+        }
+
         // Auto-select student if studentId is provided
         if (studentIdParam && students.length > 0 && lastHandledStudentId.current !== studentIdParam) {
             const student = students.find(s => s._id === studentIdParam);
@@ -54,32 +60,39 @@ const UnifiedClassBook = () => {
                 lastHandledStudentId.current = studentIdParam;
             }
         }
+    }, [location.search, students.length, activeTab]);
 
-        // Auto-open citation if citationId is provided
-        if (citationIdParam && activeTab === 'citaciones' && lastHandledCitationId.current !== citationIdParam) {
-            const openDeepLinkedCitation = async () => {
-                try {
-                    console.log('Deep Linking: Handling citation', citationIdParam);
-                    // Try to find in already loaded citaciones
-                    const existing = citaciones.find(c => c._id === citationIdParam);
+    // Effect to open pending citation once tab is 'citaciones' and citaciones are loaded
+    useEffect(() => {
+        const pendingId = pendingCitationIdRef.current;
+        if (!pendingId || activeTab !== 'citaciones') return;
+
+        const openPendingCitation = async () => {
+            try {
+                // Try from already loaded list first
+                if (citaciones.length > 0) {
+                    const existing = citaciones.find(c => c._id === pendingId);
                     if (existing) {
                         openActaModal(existing);
-                        lastHandledCitationId.current = citationIdParam;
-                    } else {
-                        // Fetch specific citation if not in list
-                        const res = await api.get(`/citaciones/${citationIdParam}`);
-                        if (res.data) {
-                            openActaModal(res.data);
-                            lastHandledCitationId.current = citationIdParam;
-                        }
+                        lastHandledCitationId.current = pendingId;
+                        pendingCitationIdRef.current = null;
+                        return;
                     }
-                } catch (e) {
-                    console.error('Error opening deep linked citation:', e);
                 }
-            };
-            openDeepLinkedCitation();
-        }
-    }, [location.search, students.length, citaciones.length, activeTab]);
+                // Fallback: fetch directly from API
+                console.log('Deep Linking: Fetching citation directly', pendingId);
+                const res = await api.get(`/citaciones/${pendingId}`);
+                if (res.data) {
+                    openActaModal(res.data);
+                    lastHandledCitationId.current = pendingId;
+                    pendingCitationIdRef.current = null;
+                }
+            } catch (e) {
+                console.error('Error opening deep linked citation:', e);
+            }
+        };
+        openPendingCitation();
+    }, [citaciones, activeTab]);
 
     const [selectedCourse, setSelectedCourse] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
@@ -114,6 +127,8 @@ const UnifiedClassBook = () => {
     // Deep Linking Ref to prevent infinite loops or redundant calls
     const lastHandledCitationId = useRef<string | null>(null);
     const lastHandledStudentId = useRef<string | null>(null);
+    // Pending citation to open once tab+data is ready
+    const pendingCitationIdRef = useRef<string | null>(null);
 
     // Student Detail Modal
     const [showStudentDetailModal, setShowStudentDetailModal] = useState(false);
@@ -1148,8 +1163,12 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     >
                                                         HOJA DE VIDA
                                                     </button>
-                                                    <button className="p-2 border border-slate-100 text-slate-400 rounded-lg hover:text-blue-500 transition-colors">
-                                                        <UserPlus size={16} />
+                                                    <button
+                                                        onClick={() => navigate(`/students?edit=${s._id}`)}
+                                                        className="p-2 border border-blue-100 text-blue-400 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition-all"
+                                                        title="Editar Ficha del Estudiante"
+                                                    >
+                                                        <Pencil size={16} />
                                                     </button>
                                                 </div>
                                             </div>
