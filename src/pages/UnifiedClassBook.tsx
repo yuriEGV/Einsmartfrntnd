@@ -565,9 +565,9 @@ const UnifiedClassBook = () => {
         try {
             await api.post('/attendance/bulk', {
                 courseId: selectedCourse,
-                date: new Date().toISOString().split('T')[0],
-                block: selectedBlock,
-                records: Object.entries(attendanceMap).map(([studentId, status]) => ({ studentId, status }))
+                fecha: attendanceDate, // use attendanceDate instead of date, and 'fecha'
+                bloqueHorario: selectedBlock,
+                students: Object.entries(attendanceMap).map(([estudianteId, estado]) => ({ estudianteId, estado }))
             });
             logClassBookAction('attendance', `Registró pase de lista para el bloque ${selectedBlock}`);
             alert('Asistencia guardada correctamente.');
@@ -1737,7 +1737,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => (
                                                             <tr key={student._id} className="hover:bg-blue-50/20 transition-all group">
                                                                 <td className="p-1 font-black text-[#11355a] text-[10px] uppercase sticky left-0 bg-white group-hover:bg-blue-50/20 z-10 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.05)]">
-                                                                    <div className="truncate w-40 px-1">{student.apellidos}, {student.nombres}</div>
+                                                                    <div className="w-full min-w-[200px] px-1 whitespace-nowrap">{student.apellidos}, {student.nombres}</div>
                                                                 </td>
                                                                 <td className="p-1 text-center bg-blue-50/20">
                                                                     {(() => {
@@ -2589,7 +2589,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                     <tbody className="divide-y divide-slate-50">
                                                         {gradesSummaryData.map(row => (
                                                             <tr key={row._id} className="hover:bg-slate-50/80 transition-colors group text-[8px]">
-                                                                <td className="p-1 font-black text-[#11355a] uppercase sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-b border-slate-100 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] truncate min-w-[80px] max-w-[100px] print:static print:shadow-none" title={row.name}>
+                                                                <td className="p-1 font-black text-[#11355a] uppercase sticky left-0 bg-white group-hover:bg-slate-50 z-10 border-r border-b border-slate-100 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] min-w-[150px] whitespace-nowrap print:static print:shadow-none print:whitespace-normal" title={row.name}>
                                                                     {row.name}
                                                                 </td>
                                                                 <td className="p-1 text-center font-bold text-slate-600 border-r border-b border-slate-100">

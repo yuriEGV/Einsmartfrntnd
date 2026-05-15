@@ -540,7 +540,7 @@ const ClassBookPage = () => {
                                                         </Link>
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm truncate w-40">{student.apellidos}, {student.nombres}</div>
+                                                        <div className="text-sm whitespace-nowrap min-w-[200px]">{student.apellidos}, {student.nombres}</div>
                                                         <div className="text-[9px] font-mono text-slate-400">{student.rut}</div>
                                                     </div>
                                                 </div>
@@ -680,7 +680,7 @@ const ClassBookPage = () => {
                                     {attDetailData.map((att: any) => (
                                         <div key={att._id} className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
                                             <div className="truncate pr-2">
-                                                <div className="text-xs font-black text-slate-700 truncate">{att.estudianteId?.apellidos}, {att.estudianteId?.nombres}</div>
+                                                <div className="text-xs font-black text-slate-700">{att.estudianteId?.apellidos}, {att.estudianteId?.nombres}</div>
                                                 <div className="text-[9px] text-slate-400 font-mono">{att.estudianteId?.rut}</div>
                                             </div>
                                             <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${att.estado === 'presente' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
