@@ -1253,46 +1253,64 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
         : [];
 
 
-    const getStudentReportTpData = (studentId: string) => {
-        const studentGrades = gradeMatrix[studentId] || {};
-        
+    const getModuleReportTpData = () => {
         // Total columns of evaluations (both real and virtual)
         const visibleEvalIds = [
             ...evaluations.slice(0, maxGrades).map(ev => ev._id),
             ...Array.from({length: Math.max(0, maxGrades - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
         ];
 
-        // Map each grade to number or null
-        const grades = visibleEvalIds.map(id => {
-            const val = parseFloat(studentGrades[id] || "");
-            return isNaN(val) || val <= 0 ? null : val;
+        // Gather all grades for all students per evaluation slot
+        const allGradesBySlot = visibleEvalIds.map(id => {
+            const slotGrades: number[] = [];
+            students.forEach(student => {
+                const val = parseFloat(gradeMatrix[student._id]?.[id] || "");
+                if (!isNaN(val) && val > 0) {
+                    slotGrades.push(val);
+                }
+            });
+            return slotGrades;
         });
 
-        // Divide grades into 4 periods (up to 5 grades per period, total 20)
-        const getPeriodData = (startIdx: number, endIdx: number) => {
-            const periodGrades = grades.slice(startIdx, endIdx).filter((v): v is number => v !== null);
-            if (periodGrades.length === 0) return { average: null, approvalPct: null };
-            const average = periodGrades.reduce((a, b) => a + b, 0) / periodGrades.length;
-            const passingGrades = periodGrades.filter(v => v >= 4.0).length;
-            const approvalPct = Math.round((passingGrades / periodGrades.length) * 100);
-            return { average, approvalPct };
+        // Function to calculate average and %AE for a given range of evaluation slots (an AE block)
+        const getAeData = (startIdx: number, endIdx: number) => {
+            let sum = 0;
+            let count = 0;
+            let passingCount = 0;
+            for (let i = startIdx; i < endIdx; i++) {
+                const grades = allGradesBySlot[i];
+                if (grades) {
+                    grades.forEach(g => {
+                        sum += g;
+                        count++;
+                        if (g >= 4.0) passingCount++;
+                    });
+                }
+            }
+            if (count === 0) return { average: null, approvalPct: null };
+            return {
+                average: sum / count,
+                approvalPct: Math.round((passingCount / count) * 100)
+            };
         };
 
-        const p1 = getPeriodData(0, 5);
-        const p2 = getPeriodData(5, 10);
-        const p3 = getPeriodData(10, 15);
-        const p4 = getPeriodData(15, 20);
+        const ae1 = getAeData(0, 5);
+        const ae2 = getAeData(5, 10);
+        const ae3 = getAeData(10, 15);
+        const ae4 = getAeData(15, 20);
 
-        const allValidGrades = grades.filter((v): v is number => v !== null);
-        const overallAverage = allValidGrades.length > 0 
-            ? allValidGrades.reduce((a, b) => a + b, 0) / allValidGrades.length 
-            : null;
-        
-        const synthesis = overallAverage;
-        const finalGrade = overallAverage;
-        const promedio = overallAverage;
+        const synthesisData = getAeData(0, 20);
 
-        return { p1, p2, p3, p4, synthesis, finalGrade, promedio };
+        return {
+            aes: [
+                { label: "AE 1 (Notas 1 a 5)", ...ae1 },
+                { label: "AE 2 (Notas 6 a 10)", ...ae2 },
+                { label: "AE 3 (Notas 11 a 15)", ...ae3 },
+                { label: "AE 4 (Notas 16 a 20)", ...ae4 }
+            ],
+            synthesis: synthesisData,
+            final: synthesisData // Promedio Final and Synthesis are identical overall averages
+        };
     };
 
 
@@ -2003,73 +2021,47 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                              </div>
 
                                              <div className="overflow-x-auto">
-                                                 <table className="w-full text-center border-collapse border border-slate-200 text-[9px]">
-                                                     <thead>
-                                                         <tr className="bg-slate-50 font-black text-slate-700">
-                                                             <th className="p-2 border border-slate-200 text-left w-44 sticky left-0 bg-slate-50 z-10 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)]">Estudiante</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 1</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 1</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 2</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 2</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 3</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 3</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 4</th>
-                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 4</th>
-                                                             <th className="p-2 border border-slate-200 bg-amber-50/30 font-black">SÍNTESIS</th>
-                                                             <th className="p-2 border border-slate-200 bg-emerald-50/30 font-black">PROM. S</th>
-                                                             <th className="p-2 border border-slate-200 bg-purple-50/30 font-black text-purple-700">FINAL</th>
-                                                             <th className="p-2 border border-slate-200 bg-slate-100 font-black text-[#11355a]">PROMEDIO</th>
-                                                         </tr>
-                                                     </thead>
-                                                     <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
-                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => {
-                                                             const report = getStudentReportTpData(student._id);
-                                                             return (
-                                                                 <tr key={student._id} className="hover:bg-slate-50 transition-colors">
-                                                                     <td className="p-2 border border-slate-200 text-left font-black text-[#11355a] uppercase sticky left-0 bg-white shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] whitespace-nowrap">
-                                                                         {student.apellidos}, {student.nombres}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
-                                                                         {report.p1.average !== null ? report.p1.average.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
-                                                                         {report.p1.approvalPct !== null ? `${report.p1.approvalPct}%` : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
-                                                                         {report.p2.average !== null ? report.p2.average.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
-                                                                         {report.p2.approvalPct !== null ? `${report.p2.approvalPct}%` : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
-                                                                         {report.p3.average !== null ? report.p3.average.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
-                                                                         {report.p3.approvalPct !== null ? `${report.p3.approvalPct}%` : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
-                                                                         {report.p4.average !== null ? report.p4.average.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
-                                                                         {report.p4.approvalPct !== null ? `${report.p4.approvalPct}%` : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-amber-50/10 font-black text-slate-800">
-                                                                         {report.synthesis !== null ? report.synthesis.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-emerald-50/10 font-black text-slate-800">
-                                                                         {report.finalGrade !== null ? report.finalGrade.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-purple-50/10 font-black text-purple-700">
-                                                                         {report.finalGrade !== null ? report.finalGrade.toFixed(1) : '--'}
-                                                                     </td>
-                                                                     <td className="p-2 border border-slate-200 bg-slate-100/50 font-black text-[#11355a]">
-                                                                         {report.promedio !== null ? report.promedio.toFixed(1) : '--'}
-                                                                     </td>
+                                                 {(() => {
+                                                     const report = getModuleReportTpData();
+                                                     return (
+                                                         <table className="w-full text-center border-collapse border border-slate-200 text-xs">
+                                                             <thead>
+                                                                 <tr className="bg-slate-50 font-black text-slate-700">
+                                                                     <th className="p-3 border border-slate-200 text-left w-64 bg-slate-50">Aprendizaje Esperado (Período)</th>
+                                                                     <th className="p-3 border border-slate-200 bg-blue-50/30 w-48">PROMEDIO</th>
+                                                                     <th className="p-3 border border-slate-200 bg-blue-50/50 text-blue-600 w-48">% AE</th>
                                                                  </tr>
-                                                             );
-                                                         })}
-                                                     </tbody>
-                                                 </table>
+                                                             </thead>
+                                                             <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
+                                                                 {report.aes.map((ae, idx) => (
+                                                                     <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                                                                         <td className="p-3 border border-slate-200 text-left font-black text-[#11355a] uppercase bg-white">
+                                                                             {ae.label}
+                                                                         </td>
+                                                                         <td className="p-3 border border-slate-200 bg-slate-50/20">
+                                                                             {ae.average !== null ? ae.average.toFixed(1) : '--'}
+                                                                         </td>
+                                                                         <td className="p-3 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
+                                                                             {ae.approvalPct !== null ? `${ae.approvalPct}%` : '--'}
+                                                                         </td>
+                                                                     </tr>
+                                                                 ))}
+                                                             </tbody>
+                                                             <tfoot>
+                                                                 <tr className="bg-amber-50/20 font-black text-slate-800 border-t-4 border-slate-200">
+                                                                     <td className="p-3 border border-slate-200 text-left uppercase text-amber-900 bg-amber-50/40">SÍNTESIS</td>
+                                                                     <td className="p-3 border border-slate-200 text-amber-700 bg-amber-50/20">{report.synthesis.average !== null ? report.synthesis.average.toFixed(1) : '--'}</td>
+                                                                     <td className="p-3 border border-slate-200 text-amber-700 bg-amber-50/20">{report.synthesis.approvalPct !== null ? `${report.synthesis.approvalPct}%` : '--'}</td>
+                                                                 </tr>
+                                                                 <tr className="bg-emerald-50/30 font-black text-[#11355a]">
+                                                                     <td className="p-3 border border-slate-200 text-left uppercase text-emerald-900 bg-emerald-50/60">PROMEDIO FINAL</td>
+                                                                     <td className="p-3 border border-slate-200 text-emerald-700 text-base bg-emerald-50/30">{report.final.average !== null ? report.final.average.toFixed(1) : '--'}</td>
+                                                                     <td className="p-3 border border-slate-200 text-emerald-700 text-base bg-emerald-50/30">{report.final.approvalPct !== null ? `${report.final.approvalPct}%` : '--'}</td>
+                                                                 </tr>
+                                                             </tfoot>
+                                                         </table>
+                                                     );
+                                                 })()}
                                              </div>
                                          </div>
                                      )}
