@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
 import { useConfirm } from '../context/ConfirmationContext';
-import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail, DollarSign, Save } from 'lucide-react';
+import { School, Plus, Search, ShieldCheck, Edit, Trash2, MapPin, Mail, DollarSign, Save, LogIn } from 'lucide-react';
 
 interface Tenant {
     _id: string;
@@ -138,6 +138,13 @@ const TenantsPage = () => {
         setShowModal(true);
     };
 
+    const handleImpersonate = (t: Tenant) => {
+        if (window.confirm(`¿Estás seguro de que deseas infiltrarte/entrar como Administrador al colegio: ${t.name}?`)) {
+            localStorage.setItem('tenantId', t._id);
+            window.location.href = '/dashboard';
+        }
+    };
+
     if (!isSuperAdmin) {
         return (
             <div className="flex flex-col items-center justify-center p-20 text-center">
@@ -256,20 +263,28 @@ const TenantsPage = () => {
                                     )}
                                 </div>
 
-                                <div className="flex gap-3 pt-2">
+                                <div className="flex gap-3 pt-2 flex-wrap">
                                     <button
-                                        onClick={() => openEditModal(t)}
-                                        className="flex-1 py-4.5 bg-[#11355a] text-white rounded-2xl font-black text-[11px] tracking-[0.2em] shadow-lg shadow-blue-900/10 active:scale-95 transition-all outline-none"
+                                        onClick={() => handleImpersonate(t)}
+                                        className="w-full mb-2 py-4.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-2xl font-black text-[12px] tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all outline-none flex items-center justify-center gap-2"
                                     >
-                                        EDITAR
+                                        <LogIn size={16} /> ENTRAR COMO ADMIN
                                     </button>
-                                    <button
-                                        onClick={() => handleDelete(t._id)}
-                                        className="py-4.5 px-6 bg-rose-50 text-rose-600 rounded-2xl font-black text-[11px] active:scale-95 transition-all border border-rose-100 hover:bg-rose-100 hover:text-rose-700"
-                                        aria-label="Eliminar"
-                                    >
-                                        <Trash2 size={20} />
-                                    </button>
+                                    <div className="flex gap-3 w-full">
+                                        <button
+                                            onClick={() => openEditModal(t)}
+                                            className="flex-1 py-4.5 bg-[#11355a] text-white rounded-2xl font-black text-[11px] tracking-[0.2em] shadow-lg shadow-blue-900/10 active:scale-95 transition-all outline-none"
+                                        >
+                                            EDITAR
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(t._id)}
+                                            className="py-4.5 px-6 bg-rose-50 text-rose-600 rounded-2xl font-black text-[11px] active:scale-95 transition-all border border-rose-100 hover:bg-rose-100 hover:text-rose-700"
+                                            aria-label="Eliminar"
+                                        >
+                                            <Trash2 size={20} />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))
@@ -339,6 +354,13 @@ const TenantsPage = () => {
                                     </td>
                                     <td className="px-10 py-8 text-right">
                                         <div className="flex justify-end gap-3 md:translate-x-4 md:opacity-0 md:group-hover:translate-x-0 md:group-hover:opacity-100 transition-all duration-300">
+                                            <button
+                                                onClick={() => handleImpersonate(t)}
+                                                className="p-3.5 bg-emerald-50 text-emerald-600 rounded-[1.25rem] hover:bg-emerald-500 hover:text-white transition-all shadow-sm border border-emerald-100"
+                                                title="Entrar como Admin"
+                                            >
+                                                <LogIn size={20} />
+                                            </button>
                                             <button
                                                 onClick={() => openEditModal(t)}
                                                 className="p-3.5 bg-slate-50 text-slate-500 rounded-[1.25rem] hover:bg-[#11355a] hover:text-white transition-all shadow-sm border border-slate-100"

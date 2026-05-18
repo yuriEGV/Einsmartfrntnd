@@ -11,6 +11,10 @@ import {
     ArrowUpRight,
     Search
 } from 'lucide-react';
+import { 
+    PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid
+} from 'recharts';
 
 export default function GlobalAcademicPerformancePage() {
     const [performanceData, setPerformanceData] = useState<any[]>([]);
@@ -45,6 +49,19 @@ export default function GlobalAcademicPerformancePage() {
     const globalAttendance = performanceData.length > 0
         ? (performanceData.reduce((acc, curr) => acc + curr.stats.attendanceRate, 0) / performanceData.length).toFixed(2)
         : '0.0';
+
+    const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
+
+    const pieData = performanceData.map(p => ({
+        name: p.name,
+        value: p.stats.studentCount
+    })).filter(d => d.value > 0);
+
+    const barData = performanceData.map(p => ({
+        name: p.name.substring(0, 15) + '...',
+        promedio: parseFloat(p.stats.averageGrade.toFixed(2)),
+        asistencia: parseFloat(p.stats.attendanceRate.toFixed(1))
+    }));
 
     return (
         <div className="space-y-8 p-4 md:p-10 bg-slate-50 min-h-screen animate-in fade-in duration-700">
@@ -108,6 +125,59 @@ export default function GlobalAcademicPerformancePage() {
                             {performanceData.reduce((acc, curr) => acc + curr.stats.studentCount, 0).toLocaleString()}
                         </p>
                         <p className="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-tight font-mono">USUARIOS ACTIVOS EN EL CLUSTER</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Gráficos de Estadísticas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+                    <h2 className="text-sm font-black text-slate-800 tracking-widest uppercase mb-6 flex items-center gap-2">
+                        <Users className="text-blue-500" size={18} /> Distribución de Matrícula
+                    </h2>
+                    <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                                <Pie
+                                    data={pieData}
+                                    cx="50%"
+                                    cy="50%"
+                                    innerRadius={70}
+                                    outerRadius={100}
+                                    paddingAngle={5}
+                                    dataKey="value"
+                                >
+                                    {pieData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip 
+                                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                                    itemStyle={{ fontWeight: '900' }}
+                                />
+                                <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 'bold' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="bg-white p-8 rounded-[2.5rem] shadow-xl shadow-slate-200/50 border border-slate-100">
+                    <h2 className="text-sm font-black text-slate-800 tracking-widest uppercase mb-6 flex items-center gap-2">
+                        <TrendingUp className="text-emerald-500" size={18} /> Comparativa de Promedios
+                    </h2>
+                    <div className="h-72">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={barData} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} />
+                                <YAxis tick={{ fontSize: 10, fill: '#94a3b8', fontWeight: 700 }} axisLine={false} tickLine={false} domain={[0, 7]} />
+                                <Tooltip 
+                                    cursor={{ fill: '#f8fafc' }}
+                                    contentStyle={{ borderRadius: '1rem', border: 'none', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)' }}
+                                />
+                                <Bar dataKey="promedio" name="Promedio General" fill="#3b82f6" radius={[6, 6, 0, 0]} maxBarSize={40} />
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
             </div>

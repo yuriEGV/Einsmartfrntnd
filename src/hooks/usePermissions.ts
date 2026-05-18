@@ -39,14 +39,14 @@ export const usePermissions = (): Permissions => {
     // Both 'secretario' and 'secretaria' are valid - gender-neutral role support
     const isSecretary = role === 'secretario' || role === 'secretaria';
 
-    const isStaff = ['admin', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'secretaria', 'utp', 'inspector_general', 'paradocente'].includes(role);
-    const isAdmin = ['admin', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
+    const isStaff = ['admin', 'fiscalizador', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'secretaria', 'utp', 'inspector_general', 'paradocente'].includes(role);
+    const isAdmin = ['admin', 'fiscalizador', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
     const isTeacher = role === 'teacher';
     const isSostenedor = role === 'sostenedor';
     const isDirector = role === 'director';
     const isInspectorGeneral = role === 'inspector_general';
     const isUTP = role === 'utp';
-    const isSuperAdmin = user?.isMaster || (role === 'admin' && user?.email === 'yuri@einsmart.cl') || role === 'superadmin';
+    const isSuperAdmin = user?.isMaster || (role === 'admin' && user?.email === 'yuri@einsmart.cl') || role === 'superadmin' || role === 'fiscalizador';
     const isStudent = role === 'student';
     const isApoderado = role === 'apoderado';
     const isTutor = role === 'tutor_empresa';
