@@ -3,7 +3,7 @@ import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import { Link } from 'react-router-dom';
-import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, FileText, Activity, ShieldCheck, Clock, Award } from 'lucide-react';
+import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, FileText, Activity, ShieldCheck, Clock } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer
@@ -15,7 +15,6 @@ const AnalyticsPage = () => {
     const [topStudents, setTopStudents] = useState([]);
     const [annotationRankings, setAnnotationRankings] = useState<any>(null);
     const [studentAnalytics, setStudentAnalytics] = useState([]);
-    const [debtorRanking, setDebtorRanking] = useState([]);
     const [punctualityRanking, setPunctualityRanking] = useState<any[]>([]);
     const [performanceTrends, setPerformanceTrends] = useState([]);
     const [courses, setCourses] = useState<any[]>([]);
@@ -43,11 +42,10 @@ const AnalyticsPage = () => {
         setLoading(true);
         try {
             const params = selectedCourse ? `?courseId=${selectedCourse}` : '';
-            const [topRes, annotRes, studentRes, debtRes, trendRes, licRes, punctRes] = await Promise.all([
+            const [topRes, annotRes, studentRes, trendRes, licRes, punctRes] = await Promise.all([
                 api.get(`/analytics/top-students?limit=10${params ? `&${params.slice(1)}` : ''}`),
                 api.get(`/analytics/annotations-ranking${params}`),
                 api.get(`/analytics/students${params}`),
-                api.get(`/analytics/debtors${params}`),
                 api.get(`/analytics/performance-trends${params}`),
                 api.get(`/analytics/licenses-ranking${params}`),
                 api.get(`/analytics/punctuality-ranking${params}`)
@@ -55,7 +53,6 @@ const AnalyticsPage = () => {
             setTopStudents(topRes.data);
             setAnnotationRankings(annotRes.data);
             setStudentAnalytics(studentRes.data);
-            setDebtorRanking(debtRes.data);
             setPerformanceTrends(trendRes.data);
             setLicenseRanking(licRes.data);
             setPunctualityRanking(punctRes.data);
