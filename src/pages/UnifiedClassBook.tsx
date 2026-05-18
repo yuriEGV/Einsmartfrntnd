@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../services/api';
-import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save, Eye, EyeOff, Pencil } from 'lucide-react';
+import { ChevronRight, ChevronLeft, GraduationCap, ClipboardList, Calendar, BookOpen, AlertCircle, Search, ShieldCheck, UserCheck, List, LayoutGrid, Printer, UserPlus, ExternalLink, FileText, X, Clock, Trash2, Save, Eye, EyeOff, Pencil, Lock } from 'lucide-react';
 import { useTenant } from '../context/TenantContext';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -110,6 +110,11 @@ const UnifiedClassBook = () => {
     const [pin, setPin] = useState('');
     const [showPin, setShowPin] = useState(false);
 
+    // UTP Signature States
+    const [showUtpSignatureModal, setShowUtpSignatureModal] = useState(false);
+    const [utpPin, setUtpPin] = useState('');
+    const [showUtpPin, setShowUtpPin] = useState(false);
+
     // Tardiness State
     const [tardinessLogs, setTardinessLogs] = useState<any[]>([]);
     const [tardinessLoading, setTardinessLoading] = useState(false);
@@ -126,6 +131,17 @@ const UnifiedClassBook = () => {
     const [isTimerPaused, setIsTimerPaused] = useState(false);
     const [effectiveDuration, setEffectiveDuration] = useState(0); // in seconds
     const currentSessionRef = useRef({ course: '', subject: '', block: '' });
+
+    // Technical professional grade cap calculation
+    const activeSubjectObj = subjects.find(sub => sub._id === selectedSubject);
+    const checkIsTechnical = (subjectName: string, isTechFlag?: boolean) => {
+        if (isTechFlag) return true;
+        const name = (subjectName || '').toLowerCase();
+        const kws = ['elaboración', 'elaboracion', 'cocina', 'análisis', 'analisis', 'almacenaje', 'bodega', 'calidad', 'consolidación', 'consolidacion', 'control', 'registro', 'cuidado', 'medio ambiente', 'documentación', 'documentacion', 'emprendimiento', 'empleabilidad', 'taller', 'módulo', 'modulo', 'gastronomía', 'gastronomia', 'menús', 'carta', 'bebidas', 'masas', 'ajuste', 'motores', 'planos', 'manuales', 'eléctricos', 'electrónicos', 'hidráulicos', 'neumáticos', 'transmisión', 'frenos', 'dirección', 'suspensión', 'estiba', 'desestiba', 'portuaria', 'química', 'laboratorio', 'muestra'];
+        return kws.some(kw => name.includes(kw));
+    };
+    const isCurrentSubjectTechnical = activeSubjectObj ? checkIsTechnical(activeSubjectObj.name, activeSubjectObj.isTechnical) : false;
+    const maxGrades = isCurrentSubjectTechnical ? 20 : 8;
 
     // Deep Linking Ref to prevent infinite loops or redundant calls
     const lastHandledCitationId = useRef<string | null>(null);
@@ -389,14 +405,16 @@ const UnifiedClassBook = () => {
                     const res = await api.get(`/class-logs?courseId=${selectedCourse}&subjectId=${selectedSubject}`);
                     setLogs(res.data);
                 } else if (activeTab === 'notas') {
-                    const [gradesRes, evalsRes, studRes] = await Promise.all([
+                    const [gradesRes, evalsRes, studRes, subjectsRes] = await Promise.all([
                         api.get(`/grades?courseId=${selectedCourse}&subjectId=${selectedSubject}`),
                         api.get(`/evaluations?courseId=${selectedCourse}&subjectId=${selectedSubject}`),
-                        api.get(`/estudiantes?cursoId=${selectedCourse}`)
+                        api.get(`/estudiantes?cursoId=${selectedCourse}`),
+                        api.get('/subjects')
                     ]);
                     const filteredStudents = strictFilter(studRes.data);
                     setStudents(filteredStudents);
-                    setEvaluations(evalsRes.data.slice(0, 10));
+                    setEvaluations(evalsRes.data);
+                    setSubjects(subjectsRes.data);
                     
                     const matrix: Record<string, Record<string, string>> = {};
                     gradesRes.data.forEach((g: any) => {
@@ -690,6 +708,21 @@ const UnifiedClassBook = () => {
             refreshTabContent();
         } catch (err: any) {
             alert(err.response?.data?.message || 'Error al registrar la anotación.');
+        }
+    };
+
+    const handleUtpSignatureSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedSubject || !utpPin) return;
+        try {
+            const res = await api.post(`/subjects/${selectedSubject}/validate-utp`, { pin: utpPin });
+            alert(res.data?.message || 'Módulo técnico profesional firmado y cerrado oficialmente por UTP.');
+            setShowUtpSignatureModal(false);
+            setUtpPin('');
+            refreshTabContent();
+        } catch (err: any) {
+            console.error("Error signing module:", err);
+            alert(err.response?.data?.message || 'Error al validar firma PIN UTP. Verifique sus credenciales e intente nuevamente.');
         }
     };
 
@@ -1708,12 +1741,63 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                             {/* TAB CONTEXT: NOTAS (BULK MATRIX) */}
                             {activeTab === 'notas' && (
                                 <div className="space-y-8 animate-in fade-in duration-500">
+                                    {/* UTP Signature and Cierre Panel */}
+                                    {isCurrentSubjectTechnical && activeSubjectObj && (
+                                        <div className={`p-8 rounded-[2.5rem] shadow-xl border-2 transition-all flex flex-col md:flex-row items-center justify-between gap-6 ${
+                                            activeSubjectObj.utpValidated 
+                                                ? 'bg-emerald-50/40 border-emerald-100' 
+                                                : 'bg-amber-50/30 border-amber-100'
+                                        }`}>
+                                            <div className="flex items-center gap-4">
+                                                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-md ${
+                                                    activeSubjectObj.utpValidated 
+                                                        ? 'bg-emerald-600 text-white shadow-emerald-950/20' 
+                                                        : 'bg-amber-500 text-white shadow-amber-950/20'
+                                                }`}>
+                                                    {activeSubjectObj.utpValidated ? <ShieldCheck size={28} /> : <Lock size={28} />}
+                                                </div>
+                                                <div className="text-left">
+                                                    <h4 className="text-base font-black text-[#11355a] uppercase tracking-tight">
+                                                        {activeSubjectObj.utpValidated ? 'Módulo Validado y Firmado por UTP' : 'Firma y Cierre de Módulo Técnico UTP'}
+                                                    </h4>
+                                                    <p className="text-xs font-medium text-slate-500 max-w-xl mt-0.5 leading-normal">
+                                                        {activeSubjectObj.utpValidated 
+                                                            ? `Este módulo técnico ha sido cerrado formalmente. Log: ${activeSubjectObj.utpSignatureLog || 'Firma digital registrada con éxito.'}` 
+                                                            : 'Como coordinador de UTP, Admin o Director, usted puede firmar digitalmente con su PIN para cerrar oficialmente este módulo. Esto bloqueará la edición de calificaciones.'}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                {activeSubjectObj.utpValidated ? (
+                                                    <div className="flex flex-col items-end gap-1">
+                                                        <span className="px-4 py-2 bg-emerald-100/60 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-200">✓ CERRADO OFICIALMENTE</span>
+                                                        <span className="text-[9px] text-slate-400 font-bold uppercase mt-1">Sello: {activeSubjectObj.utpValidatedAt ? new Date(activeSubjectObj.utpValidatedAt).toLocaleString() : 'Validado'}</span>
+                                                    </div>
+                                                ) : (
+                                                    ['utp', 'director', 'admin'].includes(user?.role || '') ? (
+                                                        <button 
+                                                            onClick={() => {
+                                                                setUtpPin('');
+                                                                setShowUtpSignatureModal(true);
+                                                            }}
+                                                            className="px-8 py-4 bg-[#11355a] hover:bg-blue-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-blue-950/20 hover:scale-105 transition-all flex items-center gap-2"
+                                                        >
+                                                            <Lock size={14} /> Firmar y Cerrar Módulo
+                                                        </button>
+                                                    ) : (
+                                                        <span className="px-4 py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest border border-slate-200">Firma Pendiente de UTP</span>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-6 bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100">
                                         <div className="flex-1">
                                             <h3 className="text-2xl font-black text-[#11355a] tracking-tighter uppercase">Matriz de Calificaciones Global</h3>
                                             <div className="flex items-center gap-2 mt-2">
                                                 <span className="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Decreto 67</span>
-                                                <span className="text-slate-400 font-bold text-[10px]">Ingreso de Alto Rendimiento • Máx 8 Columnas</span>
+                                                <span className="text-slate-400 font-bold text-[10px]">Ingreso de Alto Rendimiento • Máx {maxGrades} Columnas ({isCurrentSubjectTechnical ? 'Módulo Técnico Profesional' : 'Formación General'})</span>
                                             </div>
                                         </div>
 
@@ -1726,7 +1810,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                             </button>
                                             <button 
                                                 onClick={() => setShowEvaluationModal(true)}
-                                                disabled={!selectedSubject}
+                                                disabled={!selectedSubject || !!activeSubjectObj?.utpValidated}
                                                 className="flex-1 xl:flex-none bg-[#11355a] text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-blue-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
                                             >
                                                 <UserPlus size={20}/>
@@ -1734,7 +1818,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                             </button>
                                             <button 
                                                 onClick={handleBulkGradeSave}
-                                                disabled={isSavingMatrix || !selectedSubject}
+                                                disabled={isSavingMatrix || !selectedSubject || !!activeSubjectObj?.utpValidated}
                                                 className="flex-1 xl:flex-none bg-emerald-600 text-white px-10 py-5 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-30 flex items-center justify-center gap-3"
                                             >
                                                 {isSavingMatrix ? <div className="animate-spin rounded-full h-4 w-4 border-2 border-white/30 border-t-white"></div> : <Save size={20}/>}
@@ -1759,15 +1843,15 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                             <th className="p-2 border-b text-[9px] font-black text-slate-400 uppercase tracking-widest sticky left-0 bg-slate-50/80 backdrop-blur-md z-10 w-44 shadow-[10px_0_15px_-15px_rgba(0,0,0,0.1)]">Alumno</th>
                                                             <th className="p-2 border-b text-center min-w-[60px] bg-blue-50/50 text-[9px] font-black text-blue-600 uppercase">PROM.</th>
                                                             {/* Render real evaluations first */}
-                                                            {evaluations.slice(0, 8).map(ev => (
+                                                            {evaluations.slice(0, maxGrades).map(ev => (
                                                                 <th key={ev._id} className="p-2 border-b text-center min-w-[72px] group transition-all hover:bg-slate-100/50">
                                                                     <div className="text-[9px] font-black text-[#11355a] uppercase tracking-tight truncate max-w-[60px] mx-auto mb-0.5" title={ev.title}>{ev.title}</div>
                                                                     <div className="text-[7px] font-bold text-slate-300 uppercase">{new Date(ev.date).toLocaleDateString()}</div>
                                                                     <div className="text-[7px] font-black text-blue-500">{ev.weight}%</div>
                                                                 </th>
                                                             ))}
-                                                            {/* Render virtual slots for the remainder up to 8 */}
-                                                            {Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => {
+                                                            {/* Render virtual slots for the remainder up to maxGrades */}
+                                                            {Array.from({length: Math.max(0, maxGrades - evaluations.length)}).map((_, i) => {
                                                                 const virtualId = `virtual_${evaluations.length + i + 1}`;
                                                                 return (
                                                                     <th key={virtualId} className="p-2 border-b text-center min-w-[72px] bg-slate-50/30 group">
@@ -1787,8 +1871,8 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                 <td className="p-1 text-center bg-blue-50/20">
                                                                     {(() => {
                                                                         const visibleEvalIds = [
-                                                                            ...evaluations.slice(0, 8).map(ev => ev._id),
-                                                                            ...Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
+                                                                            ...evaluations.slice(0, maxGrades).map(ev => ev._id),
+                                                                            ...Array.from({length: Math.max(0, maxGrades - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
                                                                         ];
                                                                         
                                                                         const numericGrades = visibleEvalIds
@@ -1805,12 +1889,13 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                     })()}
                                                                 </td>
                                                                 {/* Real Evaluations Inputs */}
-                                                                {evaluations.slice(0, 8).map(ev => (
+                                                                {evaluations.slice(0, maxGrades).map(ev => (
                                                                     <td key={ev._id} className="p-1 text-center">
                                                                         <input 
                                                                             type="number" 
                                                                             min="1" max="7" step="0.1"
                                                                             placeholder="--"
+                                                                            disabled={!!activeSubjectObj?.utpValidated}
                                                                             className={`w-12 h-9 text-center rounded-lg border-2 font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') >= 4 ? 'bg-emerald-50 border-emerald-100 text-emerald-700 focus:border-emerald-500' : 
                                                                                 parseFloat(gradeMatrix[student._id]?.[ev._id] || '0') > 0 ? 'bg-rose-50 border-rose-100 text-rose-600 focus:border-rose-500' :
@@ -1828,7 +1913,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                     </td>
                                                                 ))}
                                                                 {/* Virtual Slots Inputs */}
-                                                                {Array.from({length: Math.max(0, 8 - evaluations.length)}).map((_, i) => {
+                                                                {Array.from({length: Math.max(0, maxGrades - evaluations.length)}).map((_, i) => {
                                                                     const virtualKey = `virtual_${evaluations.length + i + 1}`;
                                                                     const val = gradeMatrix[student._id]?.[virtualKey] || '';
                                                                     return (
@@ -1837,6 +1922,7 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                                                                 type="number" 
                                                                                 min="1" max="7" step="0.1"
                                                                                 placeholder="..."
+                                                                                disabled={!!activeSubjectObj?.utpValidated}
                                                                                 className={`w-12 h-9 text-center rounded-lg border-2 border-dashed font-black text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 transition-all ${
                                                                                     parseFloat(val) >= 4 ? 'bg-emerald-50/50 border-emerald-200 text-emerald-700' : 
                                                                                     parseFloat(val) > 0 ? 'bg-rose-50/50 border-rose-200 text-rose-600' :
@@ -2722,6 +2808,62 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                             </div>
                             <p className="text-[10px] font-bold text-slate-300 italic">EinSmart Digital ClassBook • Reporte Generado {new Date().toLocaleString()}</p>
                         </div>
+                    </div>
+                </div>
+            )}
+            {/* Modal de Firma Digital UTP */}
+            {showUtpSignatureModal && (
+                <div className="fixed inset-0 bg-[#0a192f]/95 backdrop-blur-md z-[75] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <div className="bg-white rounded-[3rem] w-full max-w-md shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in-95 duration-200">
+                        <div className="bg-[#11355a] p-8 text-white text-center relative">
+                            <button 
+                                onClick={() => setShowUtpSignatureModal(false)} 
+                                className="absolute top-6 right-6 text-white/60 hover:text-white transition-colors"
+                            >
+                                <X size={24} />
+                            </button>
+                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                <Lock size={32} className="text-amber-400" />
+                            </div>
+                            <h3 className="text-xl font-black uppercase tracking-tight">Firma Digital UTP</h3>
+                            <p className="text-xs text-white/70 font-medium mt-1">Cierre oficial de módulo técnico profesional</p>
+                        </div>
+
+                        <form onSubmit={handleUtpSignatureSubmit} className="p-8 space-y-6">
+                            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 text-xs text-amber-800 leading-normal font-semibold">
+                                ⚠️ ¡Atención! Esta acción es irreversible. Al ingresar su firma PIN, se bloquearán todas las calificaciones del módulo y se cerrará el registro académico para este semestre/año escolar.
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block text-left">PIN de Firma Digital</label>
+                                <div className="relative">
+                                    <input 
+                                        type={showUtpPin ? "text" : "password"}
+                                        required 
+                                        placeholder="Ingrese PIN de 4 dígitos"
+                                        maxLength={4}
+                                        value={utpPin}
+                                        onChange={e => setUtpPin(e.target.value.replace(/\D/g, ''))}
+                                        className="w-full px-6 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl font-black text-center text-2xl tracking-widest text-[#11355a] focus:border-blue-500 focus:bg-white outline-none transition-all"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowUtpPin(!showUtpPin)}
+                                        className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showUtpPin ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button 
+                                type="submit"
+                                disabled={utpPin.length < 4}
+                                className="w-full py-5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest shadow-xl shadow-emerald-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+                            >
+                                FIRMAR Y CERRAR REGISTRO
+                            </button>
+                        </form>
                     </div>
                 </div>
             )}

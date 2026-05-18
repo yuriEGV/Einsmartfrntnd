@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../services/api';
 import { 
     BookOpen, Target, ClipboardList, CheckCircle2, AlertTriangle, 
-    ArrowRight, Sparkles, Printer, RefreshCw, BarChart3, Users
+    ArrowRight, Sparkles, Printer, RefreshCw, BarChart3, Users, Lock
 } from 'lucide-react';
 
 const TP_CAREERS = [
@@ -100,6 +100,17 @@ const CurriculumTPPage = () => {
     const [errorMsg, setErrorMsg] = useState('');
     const [successMsg, setSuccessMsg] = useState('');
 
+    const activeCourseObj = courses.find(c => c._id === selectedCourse);
+    const lockedCareerName = activeCourseObj?.careerId
+        ? (typeof activeCourseObj.careerId === 'object' ? activeCourseObj.careerId.name : activeCourseObj.careerId)
+        : null;
+
+    useEffect(() => {
+        if (lockedCareerName) {
+            setSelectedCareer(lockedCareerName);
+        }
+    }, [lockedCareerName]);
+
     useEffect(() => {
         const fetchCourses = async () => {
             try {
@@ -191,16 +202,24 @@ const CurriculumTPPage = () => {
                     </div>
 
                     <div className="flex flex-col gap-1 w-full sm:w-72">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Seleccionar Especialidad</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                            Seleccionar Especialidad {lockedCareerName && <Lock size={12} className="text-violet-600 inline ml-1" />}
+                        </span>
                         <select
                             value={selectedCareer}
                             onChange={(e) => setSelectedCareer(e.target.value)}
-                            className="bg-slate-50 border-2 border-slate-100 px-4 py-3 rounded-xl font-bold text-slate-600 text-xs focus:border-violet-500 transition-colors cursor-pointer w-full"
+                            disabled={!!lockedCareerName}
+                            className={`bg-slate-50 border-2 ${lockedCareerName ? 'border-violet-200 bg-violet-50/20 text-violet-700 font-black' : 'border-slate-100 text-slate-600'} px-4 py-3 rounded-xl font-bold text-xs focus:border-violet-500 transition-all cursor-pointer w-full`}
                         >
                             {TP_CAREERS.map(c => (
                                 <option key={c} value={c}>{c}</option>
                             ))}
                         </select>
+                        {lockedCareerName && (
+                            <span className="text-[9px] text-violet-600 font-bold uppercase mt-1 flex items-center gap-1">
+                                ✓ Especialidad asociada oficialmente
+                            </span>
+                        )}
                     </div>
 
                     {hasData && (
