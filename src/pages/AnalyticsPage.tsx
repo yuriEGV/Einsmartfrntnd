@@ -3,7 +3,7 @@ import api from '../services/api';
 import { useTenant } from '../context/TenantContext';
 import { useReactToPrint } from 'react-to-print';
 import { Link } from 'react-router-dom';
-import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, FileText, Activity, ShieldCheck } from 'lucide-react';
+import { Trophy, ThumbsUp, ThumbsDown, BarChart3, Target, Star, Printer, TrendingUp, AlertCircle, FileText, Activity, ShieldCheck, Clock, Award } from 'lucide-react';
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid,
     Tooltip, ResponsiveContainer
@@ -16,6 +16,7 @@ const AnalyticsPage = () => {
     const [annotationRankings, setAnnotationRankings] = useState<any>(null);
     const [studentAnalytics, setStudentAnalytics] = useState([]);
     const [debtorRanking, setDebtorRanking] = useState([]);
+    const [punctualityRanking, setPunctualityRanking] = useState<any[]>([]);
     const [performanceTrends, setPerformanceTrends] = useState([]);
     const [courses, setCourses] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
@@ -42,13 +43,14 @@ const AnalyticsPage = () => {
         setLoading(true);
         try {
             const params = selectedCourse ? `?courseId=${selectedCourse}` : '';
-            const [topRes, annotRes, studentRes, debtRes, trendRes, licRes] = await Promise.all([
+            const [topRes, annotRes, studentRes, debtRes, trendRes, licRes, punctRes] = await Promise.all([
                 api.get(`/analytics/top-students?limit=10${params ? `&${params.slice(1)}` : ''}`),
                 api.get(`/analytics/annotations-ranking${params}`),
                 api.get(`/analytics/students${params}`),
                 api.get(`/analytics/debtors${params}`),
                 api.get(`/analytics/performance-trends${params}`),
-                api.get(`/analytics/licenses-ranking${params}`)
+                api.get(`/analytics/licenses-ranking${params}`),
+                api.get(`/analytics/punctuality-ranking${params}`)
             ]);
             setTopStudents(topRes.data);
             setAnnotationRankings(annotRes.data);
@@ -56,6 +58,7 @@ const AnalyticsPage = () => {
             setDebtorRanking(debtRes.data);
             setPerformanceTrends(trendRes.data);
             setLicenseRanking(licRes.data);
+            setPunctualityRanking(punctRes.data);
         } catch (err) {
             console.error('Error fetching analytics:', err);
         } finally {
@@ -75,6 +78,22 @@ const AnalyticsPage = () => {
             </div>
         );
     }
+
+    const totalStudentsCount = studentAnalytics.length;
+    const generalAverage = totalStudentsCount > 0
+        ? (studentAnalytics.reduce((sum: number, s: any) => sum + (s.overallAverage || 0), 0) / totalStudentsCount).toFixed(2)
+        : '0.00';
+    const overallPassingRate = totalStudentsCount > 0
+        ? ((studentAnalytics.filter((s: any) => s.passingStatus === 'Aprueba').length / totalStudentsCount) * 100).toFixed(1)
+        : '0.0';
+
+    const outstandingCount = studentAnalytics.filter((s: any) => s.overallAverage >= 6.0).length;
+    const passingCount = studentAnalytics.filter((s: any) => s.overallAverage >= 4.0 && s.overallAverage < 6.0).length;
+    const failingCount = studentAnalytics.filter((s: any) => s.overallAverage < 4.0).length;
+
+    const outstandingPct = totalStudentsCount > 0 ? ((outstandingCount / totalStudentsCount) * 100).toFixed(1) : '0.0';
+    const passingPct = totalStudentsCount > 0 ? ((passingCount / totalStudentsCount) * 100).toFixed(1) : '0.0';
+    const failingPct = totalStudentsCount > 0 ? ((failingCount / totalStudentsCount) * 100).toFixed(1) : '0.0';
 
     const renderTopStudents = () => {
         if (!topStudents || topStudents.length === 0) {
@@ -168,6 +187,92 @@ const AnalyticsPage = () => {
                         <div className="text-right">
                             <div className="text-lg font-black uppercase">Consolidado Estadístico</div>
                             <div className="text-slate-500 font-bold">FECHA: {new Date().toLocaleDateString()}</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Institutional Statistics Dashboard Panel */}
+                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden p-8 space-y-6">
+                    <div className="flex items-center gap-3 border-b pb-4">
+                        <Activity size={32} className="text-blue-600 animate-pulse" />
+                        <div>
+                            <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tight">Resumen Estadístico Institucional</h2>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Indicadores Clave de Rendimiento Académico</p>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* KPI 1 */}
+                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-3xl p-6 flex items-center gap-5">
+                            <div className="p-4 bg-white rounded-2xl shadow-md text-blue-600 shrink-0">
+                                <Trophy size={28} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black text-blue-800 uppercase tracking-widest">Promedio General</div>
+                                <div className="text-3xl font-black text-slate-800 mt-1">{generalAverage}</div>
+                                <div className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mt-1">Escala 1.0 - 7.0</div>
+                            </div>
+                        </div>
+
+                        {/* KPI 2 */}
+                        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-3xl p-6 flex items-center gap-5">
+                            <div className="p-4 bg-white rounded-2xl shadow-md text-emerald-600 shrink-0">
+                                <ShieldCheck size={28} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black text-emerald-800 uppercase tracking-widest">Tasa de Aprobación</div>
+                                <div className="text-3xl font-black text-slate-800 mt-1">{overallPassingRate}%</div>
+                                <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-1">Promedio &gt;= 4.0</div>
+                            </div>
+                        </div>
+
+                        {/* KPI 3 */}
+                        <div className="bg-gradient-to-br from-rose-50 to-red-50 border border-rose-100 rounded-3xl p-6 flex items-center gap-5">
+                            <div className="p-4 bg-white rounded-2xl shadow-md text-rose-600 shrink-0">
+                                <AlertCircle size={28} />
+                            </div>
+                            <div>
+                                <div className="text-[10px] font-black text-rose-800 uppercase tracking-widest">Alumnos en Alerta</div>
+                                <div className="text-3xl font-black text-slate-800 mt-1">{failingCount} Alumnos</div>
+                                <div className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mt-1">Promedio &lt; 4.0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100 space-y-4">
+                        <div className="text-xs font-black text-slate-600 uppercase tracking-widest">Distribución de Alumnos por Rango de Rendimiento</div>
+                        
+                        {/* Progress Bar 1 */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-xs font-black text-slate-700">
+                                <span className="uppercase tracking-wider">Sobresaliente (6.0 - 7.0)</span>
+                                <span>{outstandingCount} Alumnos ({outstandingPct}%)</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                <div className="bg-emerald-500 h-full rounded-full transition-all duration-500" style={{ width: `${outstandingPct}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar 2 */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-xs font-black text-slate-700">
+                                <span className="uppercase tracking-wider">Aprobado Regular (4.0 - 5.9)</span>
+                                <span>{passingCount} Alumnos ({passingPct}%)</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${passingPct}%` }}></div>
+                            </div>
+                        </div>
+
+                        {/* Progress Bar 3 */}
+                        <div className="space-y-2">
+                            <div className="flex justify-between text-xs font-black text-slate-700">
+                                <span className="uppercase tracking-wider">Riesgo / Insuficiente (1.0 - 3.9)</span>
+                                <span>{failingCount} Alumnos ({failingPct}%)</span>
+                            </div>
+                            <div className="w-full bg-slate-200 h-3 rounded-full overflow-hidden">
+                                <div className="bg-rose-500 h-full rounded-full transition-all duration-500" style={{ width: `${failingPct}%` }}></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -370,65 +475,74 @@ const AnalyticsPage = () => {
                     </div>
                 </div>
 
-                {/* Only show payment ranking for paid schools */}
-                {tenant?.paymentType === 'paid' && (
-                    <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
-                        <div className="px-8 py-5 bg-gradient-to-r from-red-800 to-rose-900">
-                            <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
-                                <Target size={24} className="text-rose-300" />
-                                Ranking de Morosidad
-                            </h2>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                                <thead className="bg-rose-50">
-                                    <tr>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Apoderado Responsable</th>
-                                        <th className="px-6 py-4 text-left text-xs font-black text-rose-900 uppercase tracking-widest">Estudiante</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Deuda Total</th>
-                                        <th className="px-6 py-4 text-center text-xs font-black text-rose-900 uppercase tracking-widest">Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-rose-100">
-                                    {debtorRanking && debtorRanking.length > 0 ? (
-                                        debtorRanking.map((debtor: any) => (
-                                            <tr key={debtor._id} className="hover:bg-rose-50/50 transition-colors">
-                                                <td className="px-6 py-4">
-                                                    <div className="font-black text-gray-800">{debtor.guardianName || 'Sin Apoderado'}</div>
-                                                </td>
-                                                <td className="px-6 py-4">
-                                                    <div className="font-bold text-gray-600">{debtor.studentName}</div>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <div className="text-xl font-black text-rose-600">${debtor.totalDebt ? debtor.totalDebt.toLocaleString() : '0'}</div>
-                                                </td>
-                                                <td className="px-6 py-4 text-center">
-                                                    <div className="flex flex-col items-center gap-1">
-                                                        <span className="bg-rose-100 text-rose-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                            {debtor.overdueCount} Vencidos
-                                                        </span>
-                                                        {debtor.pendingCount > 0 && (
-                                                            <span className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest">
-                                                                {debtor.pendingCount} Pendientes
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={4} className="px-6 py-20 text-center">
-                                                <ShieldCheck size={48} className="mx-auto text-slate-100 mb-4" />
-                                                <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin deudas vencidas registradas</p>
+                {/* Ranking de Puntualidad y Asistencia (Class Book Logs) */}
+                <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
+                    <div className="px-8 py-5 bg-gradient-to-r from-amber-600 to-orange-600">
+                        <h2 className="text-white font-black uppercase tracking-widest flex items-center gap-3">
+                            <Clock size={24} className="text-amber-100 animate-pulse" />
+                            Ranking de Puntualidad y Asistencia (Libro de Clases)
+                        </h2>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full">
+                            <thead className="bg-orange-50">
+                                <tr>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-orange-950 uppercase tracking-widest">Estudiante</th>
+                                    <th className="px-6 py-4 text-left text-xs font-black text-orange-950 uppercase tracking-widest">Curso / Grado</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-orange-950 uppercase tracking-widest">Asistencia Promedio</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-orange-950 uppercase tracking-widest">Cant. Atrasos</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-orange-950 uppercase tracking-widest">Minutos Totales Atrasados</th>
+                                    <th className="px-6 py-4 text-center text-xs font-black text-orange-950 uppercase tracking-widest">Estado Alerta</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-orange-100">
+                                {punctualityRanking && punctualityRanking.length > 0 ? (
+                                    punctualityRanking.map((row: any) => (
+                                        <tr key={row.studentId} className="hover:bg-orange-50/30 transition-colors">
+                                            <td className="px-6 py-4">
+                                                <div className="font-black text-gray-800">{row.studentName}</div>
+                                            </td>
+                                            <td className="px-6 py-4">
+                                                <div className="font-bold text-gray-600 uppercase">{row.grado}</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`text-sm font-black ${row.attendanceRate < 85 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                                                    {row.attendanceRate}%
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest ${row.tardinessCount > 5 ? 'bg-rose-100 text-rose-800' : row.tardinessCount > 2 ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+                                                    {row.tardinessCount} Atrasos
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <div className="text-sm font-bold text-slate-700">{row.totalDelayMinutes} min</div>
+                                            </td>
+                                            <td className="px-6 py-4 text-center">
+                                                <span className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                                                    row.tardinessCount > 5 || row.attendanceRate < 85
+                                                        ? 'bg-rose-50 text-rose-700 border-2 border-rose-100'
+                                                        : row.tardinessCount > 2 
+                                                            ? 'bg-amber-50 text-amber-700 border-2 border-amber-100'
+                                                            : 'bg-emerald-50 text-emerald-700 border-2 border-emerald-100'
+                                                }`}>
+                                                    {row.tardinessCount > 5 || row.attendanceRate < 85 ? 'Crítico' : row.tardinessCount > 2 ? 'Advertencia' : 'Óptimo'}
+                                                </span>
                                             </td>
                                         </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-20 text-center">
+                                            <ShieldCheck size={48} className="mx-auto text-slate-200 mb-4" />
+                                            <p className="text-slate-400 font-black uppercase tracking-widest text-xs">Sin registros de puntualidad en el libro</p>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
-                )}
+                </div>
 
                 <div className="bg-white rounded-3xl shadow-2xl border overflow-hidden">
                     <div className="px-8 py-5 flex items-center justify-between" style={{ backgroundColor: tenant?.theme?.primaryColor || '#11355a' }}>
