@@ -45,6 +45,17 @@ const Layout = () => {
 
     const location = useLocation();
 
+    // Check if user is impersonating another tenant
+    const currentTenantId = typeof window !== 'undefined' ? localStorage.getItem('tenantId') : null;
+    const isImpersonating = currentTenantId && user?.tenantId && currentTenantId !== user.tenantId;
+
+    const handleExitImpersonation = () => {
+        if (user?.tenantId) {
+            localStorage.setItem('tenantId', user.tenantId);
+            window.location.href = '/tenants';
+        }
+    };
+
     const handleLogout = async () => {
         const confirmed = await confirm({
             title: '¿Cerrar Sesión?',
@@ -183,7 +194,7 @@ const Layout = () => {
             />
 
             {/* Conditionally Render the Sidebar based on Paradigm Shift */}
-            {permissions.isSuperAdmin ? (
+            {permissions.isSuperAdmin && !isImpersonating ? (
                 <EinsmartMasterSidebar
                     isCollapsed={isCollapsed}
                     setIsCollapsed={setIsCollapsed}
@@ -236,6 +247,19 @@ const Layout = () => {
 
                 {/* Main Navigation Logic */}
                 <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar relative z-10 overflow-x-hidden">
+                    {isImpersonating && (
+                        <div className="mb-6">
+                            <button 
+                                onClick={handleExitImpersonation}
+                                className={`w-full flex items-center justify-center gap-2 py-3 bg-rose-500/20 text-rose-100 hover:bg-rose-500 hover:text-white rounded-2xl border border-rose-500/50 transition-all font-black text-[10px] uppercase tracking-widest shadow-lg shadow-rose-900/20 ${isCollapsed ? 'px-0' : 'px-4'}`}
+                                title="Volver a Einsmart HQ"
+                            >
+                                <LogOut size={16} />
+                                {!isCollapsed && <span>Salir del Colegio</span>}
+                            </button>
+                        </div>
+                    )}
+
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'} mb-6 px-2`}>
                         {!isCollapsed && <span className="text-[9px] font-black text-blue-300/40 uppercase tracking-[0.25em]">Principal</span>}
                         <div className={`h-[1px] bg-white/5 ${isCollapsed ? 'w-4' : 'flex-1 ml-4'}`}></div>
