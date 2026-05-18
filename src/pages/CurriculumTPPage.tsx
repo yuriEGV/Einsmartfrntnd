@@ -90,10 +90,36 @@ const PREVIEW_MODULES: Record<string, string[]> = {
     ]
 };
 
+const normalizeCareerName = (name: string): string => {
+    if (!name) return "";
+    const clean = name.trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accents
+    
+    if (clean.includes("alimento") || clean.includes("elaboracion")) {
+        return "Elaboracion Industrial de Alimentos";
+    }
+    if (clean.includes("cocina") || (clean.includes("gastronomia") && !clean.includes("pastel"))) {
+        return "Gastronomia Mencion Cocina";
+    }
+    if (clean.includes("pasteleria") || clean.includes("reposteria")) {
+        return "Gastronomia Mencion Pasteleria y Reposteria";
+    }
+    if (clean.includes("mecanica") || clean.includes("automotriz")) {
+        return "Mecanica Automotriz";
+    }
+    if (clean.includes("puerto") || clean.includes("portuarias")) {
+        return "Operaciones Portuarias";
+    }
+    if (clean.includes("quimica") || clean.includes("laboratorio")) {
+        return "Quimica Industrial Mencion Laboratorio Quimico";
+    }
+    return name;
+};
+
 const CurriculumTPPage = () => {
     const [courses, setCourses] = useState<any[]>([]);
     const [selectedCourse, setSelectedCourse] = useState('');
-    const [selectedCareer, setSelectedCareer] = useState(TP_CAREERS[3]); // Default: Mecanica
+    const [selectedCareer, setSelectedCareer] = useState(TP_CAREERS[0]); // Default: Elaboracion
     const [reportData, setReportData] = useState<any | null>(null);
     const [loadingReport, setLoadingReport] = useState(false);
     const [seeding, setSeeding] = useState(false);
@@ -101,13 +127,18 @@ const CurriculumTPPage = () => {
     const [successMsg, setSuccessMsg] = useState('');
 
     const activeCourseObj = courses.find(c => c._id === selectedCourse);
-    const lockedCareerName = activeCourseObj?.careerId
+    const rawLockedCareerName = activeCourseObj?.careerId
         ? (typeof activeCourseObj.careerId === 'object' ? activeCourseObj.careerId.name : activeCourseObj.careerId)
         : null;
+
+    const lockedCareerName = rawLockedCareerName ? normalizeCareerName(rawLockedCareerName) : null;
 
     useEffect(() => {
         if (lockedCareerName) {
             setSelectedCareer(lockedCareerName);
+        } else {
+            // Reset to default available career so they can select any career
+            setSelectedCareer(TP_CAREERS[0]);
         }
     }, [lockedCareerName]);
 

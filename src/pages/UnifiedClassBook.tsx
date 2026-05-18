@@ -1253,6 +1253,49 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
         : [];
 
 
+    const getStudentReportTpData = (studentId: string) => {
+        const studentGrades = gradeMatrix[studentId] || {};
+        
+        // Total columns of evaluations (both real and virtual)
+        const visibleEvalIds = [
+            ...evaluations.slice(0, maxGrades).map(ev => ev._id),
+            ...Array.from({length: Math.max(0, maxGrades - evaluations.length)}).map((_, i) => `virtual_${evaluations.length + i + 1}`)
+        ];
+
+        // Map each grade to number or null
+        const grades = visibleEvalIds.map(id => {
+            const val = parseFloat(studentGrades[id] || "");
+            return isNaN(val) || val <= 0 ? null : val;
+        });
+
+        // Divide grades into 4 periods (up to 5 grades per period, total 20)
+        const getPeriodData = (startIdx: number, endIdx: number) => {
+            const periodGrades = grades.slice(startIdx, endIdx).filter((v): v is number => v !== null);
+            if (periodGrades.length === 0) return { average: null, approvalPct: null };
+            const average = periodGrades.reduce((a, b) => a + b, 0) / periodGrades.length;
+            const passingGrades = periodGrades.filter(v => v >= 4.0).length;
+            const approvalPct = Math.round((passingGrades / periodGrades.length) * 100);
+            return { average, approvalPct };
+        };
+
+        const p1 = getPeriodData(0, 5);
+        const p2 = getPeriodData(5, 10);
+        const p3 = getPeriodData(10, 15);
+        const p4 = getPeriodData(15, 20);
+
+        const allValidGrades = grades.filter((v): v is number => v !== null);
+        const overallAverage = allValidGrades.length > 0 
+            ? allValidGrades.reduce((a, b) => a + b, 0) / allValidGrades.length 
+            : null;
+        
+        const synthesis = overallAverage;
+        const finalGrade = overallAverage;
+        const promedio = overallAverage;
+
+        return { p1, p2, p3, p4, synthesis, finalGrade, promedio };
+    };
+
+
     // -------------------------------------------------------------------------
     // Render
     // -------------------------------------------------------------------------
@@ -1948,6 +1991,88 @@ ${printImmediately ? `<script>window.onload = () => { window.print(); setTimeout
                                             </div>
                                         )}
                                      </div>
+
+                                     {isCurrentSubjectTechnical && (
+                                         <div className="mt-12 bg-white p-8 rounded-[3rem] shadow-xl border border-slate-100 space-y-6 print:mt-6 print:border-none print:shadow-none">
+                                             <div className="flex justify-between items-center border-b border-slate-50 pb-4">
+                                                 <div>
+                                                     <h3 className="text-lg font-black text-[#11355a] tracking-tight uppercase">📊 INFORME PORCENTAJE (%) DE APROBACIÓN</h3>
+                                                     <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">Control de Rendimiento Técnico Profesional por Período Académico</p>
+                                                 </div>
+                                                 <span className="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest">Sólo Módulos TP</span>
+                                             </div>
+
+                                             <div className="overflow-x-auto">
+                                                 <table className="w-full text-center border-collapse border border-slate-200 text-[9px]">
+                                                     <thead>
+                                                         <tr className="bg-slate-50 font-black text-slate-700">
+                                                             <th className="p-2 border border-slate-200 text-left w-44 sticky left-0 bg-slate-50 z-10 shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)]">Estudiante</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 1</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 1</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 2</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 2</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 3</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 3</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/30">PROM. 4</th>
+                                                             <th className="p-2 border border-slate-200 bg-blue-50/50 text-blue-600">% AE 4</th>
+                                                             <th className="p-2 border border-slate-200 bg-amber-50/30 font-black">SÍNTESIS</th>
+                                                             <th className="p-2 border border-slate-200 bg-emerald-50/30 font-black">PROM. S</th>
+                                                             <th className="p-2 border border-slate-200 bg-purple-50/30 font-black text-purple-700">FINAL</th>
+                                                             <th className="p-2 border border-slate-200 bg-slate-100 font-black text-[#11355a]">PROMEDIO</th>
+                                                         </tr>
+                                                     </thead>
+                                                     <tbody className="divide-y divide-slate-100 font-bold text-slate-600">
+                                                         {students.sort((a,b) => a.apellidos.localeCompare(b.apellidos)).map(student => {
+                                                             const report = getStudentReportTpData(student._id);
+                                                             return (
+                                                                 <tr key={student._id} className="hover:bg-slate-50 transition-colors">
+                                                                     <td className="p-2 border border-slate-200 text-left font-black text-[#11355a] uppercase sticky left-0 bg-white shadow-[5px_0_10px_-5px_rgba(0,0,0,0.05)] whitespace-nowrap">
+                                                                         {student.apellidos}, {student.nombres}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
+                                                                         {report.p1.average !== null ? report.p1.average.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
+                                                                         {report.p1.approvalPct !== null ? `${report.p1.approvalPct}%` : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
+                                                                         {report.p2.average !== null ? report.p2.average.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
+                                                                         {report.p2.approvalPct !== null ? `${report.p2.approvalPct}%` : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
+                                                                         {report.p3.average !== null ? report.p3.average.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
+                                                                         {report.p3.approvalPct !== null ? `${report.p3.approvalPct}%` : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-slate-50/20">
+                                                                         {report.p4.average !== null ? report.p4.average.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-blue-50/10 font-black text-blue-600">
+                                                                         {report.p4.approvalPct !== null ? `${report.p4.approvalPct}%` : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-amber-50/10 font-black text-slate-800">
+                                                                         {report.synthesis !== null ? report.synthesis.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-emerald-50/10 font-black text-slate-800">
+                                                                         {report.finalGrade !== null ? report.finalGrade.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-purple-50/10 font-black text-purple-700">
+                                                                         {report.finalGrade !== null ? report.finalGrade.toFixed(1) : '--'}
+                                                                     </td>
+                                                                     <td className="p-2 border border-slate-200 bg-slate-100/50 font-black text-[#11355a]">
+                                                                         {report.promedio !== null ? report.promedio.toFixed(1) : '--'}
+                                                                     </td>
+                                                                 </tr>
+                                                             );
+                                                         })}
+                                                     </tbody>
+                                                 </table>
+                                             </div>
+                                         </div>
+                                     )}
                                  </div>
                              )}
 
