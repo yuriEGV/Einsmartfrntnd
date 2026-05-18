@@ -8,6 +8,7 @@ import CurriculumMaterialPage from './CurriculumMaterialPage';
 import GradesPage from './GradesPage';
 import PlanningPage from './PlanningPage';
 import RubricsPage from './RubricsPage';
+import CurriculumTPPage from './CurriculumTPPage';
 import TestWizard from '../components/TestWizard';
 
 const AcademicCenter = () => {
@@ -21,7 +22,8 @@ const AcademicCenter = () => {
         { id: 'questions', label: 'Banco de Preguntas', icon: Database, color: 'text-amber-600', bg: 'bg-amber-50' },
         { id: 'evaluations', label: 'Pruebas y Evaluaciones', icon: ClipboardList, color: 'text-emerald-600', bg: 'bg-emerald-50' },
         { id: 'materials', label: 'Material Didáctico', icon: BookOpen, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-        { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-rose-600', bg: 'bg-rose-50' }
+        { id: 'results', label: 'Resultados (Notas)', icon: BarChart3, color: 'text-rose-600', bg: 'bg-rose-50' },
+        { id: 'curriculumTP', label: 'Currículum y Aprobación TP', icon: BookOpen, color: 'text-violet-600', bg: 'bg-violet-50' }
     ];
 
     const renderContent = () => {
@@ -32,6 +34,7 @@ const AcademicCenter = () => {
             case 'questions': return <QuestionBankPage hideHeader={true} />;
             case 'rubrics': return <RubricsPage hideHeader={true} />;
             case 'results': return <GradesPage hideHeader={true} />;
+            case 'curriculumTP': return <CurriculumTPPage />;
             default: return <PlanningPage />;
         }
     };

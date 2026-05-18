@@ -180,6 +180,66 @@ const UnifiedClassBook = () => {
         category: 'planificada'
     });
 
+    // Helper to get storage key
+    const getTimerKey = (course: string, subject: string, block: string) => {
+        return `aula_timer_${course}_${subject}_${block}`;
+    };
+
+    // Load timer from localStorage
+    useEffect(() => {
+        if (selectedCourse && selectedSubject && selectedBlock) {
+            const key = getTimerKey(selectedCourse, selectedSubject, selectedBlock);
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    let duration = parsed.duration || 0;
+                    
+                    // If it was running and not paused, add elapsed time since last tick
+                    if (parsed.running && !parsed.paused && parsed.lastTick) {
+                        const elapsedSeconds = Math.floor((Date.now() - parsed.lastTick) / 1000);
+                        if (elapsedSeconds > 0) {
+                            duration += elapsedSeconds;
+                        }
+                    }
+                    
+                    setEffectiveDuration(duration);
+                    setIsTimerRunning(parsed.running || false);
+                    setIsTimerPaused(parsed.paused || false);
+                    currentSessionRef.current = { course: selectedCourse, subject: selectedSubject, block: selectedBlock };
+                    return;
+                } catch (e) {
+                    console.error('Error parsing saved timer:', e);
+                }
+            }
+            // If no saved state found, default to 0
+            setEffectiveDuration(0);
+            setIsTimerRunning(false);
+            setIsTimerPaused(false);
+            currentSessionRef.current = { course: selectedCourse, subject: selectedSubject, block: selectedBlock };
+        } else {
+            setIsTimerRunning(false);
+            setIsTimerPaused(false);
+            setEffectiveDuration(0);
+            currentSessionRef.current = { course: '', subject: '', block: '' };
+        }
+    }, [selectedCourse, selectedSubject, selectedBlock]);
+
+    // Save timer to localStorage on tick and state changes
+    useEffect(() => {
+        if (selectedCourse && selectedSubject && selectedBlock) {
+            const key = getTimerKey(selectedCourse, selectedSubject, selectedBlock);
+            const state = {
+                running: isTimerRunning,
+                paused: isTimerPaused,
+                duration: effectiveDuration,
+                lastTick: Date.now()
+            };
+            localStorage.setItem(key, JSON.stringify(state));
+        }
+    }, [isTimerRunning, isTimerPaused, effectiveDuration, selectedCourse, selectedSubject, selectedBlock]);
+
+    // Timer tick interval
     useEffect(() => {
         let interval: any;
         if (isTimerRunning && !isTimerPaused) {
@@ -189,28 +249,6 @@ const UnifiedClassBook = () => {
         }
         return () => clearInterval(interval);
     }, [isTimerRunning, isTimerPaused]);
-
-    // Reset duration ONLY when session context REALLY changes
-    useEffect(() => {
-        if (selectedCourse && selectedSubject && selectedBlock) {
-            const isNewSession =
-                currentSessionRef.current.course !== selectedCourse ||
-                currentSessionRef.current.subject !== selectedSubject ||
-                currentSessionRef.current.block !== selectedBlock;
-            
-            if (isNewSession) {
-                currentSessionRef.current = { course: selectedCourse, subject: selectedSubject, block: selectedBlock };
-                setEffectiveDuration(0);
-                setIsTimerRunning(false); // Do not auto-start, teacher must control
-                setIsTimerPaused(false);
-            }
-        } else {
-            setIsTimerRunning(false);
-            setIsTimerPaused(false);
-            setEffectiveDuration(0);
-            currentSessionRef.current = { course: '', subject: '', block: '' };
-        }
-    }, [selectedCourse, selectedSubject, selectedBlock]);
 
 
     const logClassBookAction = async (action: string, details: string) => {
@@ -608,6 +646,13 @@ const UnifiedClassBook = () => {
             setSigningLogId(null);
             setPin('');
             setIsTimerRunning(false); // Stop timer
+            
+            // Clear persistent timer for this block
+            if (selectedCourse && selectedSubject && selectedBlock) {
+                const key = `aula_timer_${selectedCourse}_${selectedSubject}_${selectedBlock}`;
+                localStorage.removeItem(key);
+            }
+            
             refreshTabContent();
         } catch (err) { alert('Error al firmar documento.'); }
     };
