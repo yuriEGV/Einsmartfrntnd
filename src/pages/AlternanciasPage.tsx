@@ -101,6 +101,8 @@ export default function AlternanciasPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [docentesCarrera, setDocentesCarrera] = useState<any[]>([]);
+    const [horariosProf, setHorariosProf] = useState<any[]>([]);
     
     const [loading, setLoading] = useState(true);
     const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -169,33 +171,51 @@ export default function AlternanciasPage() {
         comentarios: ''
     });
 
-    const loadData = async () => {
-        try {
-            setLoading(true);
-            const [altsRes, stdRes, carRes, usersRes, empRes, subjectsRes] = await Promise.all([
-                api.get('/alternancias').catch(() => ({ data: [] })),
-                api.get('/estudiantes').catch(() => ({ data: [] })),
-                api.get('/careers').catch(() => ({ data: [] })),
-                api.get('/users').catch(() => ({ data: [] })),
-                api.get('/empresas').catch(() => ({ data: [] })),
-                api.get('/subjects').catch(() => ({ data: [] }))
-            ]);
-            setAlternancias(altsRes.data);
-            setStudents(stdRes.data);
-            setCareers(carRes.data);
-            setUsers(usersRes.data);
-            setEmpresas(empRes.data);
-            setSubjects(subjectsRes.data);
-        } catch (error) {
-            console.error('Error loading data:', error);
-            toast.error('Error al cargar datos core de Alternancias');
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        loadData();
+        async function fetchData() {
+            try {
+                setLoading(true);
+
+                // Fetch alternancias
+                const { data: alternanciasData } = await api.get('/alternancias');
+                setAlternancias(alternanciasData);
+
+                // Fetch students with RUT and names
+                const { data: studentsData } = await api.get('/students');
+                const formattedStudents = studentsData.map(student => ({
+                    _id: student._id,
+                    rut: student.rut,
+                    nombres: student.nombres,
+                    apellidos: student.apellidos,
+                    displayLabel: `${student.rut} - ${student.nombres} ${student.apellidos}`
+                }));
+                setStudents(formattedStudents);
+
+                // Fetch careers
+                const { data: careersData } = await api.get('/careers');
+                setCareers(careersData);
+
+                // Fetch users (teachers)
+                const { data: usersData } = await api.get('/users?role=teacher');
+                setUsers(usersData);
+
+                // Fetch empresas
+                const { data: empresasData } = await api.get('/empresas');
+                setEmpresas(empresasData);
+
+                // Fetch subjects
+                const { data: subjectsData } = await api.get('/subjects');
+                setSubjects(subjectsData);
+
+                setLoading(false);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                toast.error('Error al cargar los datos.');
+                setLoading(false);
+            }
+        }
+
+        fetchData();
     }, []);
 
     // EMPRESA SUBMIT
@@ -325,6 +345,34 @@ export default function AlternanciasPage() {
             }
         } else {
             setRutFeedback(null);
+        }
+    };
+
+    const loadDocentesCarrera = async (careerId: string) => {
+        if (!careerId) {
+            setDocentesCarrera([]);
+            return;
+        }
+        try {
+            const { data } = await api.get('/alternancias/docentes-carrera', { params: { careerId } });
+            setDocentesCarrera(data);
+        } catch (error) {
+            console.error('Error cargando docentes de carrera:', error);
+            setDocentesCarrera([]);
+        }
+    };
+
+    const loadHorariosProf = async (courseId: string) => {
+        if (!courseId) {
+            setHorariosProf([]);
+            return;
+        }
+        try {
+            const { data } = await api.get('/alternancias/horarios', { params: { courseId } });
+            setHorariosProf(data);
+        } catch (error) {
+            console.error('Error cargando horarios:', error);
+            setHorariosProf([]);
         }
     };
 
@@ -630,7 +678,7 @@ export default function AlternanciasPage() {
                                             >
                                                 <option value="">Selección de Padrón...</option>
                                                 {students.map(s => (
-                                                    <option key={s._id} value={s._id}>{formatearRUT(s.rut)} - {s.firstName} {s.lastName}</option>
+                                                    <option key={s._id} value={s._id}>{s.displayLabel}</option>
                                                 ))}
                                             </select>
                                         </div>
@@ -639,7 +687,10 @@ export default function AlternanciasPage() {
                                             <select
                                                 required
                                                 value={formData.careerId}
-                                                onChange={(e) => setFormData({ ...formData, careerId: e.target.value })}
+                                                onChange={(e) => {
+                                                    setFormData({ ...formData, careerId: e.target.value });
+                                                    loadDocentesCarrera(e.target.value);
+                                                }}
                                                 className="w-full px-5 py-4 rounded-xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-xs shadow-inner outline-none transition-all"
                                             >
                                                 <option value="">Asignar Carrera...</option>
@@ -935,7 +986,17 @@ export default function AlternanciasPage() {
                                                 className="w-full px-6 py-5 rounded-2xl border-2 border-slate-50 focus:border-[#2DAAB8] bg-slate-50/50 font-black text-[#002447] text-sm shadow-inner outline-none transition-all"
                                             >
                                                 <option value="">Seleccionar Docente...</option>
-                                                {users.filter(u => u.role === 'teacher').map(u => <option key={u._id} value={u._id}>{u.name}</option>)}
+                                                {docentesCarrera && docentesCarrera.length > 0 ? (
+                                                    docentesCarrera.map(d => (
+                                                        <option key={d._id} value={d._id}>
+                                                            {d.name || `${d.nombres} ${d.apellidos}`} ({d.email})
+                                                        </option>
+                                                    ))
+                                                ) : (
+                                                    users.filter(u => u.role === 'teacher').map(u => (
+                                                        <option key={u._id} value={u._id}>{u.name}</option>
+                                                    ))
+                                                )}
                                             </select>
                                         </div>
                                         <div className="space-y-2">

@@ -63,9 +63,9 @@ export const usePermissions = (): Permissions => {
         isSuperAdmin,
         isStaff,
         canManageCourses: isAdmin || isUTP,
-        // New permissions
-        canManageSubjects: isAdmin || isTeacher || isUTP,
-        canManageAlternancias: isAdmin || isUTP || isTeacher || isTutor,
+        // New permissions - RESTRICTED: Only Admin, UTP, Director and Sostenedor can manage subjects
+        canManageSubjects: isAdmin || isUTP || isDirector || isSostenedor,
+        canManageAlternancias: isAdmin || isUTP || isTeacher || isDirector,
         canManageEvents: isAdmin || isTeacher || isDirector || isSostenedor || isUTP,
         isTeacher,
         isSostenedor,
