@@ -102,7 +102,6 @@ export default function AlternanciasPage() {
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [docentesCarrera, setDocentesCarrera] = useState<any[]>([]);
-    const [horariosProf, setHorariosProf] = useState<any[]>([]);
     
     const [loading, setLoading] = useState(true);
     const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -171,51 +170,51 @@ export default function AlternanciasPage() {
         comentarios: ''
     });
 
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                setLoading(true);
+    const loadData = async () => {
+        try {
+            setLoading(true);
 
-                // Fetch alternancias
-                const { data: alternanciasData } = await api.get('/alternancias');
-                setAlternancias(alternanciasData);
+            // Fetch alternancias
+            const { data: alternanciasData } = await api.get('/alternancias');
+            setAlternancias(alternanciasData);
 
-                // Fetch students with RUT and names
-                const { data: studentsData } = await api.get('/students');
-                const formattedStudents = studentsData.map(student => ({
-                    _id: student._id,
-                    rut: student.rut,
-                    nombres: student.nombres,
-                    apellidos: student.apellidos,
-                    displayLabel: `${student.rut} - ${student.nombres} ${student.apellidos}`
-                }));
-                setStudents(formattedStudents);
+            // Fetch students with RUT and names
+            const { data: studentsData } = await api.get('/students');
+            const formattedStudents = studentsData.map((student: any) => ({
+                _id: student._id,
+                rut: student.rut,
+                nombres: student.nombres,
+                apellidos: student.apellidos,
+                displayLabel: `${student.rut} - ${student.nombres} ${student.apellidos}`
+            }));
+            setStudents(formattedStudents);
 
-                // Fetch careers
-                const { data: careersData } = await api.get('/careers');
-                setCareers(careersData);
+            // Fetch careers
+            const { data: careersData } = await api.get('/careers');
+            setCareers(careersData);
 
-                // Fetch users (teachers)
-                const { data: usersData } = await api.get('/users?role=teacher');
-                setUsers(usersData);
+            // Fetch users (teachers)
+            const { data: usersData } = await api.get('/users?role=teacher');
+            setUsers(usersData);
 
-                // Fetch empresas
-                const { data: empresasData } = await api.get('/empresas');
-                setEmpresas(empresasData);
+            // Fetch empresas
+            const { data: empresasData } = await api.get('/empresas');
+            setEmpresas(empresasData);
 
-                // Fetch subjects
-                const { data: subjectsData } = await api.get('/subjects');
-                setSubjects(subjectsData);
+            // Fetch subjects
+            const { data: subjectsData } = await api.get('/subjects');
+            setSubjects(subjectsData);
 
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                toast.error('Error al cargar los datos.');
-                setLoading(false);
-            }
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            toast.error('Error al cargar los datos.');
+            setLoading(false);
         }
+    };
 
-        fetchData();
+    useEffect(() => {
+        loadData();
     }, []);
 
     // EMPRESA SUBMIT
@@ -359,20 +358,6 @@ export default function AlternanciasPage() {
         } catch (error) {
             console.error('Error cargando docentes de carrera:', error);
             setDocentesCarrera([]);
-        }
-    };
-
-    const loadHorariosProf = async (courseId: string) => {
-        if (!courseId) {
-            setHorariosProf([]);
-            return;
-        }
-        try {
-            const { data } = await api.get('/alternancias/horarios', { params: { courseId } });
-            setHorariosProf(data);
-        } catch (error) {
-            console.error('Error cargando horarios:', error);
-            setHorariosProf([]);
         }
     };
 
