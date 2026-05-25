@@ -109,6 +109,63 @@ export default function AlternanciasPage() {
     const [messageLoading, setMessageLoading] = useState(false);
     const [messageTarget, setMessageTarget] = useState<{ userId: string, name: string } | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCareerTab, setSelectedCareerTab] = useState<string>('all');
+    
+    const getCareerTheme = (name: string) => {
+        const lower = name?.toLowerCase() || '';
+        if (lower.includes('gastronomia') || lower.includes('cocina') || lower.includes('pasteleria')) {
+            return {
+                bg: 'from-orange-500 to-amber-600',
+                text: 'text-orange-950',
+                accent: 'bg-orange-50 text-orange-600 border-orange-100',
+                border: 'border-orange-100',
+                shadow: 'shadow-orange-950/10'
+            };
+        }
+        if (lower.includes('mecanica')) {
+            return {
+                bg: 'from-blue-600 to-indigo-700',
+                text: 'text-blue-950',
+                accent: 'bg-blue-50 text-blue-600 border-blue-100',
+                border: 'border-blue-100',
+                shadow: 'shadow-blue-950/10'
+            };
+        }
+        if (lower.includes('quimica') || lower.includes('laboratorio')) {
+            return {
+                bg: 'from-emerald-500 to-teal-600',
+                text: 'text-emerald-950',
+                accent: 'bg-emerald-50 text-emerald-600 border-emerald-100',
+                border: 'border-emerald-100',
+                shadow: 'shadow-emerald-950/10'
+            };
+        }
+        if (lower.includes('portuarias') || lower.includes('maritimo') || lower.includes('puertos')) {
+            return {
+                bg: 'from-[#11355a] to-[#002447]',
+                text: 'text-[#002447]',
+                accent: 'bg-[#2DAAB8]/10 text-[#2DAAB8] border-[#2DAAB8]/20',
+                border: 'border-slate-100',
+                shadow: 'shadow-[#002447]/10'
+            };
+        }
+        if (lower.includes('alimentos') || lower.includes('elaboracion')) {
+            return {
+                bg: 'from-rose-500 to-pink-600',
+                text: 'text-rose-950',
+                accent: 'bg-rose-50 text-rose-600 border-rose-100',
+                border: 'border-rose-100',
+                shadow: 'shadow-rose-950/10'
+            };
+        }
+        return {
+            bg: 'from-slate-700 to-slate-800',
+            text: 'text-slate-950',
+            accent: 'bg-slate-50 text-slate-600 border-slate-100',
+            border: 'border-slate-100',
+            shadow: 'shadow-slate-950/10'
+        };
+    };
     
     // Modals visibility
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -423,6 +480,44 @@ export default function AlternanciasPage() {
                 />
             </div>
 
+            {/* Career Navigation Pills */}
+            {!loading && (
+                <div className="flex flex-wrap gap-2.5 py-3 border-b border-slate-100">
+                    <button
+                        onClick={() => setSelectedCareerTab('all')}
+                        className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 flex items-center gap-2 ${
+                            selectedCareerTab === 'all'
+                                ? 'bg-[#002447] text-white shadow-lg shadow-[#002447]/20 border-b-4 border-[#00152b]'
+                                : 'bg-white text-slate-500 hover:text-[#002447] hover:bg-slate-50 border border-slate-200/60'
+                        }`}
+                    >
+                        Todas las Especialidades ({filteredAlternancias.length})
+                    </button>
+                    {careers.map((career) => {
+                        const count = filteredAlternancias.filter(a => a.careerId?._id === career._id).length;
+                        if (count === 0) return null;
+                        
+                        const theme = getCareerTheme(career.name);
+                        const isSelected = selectedCareerTab === career._id;
+                        
+                        return (
+                            <button
+                                key={career._id}
+                                onClick={() => setSelectedCareerTab(career._id)}
+                                className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 flex items-center gap-2 ${
+                                    isSelected
+                                        ? `bg-gradient-to-r ${theme.bg} text-white shadow-lg ${theme.shadow} border-b-4 border-black/20`
+                                        : 'bg-white text-slate-500 hover:text-slate-800 hover:bg-slate-50 border border-slate-200/60'
+                                }`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${isSelected ? 'bg-white' : 'bg-[#2DAAB8]'}`}></span>
+                                {career.name} ({count})
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
             {/* Cards Grid */}
             {loading ? (
                 <div className="py-20 text-center animate-pulse flex flex-col items-center">
@@ -430,196 +525,254 @@ export default function AlternanciasPage() {
                     <p className="text-slate-400 font-bold mt-4 uppercase tracking-widest text-[10px]">Sincronizando Expedientes Académicos...</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAlternancias.map((alt, idx) => (
-                        <div 
-                            key={alt._id} 
-                            style={{ animationDelay: `${idx * 100}ms` }}
-                            className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white p-5 shadow-2xl shadow-[#002447]/5 hover:shadow-[#002447]/10 transition-all hover:-translate-y-2 group relative overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-500"
-                        >
-                            {/* Card Background Accent */}
-                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#2DAAB8]/5 rounded-full blur-3xl group-hover:bg-[#2DAAB8]/15 transition-colors"></div>
+                <div className="space-y-12">
+                    {(() => {
+                        const grouped: { [key: string]: { name: string, items: Alternancia[] } } = {};
+                        
+                        filteredAlternancias.forEach(alt => {
+                            const careerId = alt.careerId?._id || 'unassigned';
+                            const careerName = alt.careerId?.name || 'Otras Especialidades';
                             
-                            {/* Student Header */}
-                            <div className="flex items-start justify-between mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-14 h-14 bg-gradient-to-br from-[#002447] to-[#004080] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#002447]/20 overflow-hidden border-2 border-white/20">
-                                        {alt.estudianteId?.photoUrl ? (
-                                            <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={28} />
+                            if (selectedCareerTab !== 'all' && careerId !== selectedCareerTab) {
+                                return;
+                            }
+                            
+                            if (!grouped[careerId]) {
+                                grouped[careerId] = {
+                                    name: careerName,
+                                    items: []
+                                };
+                            }
+                            grouped[careerId].items.push(alt);
+                        });
+                        
+                        const groupKeys = Object.keys(grouped);
+                        
+                        if (groupKeys.length === 0) {
+                            return (
+                                <div className="py-20 bg-white/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
+                                    <FileText size={64} className="mx-auto text-slate-200 mb-4" />
+                                    <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No se encontraron expedientes activos para esta búsqueda</p>
+                                </div>
+                            );
+                        }
+                        
+                        return groupKeys.map((key) => {
+                            const group = grouped[key];
+                            const theme = getCareerTheme(group.name);
+                            
+                            return (
+                                <div key={key} className="space-y-6 animate-in fade-in slide-in-from-bottom-5 duration-700">
+                                    {/* Career Header Banner */}
+                                    <div className={`bg-gradient-to-r ${theme.bg} p-6 rounded-[2rem] text-white shadow-xl ${theme.shadow} flex flex-col md:flex-row justify-between items-start md:items-center gap-4`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20">
+                                                <GraduationCap size={28} className="text-white" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-lg font-black uppercase tracking-wider">{group.name}</h2>
+                                                <p className="text-[10px] font-bold text-white/70 uppercase tracking-widest mt-0.5">
+                                                    {group.items.length} {group.items.length === 1 ? 'Alumno Registrado' : 'Alumnos Registrados'}
+                                                </p>
+                                            </div>
+                                        </div>
+                                        {group.items[0]?.careerId?.headTeacher && (
+                                            <div className="text-[10px] font-black uppercase tracking-widest bg-white/10 backdrop-blur-md border border-white/25 px-4 py-2 rounded-xl">
+                                                👨‍🏫 Jefe de Especialidad
+                                            </div>
                                         )}
                                     </div>
-                                    <div className="flex flex-col">
-                                        <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1">
-                                            {alt.estudianteId?.nombres}
-                                        </h3>
-                                        <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1.5">
-                                            {alt.estudianteId?.apellidos}
-                                        </h3>
-                                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
-                                    </div>
-                                </div>
-                                <div className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm
-                                    ${alt.estado === 'Activa' ? 'bg-[#2DAAB8] text-white' :
-                                      alt.estado === 'Pausada' ? 'bg-amber-500 text-white' :
-                                      alt.estado === 'Finalizada' ? 'bg-[#002447] text-white' :
-                                      'bg-slate-100 text-slate-400'}`}>
-                                    {alt.estado}
-                                </div>
-                            </div>
-
-                            {/* [PRO] Medical License Alert */}
-                            {(alt as any).hasActiveLicense && (
-                                <div className="bg-rose-50 border border-rose-100 p-4 rounded-3xl mb-6 flex items-center gap-4 animate-pulse">
-                                    <div className="p-2 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-200">
-                                        <AlertCircle size={18} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Alerta de Salud</p>
-                                        <p className="text-[9px] font-bold text-rose-400 uppercase">Licencia Médica Registrada</p>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Info Rows */}
-                            <div className="space-y-4 mb-8">
-                                <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
-                                    <div className="flex items-center gap-3 mb-2 text-[#002447]">
-                                        <Building2 size={16} className="text-[#2DAAB8]" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Empresa Asignada</span>
-                                    </div>
-                                    <p className="font-black text-slate-800 text-sm pl-7">{alt.empresa?.razonSocial}</p>
-                                    <p className="text-[9px] font-bold text-[#2DAAB8] pl-7 mt-1 uppercase italic">{alt.tipo}</p>
-                                </div>
-
-                                <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
-                                    <div className="flex items-center gap-3 mb-2 text-[#002447]">
-                                        <BookOpen size={16} className="text-[#2DAAB8]" />
-                                        <span className="text-[10px] font-black uppercase tracking-widest">Especialidad</span>
-                                    </div>
-                                    <p className="font-black text-slate-800 text-sm pl-7">{alt.careerId?.name || 'Formación Técnica'}</p>
-                                </div>
-                            </div>
-
-                            {/* Stats */}
-                            <div className="flex items-center justify-between px-2 mb-8">
-                                <div className="text-center">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Horas Totales</p>
-                                    <p className="text-lg font-black text-[#002447]">{alt.planFormativo?.totalHoras || 0}</p>
-                                </div>
-                                <div className="h-8 w-px bg-slate-100"></div>
-                                <div className="text-center">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Nota Promedio</p>
-                                    <p className="text-lg font-black text-[#2DAAB8]">
-                                        {alt.evaluacionesPeriodicas && alt.evaluacionesPeriodicas.length > 0 
-                                            ? (alt.evaluacionesPeriodicas.reduce((acc, curr) => 
-                                                acc + ((curr.desempeñoTecnico + curr.habilidadesLaborales + curr.asistencia) / 3), 0) / alt.evaluacionesPeriodicas.length).toFixed(1)
-                                            : 'N/A'}
-                                    </p>
-                                </div>
-                                <div className="h-8 w-px bg-slate-100"></div>
-                                <div className="text-center">
-                                    <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Seguro</p>
-                                    {alt.seguroEscolar ? <ShieldCheck className="text-emerald-500 mx-auto" size={22} /> : <AlertCircle className="text-rose-400 mx-auto" size={22} />}
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={() => { setSelectedAlt(alt); setIsBitacoraModalOpen(true); }}
-                                    className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
-                                >
-                                    <FileText size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Bitácora</span>
-                                </button>
-                                <button
-                                    onClick={() => { setSelectedAlt(alt); setIsEvalModalOpen(true); }}
-                                    className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
-                                >
-                                    <Star size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Evaluar</span>
-                                </button>
-
-                                {permissions.isTutor && (
-                                    <div className="grid grid-cols-2 gap-3 col-span-2 mt-2">
-                                        {alt.careerId?.headTeacher && (
-                                            <button
-                                                onClick={() => { 
-                                                    setMessageTarget({ 
-                                                        userId: (alt.careerId as any).headTeacher._id || (alt.careerId as any).headTeacher, 
-                                                        name: 'Jefe de Carrera' 
-                                                    }); 
-                                                    setIsMessageModalOpen(true); 
-                                                }}
-                                                className="bg-[#2DAAB8]/5 border-2 border-[#2DAAB8]/10 hover:border-[#2DAAB8] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                    
+                                    {/* Cards Grid for this Career */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {group.items.map((alt, idx) => (
+                                            <div 
+                                                key={alt._id} 
+                                                style={{ animationDelay: `${idx * 50}ms` }}
+                                                className="bg-white/80 backdrop-blur-xl rounded-3xl border border-white p-5 shadow-2xl shadow-[#002447]/5 hover:shadow-xl hover:shadow-[#2DAAB8]/5 transition-all duration-300 hover:-translate-y-1.5 group relative overflow-hidden"
                                             >
-                                                <MessageSquare size={16} className="text-[#2DAAB8]" />
-                                                <span className="text-[8px] font-black text-[#2DAAB8] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Jefe Carrera</span>
-                                            </button>
-                                        )}
-                                        {alt.profesorSupervisor && (
-                                            <button
-                                                onClick={() => { 
-                                                    setMessageTarget({ 
-                                                        userId: alt.profesorSupervisor._id, 
-                                                        name: alt.profesorSupervisor.name || 'Profesor Supervisor' 
-                                                    }); 
-                                                    setIsMessageModalOpen(true); 
-                                                }}
-                                                className="bg-[#11355a]/5 border-2 border-[#11355a]/10 hover:border-[#11355a] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#11355a]/10 group/btn"
-                                            >
-                                                <Send size={16} className="text-[#11355a]" />
-                                                <span className="text-[8px] font-black text-[#11355a] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Supervisor</span>
-                                            </button>
-                                        )}
+                                                {/* Card Background Accent */}
+                                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-[#2DAAB8]/5 rounded-full blur-3xl group-hover:bg-[#2DAAB8]/15 transition-colors"></div>
+                                                
+                                                {/* Student Header */}
+                                                <div className="flex items-start justify-between mb-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-14 h-14 bg-gradient-to-br from-[#002447] to-[#004080] rounded-2xl flex items-center justify-center text-white shadow-lg shadow-[#002447]/20 overflow-hidden border-2 border-white/20">
+                                                            {alt.estudianteId?.photoUrl ? (
+                                                                <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <User size={28} />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1">
+                                                                {alt.estudianteId?.nombres}
+                                                            </h3>
+                                                            <h3 className="font-black text-[#002447] uppercase leading-none tracking-tighter text-sm mb-1.5">
+                                                                {alt.estudianteId?.apellidos}
+                                                            </h3>
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{alt.estudianteId?.rut}</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className={`px-3 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest shadow-sm
+                                                        ${alt.estado === 'Activa' ? 'bg-[#2DAAB8] text-white' :
+                                                          alt.estado === 'Pausada' ? 'bg-amber-500 text-white' :
+                                                          alt.estado === 'Finalizada' ? 'bg-[#002447] text-white' :
+                                                          'bg-slate-100 text-slate-400'}`}>
+                                                        {alt.estado}
+                                                    </div>
+                                                </div>
+
+                                                {/* [PRO] Medical License Alert */}
+                                                {(alt as any).hasActiveLicense && (
+                                                    <div className="bg-rose-50 border border-rose-100 p-4 rounded-3xl mb-6 flex items-center gap-4 animate-pulse">
+                                                        <div className="p-2 bg-rose-500 text-white rounded-xl shadow-lg shadow-rose-200">
+                                                            <AlertCircle size={18} />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-rose-600 uppercase tracking-widest">Alerta de Salud</p>
+                                                            <p className="text-[9px] font-bold text-rose-400 uppercase">Licencia Médica Registrada</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Info Rows */}
+                                                <div className="space-y-4 mb-8">
+                                                    <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
+                                                        <div className="flex items-center gap-3 mb-2 text-[#002447]">
+                                                            <Building2 size={16} className="text-[#2DAAB8]" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Empresa Asignada</span>
+                                                        </div>
+                                                        <p className="font-black text-slate-800 text-sm pl-7">{alt.empresa?.razonSocial || 'Sin Asignar'}</p>
+                                                        <p className="text-[9px] font-bold text-[#2DAAB8] pl-7 mt-1 uppercase italic">{alt.tipo}</p>
+                                                    </div>
+
+                                                    <div className="bg-slate-50/50 p-4 rounded-3xl border border-slate-100/50">
+                                                        <div className="flex items-center gap-3 mb-2 text-[#002447]">
+                                                            <BookOpen size={16} className="text-[#2DAAB8]" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Especialidad</span>
+                                                        </div>
+                                                        <p className="font-black text-slate-800 text-sm pl-7">{alt.careerId?.name || 'Formación Técnica'}</p>
+                                                    </div>
+                                                </div>
+
+                                                {/* Stats */}
+                                                <div className="flex items-center justify-between px-2 mb-8">
+                                                    <div className="text-center">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Horas Totales</p>
+                                                        <p className="text-lg font-black text-[#002447]">{alt.planFormativo?.totalHoras || 0}</p>
+                                                    </div>
+                                                    <div className="h-8 w-px bg-slate-100"></div>
+                                                    <div className="text-center">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Nota Promedio</p>
+                                                        <p className="text-lg font-black text-[#2DAAB8]">
+                                                            {alt.evaluacionesPeriodicas && alt.evaluacionesPeriodicas.length > 0 
+                                                                ? (alt.evaluacionesPeriodicas.reduce((acc, curr) => 
+                                                                    acc + ((curr.desempeñoTecnico + curr.habilidadesLaborales + curr.asistencia) / 3), 0) / alt.evaluacionesPeriodicas.length).toFixed(1)
+                                                                : 'N/A'}
+                                                        </p>
+                                                    </div>
+                                                    <div className="h-8 w-px bg-slate-100"></div>
+                                                    <div className="text-center">
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase mb-1">Seguro</p>
+                                                        {alt.seguroEscolar ? <ShieldCheck className="text-emerald-500 mx-auto" size={22} /> : <AlertCircle className="text-rose-400 mx-auto" size={22} />}
+                                                    </div>
+                                                </div>
+
+                                                {/* Actions */}
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <button
+                                                        onClick={() => { setSelectedAlt(alt); setIsBitacoraModalOpen(true); }}
+                                                        className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                                    >
+                                                        <FileText size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
+                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Bitácora</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={() => { setSelectedAlt(alt); setIsEvalModalOpen(true); }}
+                                                        className="bg-white border-2 border-slate-50 hover:border-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                                    >
+                                                        <Star size={20} className="text-slate-400 group-hover/btn:text-[#2DAAB8] transition-colors" />
+                                                        <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest group-hover/btn:text-[#002447]">Evaluar</span>
+                                                    </button>
+
+                                                    {permissions.isTutor && (
+                                                        <div className="grid grid-cols-2 gap-3 col-span-2 mt-2">
+                                                            {alt.careerId?.headTeacher && (
+                                                                <button
+                                                                    onClick={() => { 
+                                                                        setMessageTarget({ 
+                                                                            userId: (alt.careerId as any).headTeacher._id || (alt.careerId as any).headTeacher, 
+                                                                            name: 'Jefe de Carrera' 
+                                                                        }); 
+                                                                        setIsMessageModalOpen(true); 
+                                                                    }}
+                                                                    className="bg-[#2DAAB8]/5 border-2 border-[#2DAAB8]/10 hover:border-[#2DAAB8] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#2DAAB8]/10 group/btn"
+                                                                >
+                                                                    <MessageSquare size={16} className="text-[#2DAAB8]" />
+                                                                    <span className="text-[8px] font-black text-[#2DAAB8] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Jefe Carrera</span>
+                                                                </button>
+                                                            )}
+                                                            {alt.profesorSupervisor && (
+                                                                <button
+                                                                    onClick={() => { 
+                                                                        setMessageTarget({ 
+                                                                            userId: alt.profesorSupervisor._id, 
+                                                                            name: alt.profesorSupervisor.name || 'Profesor Supervisor' 
+                                                                        }); 
+                                                                        setIsMessageModalOpen(true); 
+                                                                    }}
+                                                                    className="bg-[#11355a]/5 border-2 border-[#11355a]/10 hover:border-[#11355a] p-3 rounded-2xl flex flex-col items-center gap-2 transition-all hover:shadow-xl hover:shadow-[#11355a]/10 group/btn"
+                                                                >
+                                                                    <Send size={16} className="text-[#11355a]" />
+                                                                    <span className="text-[8px] font-black text-[#11355a] uppercase tracking-widest group-hover:text-[#002447] text-center leading-tight">Mensaje Supervisor</span>
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {permissions.canManageAlternancias && !permissions.isTutor && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleEdit(alt)}
+                                                                className="bg-[#2DAAB8]/5 hover:bg-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn2"
+                                                            >
+                                                                <Edit size={20} className="text-[#2DAAB8] group-hover/btn2:text-white transition-colors" />
+                                                                <span className="text-[9px] font-black text-[#2DAAB8] group-hover/btn2:text-white uppercase tracking-widest">Ajustes</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const newStatus = alt.estado === 'Pausada' ? 'Activa' : 'Pausada';
+                                                                    try {
+                                                                        await api.put(`/alternancias/${alt._id}`, { estado: newStatus });
+                                                                        toast.success(`Alternancia ${newStatus === 'Pausada' ? 'Pausada' : 'Reactivada'}`);
+                                                                        loadData();
+                                                                    } catch (error) {
+                                                                        toast.error('Error al cambiar estado');
+                                                                    }
+                                                                }}
+                                                                className={`${alt.estado === 'Pausada' ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500' : 'bg-amber-50 text-amber-600 hover:bg-amber-500'} p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn4 hover:text-white`}
+                                                            >
+                                                                <Calendar size={20} />
+                                                                <span className="text-[9px] font-black uppercase tracking-widest">{alt.estado === 'Pausada' ? 'Reactivar' : 'Pausar'}</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(alt._id)}
+                                                                className="bg-rose-50 hover:bg-rose-500 p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn3 text-rose-500 hover:text-white"
+                                                            >
+                                                                <Trash2 size={20} />
+                                                                <span className="text-[9px] font-black uppercase tracking-widest">Eliminar</span>
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                )}
-                                
-                                {permissions.canManageAlternancias && !permissions.isTutor && (
-                                    <>
-                                        <button
-                                            onClick={() => handleEdit(alt)}
-                                            className="bg-[#2DAAB8]/5 hover:bg-[#2DAAB8] p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn2"
-                                        >
-                                            <Edit size={20} className="text-[#2DAAB8] group-hover/btn2:text-white transition-colors" />
-                                            <span className="text-[9px] font-black text-[#2DAAB8] group-hover/btn2:text-white uppercase tracking-widest">Ajustes</span>
-                                        </button>
-                                        <button
-                                            onClick={async () => {
-                                                const newStatus = alt.estado === 'Pausada' ? 'Activa' : 'Pausada';
-                                                try {
-                                                    await api.put(`/alternancias/${alt._id}`, { estado: newStatus });
-                                                    toast.success(`Alternancia ${newStatus === 'Pausada' ? 'Pausada' : 'Reactivada'}`);
-                                                    loadData();
-                                                } catch (error) {
-                                                    toast.error('Error al cambiar estado');
-                                                }
-                                            }}
-                                            className={`${alt.estado === 'Pausada' ? 'bg-emerald-50 text-emerald-600 hover:bg-emerald-500' : 'bg-amber-50 text-amber-600 hover:bg-amber-500'} p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn4 hover:text-white`}
-                                        >
-                                            <Calendar size={20} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">{alt.estado === 'Pausada' ? 'Reactivar' : 'Pausar'}</span>
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(alt._id)}
-                                            className="bg-rose-50 hover:bg-rose-500 p-4 rounded-[1.5rem] flex flex-col items-center gap-2 transition-all group/btn3 text-rose-500 hover:text-white"
-                                        >
-                                            <Trash2 size={20} />
-                                            <span className="text-[9px] font-black uppercase tracking-widest">Eliminar</span>
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                    {filteredAlternancias.length === 0 && (
-                        <div className="col-span-full py-20 bg-white/50 backdrop-blur-sm rounded-[3rem] border-2 border-dashed border-slate-200 text-center">
-                            <FileText size={64} className="mx-auto text-slate-200 mb-4" />
-                            <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No se encontraron expedientes activos para esta búsqueda</p>
-                        </div>
-                    )}
+                                </div>
+                            );
+                        });
+                    })()}
                 </div>
             )}
 

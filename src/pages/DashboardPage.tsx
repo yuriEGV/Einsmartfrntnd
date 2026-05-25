@@ -6,7 +6,7 @@ import { useTenant } from '../context/TenantContext';
 import api from '../services/api';
 import InstitutionalCalendar from '../components/InstitutionalCalendar';
 import { useConfirm } from '../context/ConfirmationContext';
-import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase, Send } from 'lucide-react';
+import { BookOpen, GraduationCap, Calendar, AlertCircle, FileText, School, MapPin, ShieldAlert, ChevronRight, Award, Clock, TrendingUp, User, X, Briefcase, Send, CheckCircle2 } from 'lucide-react';
 import CitationResponseModal from '../components/Citacion/CitationResponseModal';
 import EinsmartDashboardPage from './EinsmartDashboardPage';
 
@@ -76,16 +76,23 @@ const DashboardPage = () => {
                 setRecentAnotaciones(anotRes.data.slice(0, 5));
                 setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
             } else {
-                // [NEW] Fetch Admin Day Ranking for Director/Sostenedor
-                if (['director', 'sostenedor', 'utp', 'inspector_general'].includes(user?.role || '') || isSuperAdmin) {
-                    const [rankingRes, metricsRes, citRes] = await Promise.all([
-                        api.get('/admin-days/ranking'),
-                        api.get('/analytics/class-book'),
-                        api.get('/citaciones')
-                    ]);
-                    setAdminRanking(rankingRes.data.slice(0, 5));
-                    setClassBookMetrics(metricsRes.data);
+                const isDirectivoOrAdmin = ['director', 'sostenedor', 'utp', 'inspector_general'].includes(user?.role || '') || isSuperAdmin;
+                const isTeacher = user?.role === 'teacher';
+                
+                if (isDirectivoOrAdmin || isTeacher) {
+                    const promises: Promise<any>[] = [api.get('/citaciones')];
+                    if (isDirectivoOrAdmin) {
+                        promises.push(api.get('/admin-days/ranking'));
+                        promises.push(api.get('/analytics/class-book'));
+                    }
+                    
+                    const [citRes, rankingRes, metricsRes] = await Promise.all(promises);
                     setPendingCitations(citRes.data.filter((c: any) => c.estado !== 'realizada' && c.estado !== 'cancelada'));
+                    
+                    if (isDirectivoOrAdmin && rankingRes && metricsRes) {
+                        setAdminRanking(rankingRes.data.slice(0, 5));
+                        setClassBookMetrics(metricsRes.data);
+                    }
                 }
             }
 
@@ -239,13 +246,23 @@ const DashboardPage = () => {
                     </div>
                     <div className="flex flex-col gap-2 w-full md:w-auto">
                         {pendingCitations.filter((c: any) => c.tipo === 'citacion' || !c.tipo).map((cit: any) => (
-                            <div key={cit._id} className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-white/70 px-6 py-2 rounded-2xl border border-blue-100 flex items-center justify-between gap-4 group hover:bg-white transition-all">
+                            <div key={cit._id} className="text-[9px] font-black text-blue-600 uppercase tracking-widest bg-white/70 px-6 py-2.5 rounded-2xl border border-blue-100 flex flex-wrap items-center justify-between gap-4 group hover:bg-white transition-all">
                                 <span>{new Date(cit.fecha).toLocaleDateString()} • {cit.hora}</span>
                                 <span className="text-[8px] opacity-60">|</span>
-                                <span className="flex-1 truncate">
-                                    {cit.profesorId?.name?.split(' ')[0]}
-                                    <span className="text-blue-300 mx-1">➜</span>
-                                    {cit.apoderadoId?.nombre} {cit.apoderadoId?.apellidos}
+                                <span className="flex-1 min-w-[200px] truncate">
+                                    <span className="font-extrabold text-blue-800">{cit.profesorId?.name}</span>
+                                    <span className="text-blue-300 mx-1.5">➜</span>
+                                    <span className="font-bold text-gray-700">{cit.apoderadoId?.nombre} {cit.apoderadoId?.apellidos}</span>
+                                    {cit.estudianteId && (
+                                        <span className="text-slate-500 font-bold ml-2">
+                                            (Alumno: <span className="text-blue-700 font-black">{cit.estudianteId?.nombres} {cit.estudianteId?.apellidos}</span>)
+                                        </span>
+                                    )}
+                                    {cit.courseId && (
+                                        <span className="bg-blue-100/80 text-blue-800 px-2 py-0.5 rounded-md font-black text-[7px] ml-2 tracking-normal">
+                                            {cit.courseId?.name || `${cit.courseId?.level} ${cit.courseId?.letter}`}
+                                        </span>
+                                    )}
                                 </span>
                                 <span className="text-[8px] opacity-60">|</span>
                                  <span className="italic opacity-70 truncate max-w-[150px]">{cit.motivo}</span>
@@ -268,6 +285,26 @@ const DashboardPage = () => {
                                         className="bg-blue-600 text-white px-4 py-1.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-1.5 shadow-lg shadow-blue-200"
                                     >
                                         <Send size={10} /> Responder
+                                    </button>
+                                )}
+
+                                {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general', 'teacher'].includes(user?.role || '')) && (
+                                    <button
+                                        onClick={async () => {
+                                            const confirmed = await confirm({
+                                                title: '¿Finalizar Citación?',
+                                                message: '¿Está seguro de que desea marcar esta citación como realizada y cerrarla?',
+                                                confirmText: 'Sí, Cerrar',
+                                                isDanger: false
+                                            });
+                                            if (confirmed) {
+                                                await api.put(`/citaciones/${cit._id}`, { estado: 'realizada' });
+                                                window.location.reload();
+                                            }
+                                        }}
+                                        className="bg-emerald-600 text-white px-3 py-1.5 rounded-xl font-black text-[8px] uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center gap-1 shadow-lg shadow-emerald-100 active:scale-95"
+                                    >
+                                        <CheckCircle2 size={10} /> Cerrar
                                     </button>
                                 )}
 
