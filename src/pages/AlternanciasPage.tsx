@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePermissions } from '../hooks/usePermissions';
 import api from '../services/api';
-import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar, KeyRound, MessageSquare, Send } from 'lucide-react';
+import { Briefcase, Plus, Search, Trash2, X, Edit, Building2, ShieldCheck, BookOpen, AlertCircle, FileText, CheckCircle2, User, Star, MapPin, PenTool, Calendar, KeyRound, MessageSquare, Send, GraduationCap } from 'lucide-react';
 import { GPSMonitor } from '../components/Alternancia/GPSMonitor';
 import { AlternanciaSignatureModal } from '../components/Alternancia/AlternanciaSignatureModal';
 import { useGPSTracker } from '../hooks/useGPSTracker';
