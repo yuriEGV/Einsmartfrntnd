@@ -236,7 +236,7 @@ export default function AlternanciasPage() {
             setAlternancias(alternanciasData);
 
             // Fetch students with RUT and names
-            const { data: studentsData } = await api.get('/students');
+            const { data: studentsData } = await api.get('/estudiantes');
             const formattedStudents = studentsData.map((student: any) => ({
                 _id: student._id,
                 rut: student.rut,
@@ -576,11 +576,20 @@ export default function AlternanciasPage() {
                                                 </p>
                                             </div>
                                         </div>
-                                        {group.items[0]?.careerId?.headTeacher && (
-                                            <div className="text-[10px] font-black uppercase tracking-widest bg-white/10 backdrop-blur-md border border-white/25 px-4 py-2 rounded-xl">
-                                                👨‍🏫 Jefe de Especialidad
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const careerInfo = careers.find(c => c._id === (group.items[0]?.careerId?._id || key));
+                                            const headTeacherName = careerInfo?.headTeacher?.name || careerInfo?.profesorJefe?.name || null;
+                                            if (!headTeacherName) return null;
+                                            return (
+                                                <div className="flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/25 px-4 py-2.5 rounded-xl">
+                                                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center text-[10px]">👨‍🏫</div>
+                                                    <div>
+                                                        <p className="text-[8px] font-bold text-white/60 uppercase tracking-widest">Jefe de Especialidad</p>
+                                                        <p className="text-[11px] font-black text-white uppercase tracking-wide leading-none">{headTeacherName}</p>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                     
                                     {/* Cards Grid for this Career */}
