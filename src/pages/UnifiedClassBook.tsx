@@ -266,6 +266,21 @@ const UnifiedClassBook = () => {
         return () => clearInterval(interval);
     }, [isTimerRunning, isTimerPaused]);
 
+    // Warning before unloading/leaving the class book if timer is running
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (isTimerRunning) {
+                e.preventDefault();
+                e.returnValue = 'Tienes un bloque de clase en curso y el temporizador está activo. Por favor, guarde y firme el registro de actividad antes de salir para no perder el tiempo efectivo registrado.';
+                return e.returnValue;
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [isTimerRunning]);
 
     const logClassBookAction = async (action: string, details: string) => {
         try {

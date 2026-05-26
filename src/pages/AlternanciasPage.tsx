@@ -248,17 +248,16 @@ export default function AlternanciasPage() {
 
             // Fetch careers
             const { data: careersData } = await api.get('/careers');
-            setCareers(careersData);
-
             if (permissions.isTeacher) {
                 const teacherCareers = careersData.filter((c: any) => 
                     alternanciasData.some((a: any) => a.careerId?._id === c._id)
                 );
+                setCareers(teacherCareers);
                 if (teacherCareers.length > 0) {
                     setSelectedCareerTab(teacherCareers[0]._id);
-                } else if (careersData.length > 0) {
-                    setSelectedCareerTab(careersData[0]._id);
                 }
+            } else {
+                setCareers(careersData);
             }
 
             // Fetch users (teachers)

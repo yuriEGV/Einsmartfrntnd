@@ -453,7 +453,37 @@ const DashboardPage = () => {
                 </div>
             )}
 
-            {/* Alertas de Cobertura de Clases */}
+            {/* Alertas de Clases sin Firmar por Docentes */}
+            {classBookMetrics?.unsignedClasses?.length > 0 && (
+                <div className="bg-rose-50 border-2 border-rose-100 p-6 rounded-[2.5rem] space-y-4 animate-in slide-in-from-top-4 duration-500 shadow-xl shadow-rose-900/5">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-rose-500 text-white rounded-2xl shadow-lg shadow-rose-200">
+                                <ShieldAlert size={24} />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-black text-rose-900 uppercase tracking-tight">Clases Iniciadas Sin Cierre / Firma</h3>
+                                <p className="text-xs font-bold text-rose-700/70">Se han detectado {classBookMetrics.unsignedClasses.length} docentes con clases en curso o sin firmar digitalmente.</p>
+                            </div>
+                        </div>
+                        <a href="/class-book" className="bg-rose-600 text-white px-5 py-2.5 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-rose-700 transition-all shadow-md active:scale-95">Ver Libro de Clases</a>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {classBookMetrics.unsignedClasses.map((item: any, idx: number) => (
+                            <div key={idx} className="bg-white p-4 rounded-2xl border border-rose-100 flex items-center justify-between gap-3 shadow-sm hover:shadow-md transition-shadow">
+                                <div className="space-y-1">
+                                    <span className="text-[11px] font-black text-slate-800 uppercase tracking-tight block">{item.teacherName}</span>
+                                    <span className="text-[9px] font-bold text-slate-400 block uppercase">Último registro: {new Date(item.lastUnsignedDate).toLocaleDateString()}</span>
+                                </div>
+                                <span className="bg-rose-100 text-rose-700 px-3 py-1.5 rounded-xl font-black text-xs uppercase tracking-tighter shrink-0">
+                                    {item.unsignedCount} {item.unsignedCount === 1 ? 'Clase' : 'Clases'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {classBookMetrics?.alerts?.length > 0 && (
                 <div className="bg-amber-50 border-2 border-amber-100 p-6 rounded-[2.5rem] space-y-4 animate-in slide-in-from-top-4 duration-500">
                     <div className="flex items-center gap-4">

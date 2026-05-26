@@ -59,8 +59,11 @@ const ScheduleManagementPage = () => {
     const [alternancias, setAlternancias] = useState<any[]>([]);
     const [selectedAlt, setSelectedAlt] = useState<any>(null);
     const [loading, setLoading] = useState(false);
-
+    const [dualSearch, setDualSearch] = useState('');
+    const [showAllDual, setShowAllDual] = useState(true);
+    const [allAlternancias, setAllAlternancias] = useState<any[]>([]);
     const [showModal, setShowModal] = useState(false);
+
     const [formData, setFormData] = useState({
         courseId: '',
         subjectId: '',
@@ -116,9 +119,10 @@ const ScheduleManagementPage = () => {
             if (selectedCourse) url += `&courseId=${selectedCourse}`;
             
             const res = await api.get(url);
-            
+
             // Fetch Alternancias for Dual Modules integration
             const altRes = await api.get('/alternancias');
+            setAllAlternancias(altRes.data);
             const courseAlts = selectedCourse 
                 ? altRes.data.filter((a: any) => a.careerId?._id === selectedCourse || a.courseId === selectedCourse) 
                 : altRes.data;
@@ -365,38 +369,83 @@ const ScheduleManagementPage = () => {
                         </div>
                     )}
 
-                    {alternancias.length > 0 && (
-                        <div className="bg-[#2DAAB8]/5 rounded-[2rem] p-8 border border-[#2DAAB8]/10 animate-in slide-in-from-bottom duration-700 delay-100">
-                            <h3 className="text-[#002447] font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
-                                <Briefcase size={18} className="text-[#2DAAB8]" /> Monitor de Formación Dual Activa
-                            </h3>
-                             <div className="space-y-3 max-h-[480px] overflow-y-auto pr-2 custom-scrollbar">
-                                {alternancias.map((alt, idx) => (
-                                    <div 
-                                        key={idx} 
-                                        onClick={() => setSelectedAlt(alt)}
-                                        className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-white flex items-center justify-between hover:bg-[#2DAAB8]/10 hover:border-[#2DAAB8]/20 transition-all shadow-sm hover:shadow-md cursor-pointer group active:scale-98"
+                    {(allAlternancias.length > 0 || alternancias.length > 0) && (
+                        <div className="bg-[#2DAAB8]/5 rounded-[2rem] p-8 border border-[#2DAAB8]/10 animate-in slide-in-from-bottom duration-700 delay-100 flex flex-col h-[560px]">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 shrink-0">
+                                <h3 className="text-[#002447] font-black uppercase text-xs tracking-widest flex items-center gap-2">
+                                    <Briefcase size={18} className="text-[#2DAAB8]" /> Monitor de Formación Dual Activa
+                                </h3>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Mostrar Todos</span>
+                                    <button 
+                                        type="button"
+                                        onClick={() => setShowAllDual(!showAllDual)}
+                                        className={`w-12 h-6 rounded-full p-1 transition-all duration-300 ${showAllDual ? 'bg-[#2DAAB8]' : 'bg-slate-200'}`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-[#002447] rounded-xl flex items-center justify-center text-white overflow-hidden border-2 border-white group-hover:border-[#2DAAB8] transition-colors shrink-0">
-                                                {alt.estudianteId?.photoUrl ? (
-                                                    <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <User size={18} />
-                                                )}
+                                        <div className={`w-4 h-4 rounded-full bg-white transition-all duration-300 ${showAllDual ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Search bar */}
+                            <div className="relative mb-4 shrink-0">
+                                <input 
+                                    type="text"
+                                    placeholder="Buscar alumno o empresa..."
+                                    value={dualSearch}
+                                    onChange={e => setDualSearch(e.target.value)}
+                                    className="w-full px-5 py-3 rounded-2xl bg-white border border-slate-200 focus:border-[#2DAAB8] focus:ring-1 focus:ring-[#2DAAB8] outline-none font-bold text-xs uppercase text-[#002447] placeholder:text-slate-300 shadow-sm"
+                                />
+                                <Search size={14} className="absolute right-4 top-3.5 text-slate-300" />
+                            </div>
+
+                            {/* List wrapper with max-h and custom scrollbar */}
+                            <div className="space-y-3 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                                {(() => {
+                                    const sourceList = showAllDual ? allAlternancias : alternancias;
+                                    const filtered = sourceList.filter((a: any) => {
+                                        const name = `${a.estudianteId?.nombres || ''} ${a.estudianteId?.apellidos || ''}`.toLowerCase();
+                                        const company = (a.empresa?.razonSocial || '').toLowerCase();
+                                        const search = dualSearch.toLowerCase();
+                                        return name.includes(search) || company.includes(search);
+                                    });
+
+                                    if (filtered.length === 0) {
+                                        return (
+                                            <div className="py-12 text-center">
+                                                <AlertCircle size={28} className="mx-auto text-slate-300 mb-2" />
+                                                <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest">Sin resultados</p>
                                             </div>
-                                            <div>
-                                                <p className="font-black text-[#002447] uppercase text-[10px] group-hover:text-[#2DAAB8] transition-colors">
-                                                    {alt.estudianteId?.firstName || alt.estudianteId?.nombres} {alt.estudianteId?.lastName || alt.estudianteId?.apellidos}
-                                                </p>
-                                                <p className="text-[9px] text-[#2DAAB8] font-bold uppercase tracking-wider">{alt.empresa?.razonSocial || 'Empresa por asignar'}</p>
+                                        );
+                                    }
+
+                                    return filtered.map((alt, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            onClick={() => setSelectedAlt(alt)}
+                                            className="bg-white/70 backdrop-blur-sm p-4 rounded-2xl border border-slate-100 flex items-center justify-between hover:bg-[#2DAAB8]/10 hover:border-[#2DAAB8]/20 transition-all shadow-sm hover:shadow-md cursor-pointer group active:scale-98"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-[#002447] rounded-xl flex items-center justify-center text-white overflow-hidden border-2 border-white group-hover:border-[#2DAAB8] transition-colors shrink-0">
+                                                    {alt.estudianteId?.photoUrl ? (
+                                                        <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <User size={18} />
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0 text-left">
+                                                    <p className="font-black text-[#002447] uppercase text-[10px] group-hover:text-[#2DAAB8] transition-colors truncate">
+                                                        {alt.estudianteId?.firstName || alt.estudianteId?.nombres} {alt.estudianteId?.lastName || alt.estudianteId?.apellidos}
+                                                    </p>
+                                                    <p className="text-[9px] text-[#2DAAB8] font-bold uppercase tracking-wider truncate">{alt.empresa?.razonSocial || 'Empresa por asignar'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right flex items-center gap-2 shrink-0">
+                                                <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[8px] font-black uppercase">{alt.tipo}</span>
                                             </div>
                                         </div>
-                                        <div className="text-right flex items-center gap-2">
-                                            <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[8px] font-black uppercase shrink-0">{alt.tipo}</span>
-                                        </div>
-                                    </div>
-                                ))}
+                                    ));
+                                })()}
                             </div>
                         </div>
                     )}
