@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 import { usePermissions } from '../hooks/usePermissions';
-import { Plus, Trash2, Calendar, Save, ShieldAlert, Loader2, Briefcase, User } from 'lucide-react';
+import { Plus, Trash2, Calendar, Save, ShieldAlert, Loader2, Briefcase, User, Search, AlertCircle } from 'lucide-react';
 
 interface Schedule {
     _id: string;
