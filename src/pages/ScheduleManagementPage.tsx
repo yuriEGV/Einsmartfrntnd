@@ -48,6 +48,8 @@ const DAYS = [
 
 const ScheduleManagementPage = () => {
     const { isAdmin, isUTP, isDirector, isStudent, isApoderado, isTeacher, user, canViewSensitiveData } = usePermissions();
+    const canEdit = isAdmin || isUTP || isDirector || canViewSensitiveData;
+
     const [schedules, setSchedules] = useState<Schedule[]>([]);
     const [events, setEvents] = useState<any[]>([]);
     const [courses, setCourses] = useState<Course[]>([]);
@@ -67,8 +69,10 @@ const ScheduleManagementPage = () => {
         isDual: false
     });
 
+    const isInitialMount = React.useRef(true);
+
     useEffect(() => {
-        if (isAdmin || isUTP || isDirector || canViewSensitiveData) {
+        if (canEdit || isTeacher) {
             fetchInitialData();
         }
         
@@ -76,22 +80,28 @@ const ScheduleManagementPage = () => {
         if (isStudent || isApoderado || isTeacher) {
             fetchSchedules();
         }
+        isInitialMount.current = false;
     }, []);
 
     useEffect(() => {
-        if (selectedCourse) {
+        if (isInitialMount.current) return;
+        if (selectedCourse || isTeacher) {
             fetchSchedules();
         }
     }, [selectedCourse]);
 
     const fetchInitialData = async () => {
         try {
-            const [courRes, userRes] = await Promise.all([
-                api.get('/courses'),
-                api.get('/users?role=teacher')
-            ]);
-            setCourses(courRes.data);
-            setTeachers(userRes.data);
+            const promises: Promise<any>[] = [api.get('/courses')];
+            if (canEdit) {
+                promises.push(api.get('/users?role=teacher'));
+            }
+            
+            const results = await Promise.all(promises);
+            setCourses(results[0].data);
+            if (canEdit && results[1]) {
+                setTeachers(results[1].data);
+            }
         } catch (error) {
             console.error('Error fetching initial data', error);
         }
@@ -172,7 +182,7 @@ const ScheduleManagementPage = () => {
         }
     };
 
-    const canEdit = isAdmin || isUTP || isDirector || canViewSensitiveData;
+    // canEdit is defined at component top-level
 
     // Helper to get item in a specific cell
     const getCellContent = (day: number, blockId: number) => {
@@ -197,17 +207,28 @@ const ScheduleManagementPage = () => {
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
-                    {canEdit && !isTeacher && (
+                    {(canEdit || (isTeacher && courses.length > 0)) && (
                         <div className="min-w-[240px] print:hidden">
                             <select
                                 className="w-full px-6 py-4 bg-white border-2 border-slate-100 rounded-2xl focus:border-blue-500 transition-all outline-none font-black text-slate-700 appearance-none shadow-sm"
                                 value={selectedCourse}
                                 onChange={(e) => handleCourseChange(e.target.value)}
                             >
-                                <option value="">Seleccionar Curso...</option>
-                                {Array.isArray(courses) && courses.map(c => (
-                                    <option key={c._id} value={c._id}>{c.name}</option>
-                                ))}
+                                {isTeacher ? (
+                                    <>
+                                        <option value="">Mi Horario Personal</option>
+                                        {Array.isArray(courses) && courses.map(c => (
+                                            <option key={c._id} value={c._id}>Horario de {c.name}</option>
+                                        ))}
+                                    </>
+                                ) : (
+                                    <>
+                                        <option value="">Seleccionar Curso...</option>
+                                        {Array.isArray(courses) && courses.map(c => (
+                                            <option key={c._id} value={c._id}>{c.name}</option>
+                                        ))}
+                                    </>
+                                )}
                             </select>
                         </div>
                     )}
