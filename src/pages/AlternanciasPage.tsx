@@ -250,6 +250,17 @@ export default function AlternanciasPage() {
             const { data: careersData } = await api.get('/careers');
             setCareers(careersData);
 
+            if (permissions.isTeacher) {
+                const teacherCareers = careersData.filter((c: any) => 
+                    alternanciasData.some((a: any) => a.careerId?._id === c._id)
+                );
+                if (teacherCareers.length > 0) {
+                    setSelectedCareerTab(teacherCareers[0]._id);
+                } else if (careersData.length > 0) {
+                    setSelectedCareerTab(careersData[0]._id);
+                }
+            }
+
             // Fetch users (teachers)
             const { data: usersData } = await api.get('/users?role=teacher');
             setUsers(usersData);
@@ -483,16 +494,18 @@ export default function AlternanciasPage() {
             {/* Career Navigation Pills */}
             {!loading && (
                 <div className="flex flex-wrap gap-2.5 py-3 border-b border-slate-100">
-                    <button
-                        onClick={() => setSelectedCareerTab('all')}
-                        className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 flex items-center gap-2 ${
-                            selectedCareerTab === 'all'
-                                ? 'bg-[#002447] text-white shadow-lg shadow-[#002447]/20 border-b-4 border-[#00152b]'
-                                : 'bg-white text-slate-500 hover:text-[#002447] hover:bg-slate-50 border border-slate-200/60'
-                        }`}
-                    >
-                        Todas las Especialidades ({filteredAlternancias.length})
-                    </button>
+                    {!permissions.isTeacher && (
+                        <button
+                            onClick={() => setSelectedCareerTab('all')}
+                            className={`px-5 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300 active:scale-95 flex items-center gap-2 ${
+                                selectedCareerTab === 'all'
+                                    ? 'bg-[#002447] text-white shadow-lg shadow-[#002447]/20 border-b-4 border-[#00152b]'
+                                    : 'bg-white text-slate-500 hover:text-[#002447] hover:bg-slate-50 border border-slate-200/60'
+                            }`}
+                        >
+                            Todas las Especialidades ({filteredAlternancias.length})
+                        </button>
+                    )}
                     {careers.map((career) => {
                         const count = filteredAlternancias.filter(a => a.careerId?._id === career._id).length;
                         if (count === 0) return null;

@@ -370,8 +370,8 @@ const ScheduleManagementPage = () => {
                             <h3 className="text-[#002447] font-black uppercase text-xs tracking-widest flex items-center gap-2 mb-4">
                                 <Briefcase size={18} className="text-[#2DAAB8]" /> Monitor de Formación Dual Activa
                             </h3>
-                            <div className="space-y-3">
-                                {alternancias.slice(0, 4).map((alt, idx) => (
+                             <div className="space-y-3 max-h-[480px] overflow-y-auto pr-2 custom-scrollbar">
+                                {alternancias.map((alt, idx) => (
                                     <div 
                                         key={idx} 
                                         onClick={() => setSelectedAlt(alt)}
@@ -397,9 +397,6 @@ const ScheduleManagementPage = () => {
                                         </div>
                                     </div>
                                 ))}
-                                {alternancias.length > 4 && (
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase text-center mt-2 italic">Y {alternancias.length - 4} estudiantes más en alternancia</p>
-                                )}
                             </div>
                         </div>
                     )}
