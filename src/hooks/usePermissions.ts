@@ -24,6 +24,7 @@ export interface Permissions {
     isStudent: boolean;
     isApoderado: boolean;
     isInspectorGeneral: boolean;
+    isSecretary: boolean;
     canApprovePlanning: boolean;
     canManageAlternancias: boolean;
     canManageEvents: boolean;
@@ -36,8 +37,8 @@ export const usePermissions = (): Permissions => {
     // Normalize role to lowercase for consistency and regularization
     const role = (user?.role || 'guest').toLowerCase();
 
-    // Both 'secretario' and 'secretaria' are valid - gender-neutral role support
-    const isSecretary = role === 'secretario' || role === 'secretaria';
+    // Both 'secretario' and 'secretaria' and 'secretary' are valid - gender-neutral role support
+    const isSecretary = role === 'secretario' || role === 'secretaria' || role === 'secretary';
 
     const isStaff = ['admin', 'fiscalizador', 'sostenedor', 'director', 'teacher', 'psicologo', 'orientador', 'asistente_aula', 'secretario', 'secretaria', 'utp', 'inspector_general', 'paradocente'].includes(role);
     const isAdmin = ['admin', 'fiscalizador', 'sostenedor', 'director', 'inspector_general', 'utp'].includes(role);
@@ -76,6 +77,7 @@ export const usePermissions = (): Permissions => {
         isStudent,
         isApoderado,
         isInspectorGeneral,
+        isSecretary,
         isTutor,
         canApprovePlanning: isAdmin || isUTP,
         canManageCareers: isAdmin || isUTP,

@@ -39,6 +39,7 @@ const getUserName = (license: MedicalLicense): string => {
 
 const MedicalLicensesPage = () => {
     const permissions = usePermissions();
+    const canManageLicenses = permissions.isInspectorGeneral || permissions.isSecretary || permissions.user?.role === 'secretary';
     const [licenses, setLicenses] = useState<MedicalLicense[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -155,12 +156,14 @@ const MedicalLicensesPage = () => {
                     </h1>
                     <p className="text-gray-500 mt-1 text-sm font-medium">Control centralizado de licencias para alumnos y funcionarios.</p>
                 </div>
-                <button
-                    onClick={() => setShowModal(true)}
-                    className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-black flex items-center gap-2 hover:bg-blue-900 transition-all shadow-xl active:scale-95 text-xs uppercase tracking-widest"
-                >
-                    <Plus size={18} /> Nueva Licencia
-                </button>
+                {canManageLicenses && (
+                    <button
+                        onClick={() => setShowModal(true)}
+                        className="bg-[#11355a] text-white px-6 py-3 rounded-xl font-black flex items-center gap-2 hover:bg-blue-900 transition-all shadow-xl active:scale-95 text-xs uppercase tracking-widest"
+                    >
+                        <Plus size={18} /> Nueva Licencia
+                    </button>
+                )}
             </div>
 
             <div className="flex gap-4">
@@ -199,7 +202,7 @@ const MedicalLicensesPage = () => {
                                         {license.estado}
                                     </div>
                                     
-                                    {license.estado === 'Pendiente' && permissions.isAdmin && (
+                                    {license.estado === 'Pendiente' && canManageLicenses && (
                                         <div className="flex gap-2">
                                             <button 
                                                 onClick={() => handleStatusUpdate(license._id, 'Aprobado')}
@@ -226,9 +229,11 @@ const MedicalLicensesPage = () => {
                                         <Printer size={18} />
                                     </button>
 
-                                    <button onClick={() => handleDelete(license._id)} className="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                                        <Trash2 size={18} />
-                                    </button>
+                                    {canManageLicenses && (
+                                        <button onClick={() => handleDelete(license._id)} className="p-3 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                                            <Trash2 size={18} />
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         ))

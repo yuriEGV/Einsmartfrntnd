@@ -57,6 +57,7 @@ const ScheduleManagementPage = () => {
     const [teachers, setTeachers] = useState<Teacher[]>([]);
     const [selectedCourse, setSelectedCourse] = useState<string>('');
     const [alternancias, setAlternancias] = useState<any[]>([]);
+    const [selectedAlt, setSelectedAlt] = useState<any>(null);
     const [loading, setLoading] = useState(false);
 
     const [showModal, setShowModal] = useState(false);
@@ -371,9 +372,13 @@ const ScheduleManagementPage = () => {
                             </h3>
                             <div className="space-y-3">
                                 {alternancias.slice(0, 4).map((alt, idx) => (
-                                    <div key={idx} className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-white flex items-center justify-between">
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => setSelectedAlt(alt)}
+                                        className="bg-white/50 backdrop-blur-sm p-4 rounded-2xl border border-white flex items-center justify-between hover:bg-[#2DAAB8]/10 hover:border-[#2DAAB8]/20 transition-all shadow-sm hover:shadow-md cursor-pointer group active:scale-98"
+                                    >
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-[#002447] rounded-xl flex items-center justify-center text-white overflow-hidden border-2 border-white">
+                                            <div className="w-10 h-10 bg-[#002447] rounded-xl flex items-center justify-center text-white overflow-hidden border-2 border-white group-hover:border-[#2DAAB8] transition-colors shrink-0">
                                                 {alt.estudianteId?.photoUrl ? (
                                                     <img src={alt.estudianteId.photoUrl} alt="Alumno" className="w-full h-full object-cover" />
                                                 ) : (
@@ -381,12 +386,14 @@ const ScheduleManagementPage = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <p className="font-black text-[#002447] uppercase text-[10px]">{alt.estudianteId?.firstName} {alt.estudianteId?.lastName}</p>
+                                                <p className="font-black text-[#002447] uppercase text-[10px] group-hover:text-[#2DAAB8] transition-colors">
+                                                    {alt.estudianteId?.firstName || alt.estudianteId?.nombres} {alt.estudianteId?.lastName || alt.estudianteId?.apellidos}
+                                                </p>
                                                 <p className="text-[9px] text-[#2DAAB8] font-bold uppercase tracking-wider">{alt.empresa?.razonSocial || 'Empresa por asignar'}</p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[8px] font-black uppercase">{alt.tipo}</span>
+                                        <div className="text-right flex items-center gap-2">
+                                            <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[8px] font-black uppercase shrink-0">{alt.tipo}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -483,6 +490,110 @@ const ScheduleManagementPage = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Quick View Modal for Dual Alternancia */}
+            {selectedAlt && (
+                <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[999] md:pl-[300px]">
+                    <div className="bg-white rounded-[3rem] w-full max-w-lg shadow-2xl border-8 border-white overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 bg-[#002447] text-white relative overflow-hidden">
+                            <h2 className="text-xl font-black uppercase tracking-tighter leading-none mb-2">
+                                {selectedAlt.estudianteId?.firstName || selectedAlt.estudianteId?.nombres} {selectedAlt.estudianteId?.lastName || selectedAlt.estudianteId?.apellidos}
+                            </h2>
+                            <p className="text-[#2DAAB8] font-bold uppercase text-[9px] tracking-widest">EXPEDIENTE DE FORMACIÓN DUAL</p>
+                            <button onClick={() => setSelectedAlt(null)} className="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-2 rounded-xl transition-all">✕</button>
+                        </div>
+                        <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Especialidad / Carrera</label>
+                                    <p className="text-xs font-bold text-slate-700 uppercase">{selectedAlt.careerId?.name || 'No asignada'}</p>
+                                </div>
+                                
+                                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Empresa</label>
+                                        <p className="text-xs font-bold text-slate-700 uppercase">{selectedAlt.empresa?.razonSocial || 'Por asignar'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">RUT Empresa</label>
+                                        <p className="text-xs font-bold text-slate-700 uppercase">{selectedAlt.empresa?.rut || 'N/A'}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Tipo de Alternancia</label>
+                                        <span className="inline-block bg-[#2DAAB8]/10 text-[#2DAAB8] px-3 py-1 rounded-full text-[9px] font-black uppercase mt-1">
+                                            {selectedAlt.tipo}
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado</label>
+                                        <span className="inline-block bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[9px] font-black uppercase mt-1">
+                                            {selectedAlt.estado}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha de Inicio</label>
+                                        <p className="text-xs font-bold text-slate-700">{selectedAlt.fechaInicio ? new Date(selectedAlt.fechaInicio).toLocaleDateString() : 'N/A'}</p>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Fecha de Término</label>
+                                        <p className="text-xs font-bold text-slate-700">{selectedAlt.fechaTermino ? new Date(selectedAlt.fechaTermino).toLocaleDateString() : 'Activa/Abierta'}</p>
+                                    </div>
+                                </div>
+
+                                {selectedAlt.maestroGuia?.nombre && (
+                                    <div className="border-t border-slate-100 pt-4">
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Maestro Guía en Empresa</label>
+                                        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-2 text-xs">
+                                            <p className="font-black text-slate-700 uppercase">{selectedAlt.maestroGuia.nombre}</p>
+                                            {selectedAlt.maestroGuia.cargo && <p className="text-slate-400 font-bold uppercase text-[9px]">Cargo: {selectedAlt.maestroGuia.cargo}</p>}
+                                            {selectedAlt.maestroGuia.telefono && <p className="text-slate-500 font-medium">Fono: {selectedAlt.maestroGuia.telefono}</p>}
+                                            {selectedAlt.maestroGuia.email && <p className="text-slate-500 font-medium">Email: {selectedAlt.maestroGuia.email}</p>}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedAlt.modulosDual && selectedAlt.modulosDual.length > 0 && (
+                                    <div className="border-t border-slate-100 pt-4">
+                                        <label className="block text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Módulos Técnicos Asociados</label>
+                                        <div className="space-y-2">
+                                            {selectedAlt.modulosDual.map((mod: any, index: number) => (
+                                                <div key={index} className="bg-slate-50 p-3 rounded-xl border border-slate-100 flex items-center justify-between text-xs">
+                                                    <span className="font-black text-slate-700 uppercase">{mod.subjectId?.name || 'Módulo Técnico'}</span>
+                                                    <span className="bg-[#2DAAB8]/10 text-[#2DAAB8] px-2 py-0.5 rounded text-[9px] font-black shrink-0">
+                                                        {mod.horasEmpresa || 0} Hrs Empresa
+                                                    </span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="pt-4 flex gap-4">
+                                <button 
+                                    type="button" 
+                                    onClick={() => setSelectedAlt(null)} 
+                                    className="flex-1 py-4 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-slate-50 rounded-2xl transition-all"
+                                >
+                                    Cerrar
+                                </button>
+                                <Link 
+                                    to="/alternancias" 
+                                    className="flex-[2] py-4 bg-[#002447] text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-950 shadow-xl transition-all text-center flex items-center justify-center gap-2"
+                                >
+                                    Ir a Expedientes
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

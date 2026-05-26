@@ -404,6 +404,48 @@ const DashboardPage = () => {
                                 <span className="flex-1 truncate uppercase font-black">{req.userId?.name}</span>
                                 <span className="text-[8px] opacity-60">|</span>
                                 <span className="bg-amber-100 px-2 py-0.5 rounded text-[8px]">{req.type}</span>
+                                {(['admin', 'sostenedor', 'director', 'utp', 'inspector_general'].includes(user?.role || '')) && (
+                                    <div className="flex gap-1 ml-2 shrink-0">
+                                        <button
+                                            onClick={async () => {
+                                                const confirmed = await confirm({
+                                                    title: '¿Aprobar Solicitud?',
+                                                    message: `¿Está seguro de que desea APROBAR la solicitud de día administrativo de ${req.userId?.name || 'Funcionario'} para el ${new Date(req.date).toLocaleDateString()}?`,
+                                                    confirmText: 'Aprobar',
+                                                    isDanger: false
+                                                });
+                                                if (confirmed) {
+                                                    await api.put(`/admin-days/${req._id}/status`, { status: 'aprobado' });
+                                                    fetchDashboardData();
+                                                }
+                                            }}
+                                            className="p-1 hover:bg-emerald-50 text-emerald-600 rounded-lg transition-colors"
+                                            title="Aprobar"
+                                        >
+                                            <CheckCircle2 size={14} />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                const reason = window.prompt('Motivo del rechazo:');
+                                                if (reason === null) return;
+                                                const confirmed = await confirm({
+                                                    title: '¿Rechazar Solicitud?',
+                                                    message: `¿Está seguro de que desea RECHAZAR la solicitud de día administrativo de ${req.userId?.name || 'Funcionario'}?`,
+                                                    confirmText: 'Rechazar',
+                                                    isDanger: true
+                                                });
+                                                if (confirmed) {
+                                                    await api.put(`/admin-days/${req._id}/status`, { status: 'rechazado', rejectionReason: reason });
+                                                    fetchDashboardData();
+                                                }
+                                            }}
+                                            className="p-1 hover:bg-rose-50 text-rose-500 rounded-lg transition-colors"
+                                            title="Rechazar"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                         <a href="/admin-days" className="text-center text-[8px] font-black text-amber-500 uppercase hover:underline mt-1">Gestionar Solicitudes</a>
