@@ -102,6 +102,7 @@ export default function AlternanciasPage() {
     const [empresas, setEmpresas] = useState<Empresa[]>([]);
     const [subjects, setSubjects] = useState<any[]>([]);
     const [docentesCarrera, setDocentesCarrera] = useState<any[]>([]);
+    const [isCareerTeacher, setIsCareerTeacher] = useState<boolean>(false);
     
     const [loading, setLoading] = useState(true);
     const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
@@ -248,6 +249,18 @@ export default function AlternanciasPage() {
 
             // Fetch careers
             const { data: careersData } = await api.get('/careers');
+            
+            // Check if user is a career/technical teacher
+            let userIsCareerTeacher = false;
+            if (permissions.isTeacher) {
+                userIsCareerTeacher = careersData.some((c: any) => 
+                    (c.headTeacher?._id === permissions.user?._id || c.headTeacher === permissions.user?._id) ||
+                    (c.profesorJefe?._id === permissions.user?._id || c.profesorJefe === permissions.user?._id) ||
+                    (c.teachers?.some((t: any) => (t._id === permissions.user?._id || t === permissions.user?._id)))
+                );
+            }
+            setIsCareerTeacher(userIsCareerTeacher);
+
             if (permissions.isTeacher) {
                 const teacherCareers = careersData.filter((c: any) => 
                     alternanciasData.some((a: any) => a.careerId?._id === c._id)
@@ -436,6 +449,8 @@ export default function AlternanciasPage() {
         a.careerId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const canManageAlternancias = permissions.isSuperAdmin || permissions.isDirector || permissions.isUTP || (permissions.isTeacher && isCareerTeacher);
+
     return (
         <div className="p-4 md:p-6 space-y-4 animate-in fade-in duration-500">
             {/* Header Module */}
@@ -453,7 +468,7 @@ export default function AlternanciasPage() {
                     </p>
                 </div>
                 <div className="flex gap-4">
-                    {permissions.canManageAlternancias && !permissions.isTutor && (
+                    {canManageAlternancias && !permissions.isTutor && (
                         <button
                             onClick={() => setIsGPSMonitorOpen(true)}
                             className="bg-[#2DAAB8]/10 hover:bg-[#2DAAB8]/20 text-[#2DAAB8] px-6 py-4 rounded-[1.5rem] flex items-center gap-3 font-black uppercase text-xs tracking-[0.2em] transition-all border-b-4 border-[#2DAAB8]/30 active:scale-95"
@@ -461,7 +476,7 @@ export default function AlternanciasPage() {
                             <MapPin size={18} /> Monitor GPS
                         </button>
                     )}
-                    {permissions.canManageAlternancias && !permissions.isTutor && (
+                    {canManageAlternancias && !permissions.isTutor && (
                         <button
                             onClick={() => {
                                 setEditingId(null);
@@ -752,7 +767,7 @@ export default function AlternanciasPage() {
                                                         </div>
                                                     )}
                                                     
-                                                    {permissions.canManageAlternancias && !permissions.isTutor && (
+                                                    {canManageAlternancias && !permissions.isTutor && (
                                                         <>
                                                             <button
                                                                 onClick={() => handleEdit(alt)}
@@ -1307,13 +1322,13 @@ export default function AlternanciasPage() {
                                         className={`px-5 py-3 rounded-[1.2rem] flex items-center gap-2 font-black uppercase tracking-widest text-[10px] transition-all shadow-xl active:scale-95 ${
                                             isTracking 
                                                 ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/30' 
-                                                : 'bg-white hover:bg-slate-50 text-[#002447] shadow-black/5'
+                                                    : 'bg-white hover:bg-slate-50 text-[#002447] shadow-black/5'
                                         }`}
                                     >
                                         <MapPin size={16} /> {isTracking ? 'Rastreando Ubicación...' : 'Iniciar Tracker GPS'}
                                     </button>
-                                    {permissions.canManageAlternancias && (
-                                        <button 
+                                     {canManageAlternancias && (
+                                         <button 
                                             onClick={() => { setIsBitacoraModalOpen(false); handleEdit(selectedAlt); }}
                                             className="text-[#2DAAB8] hover:text-white font-bold text-[9px] uppercase transition-colors"
                                         >
