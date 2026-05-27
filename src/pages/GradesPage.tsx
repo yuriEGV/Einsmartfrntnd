@@ -49,7 +49,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
     const { tenant } = useTenant();
     const navigate = useNavigate();
     const { confirm } = useConfirm();
-    const canManageGrades = permissions.canEditGrades;
+    const canManageGrades = permissions.canEditGrades && permissions.user?.role !== 'inspector_general';
 
     const [grades, setGrades] = useState<Grade[]>([]);
     const [students, setStudents] = useState<Student[]>([]);
@@ -332,7 +332,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                         </div>
                     </div>
                     {/* Mobile Card Grid - Optimized for all touch devices */}
-                    <div className="md:hidden p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="md:hidden print:hidden p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
                         {displayedGrades.map((grade) => (
                             <div key={grade._id} className="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col group">
                                 <div className="flex justify-between items-start mb-4">
@@ -382,7 +382,7 @@ const GradesPage = ({ hideHeader = false }: { hideHeader?: boolean }) => {
                     </div>
 
                     {/* Desktop Table - Optimized for Staff (Grouped by Student) */}
-                    <div className="hidden md:block overflow-x-auto">
+                    <div className="hidden md:block print:block overflow-x-auto">
                         {(permissions.isStudent || permissions.isApoderado) ? (
                             <div className="p-8 space-y-8">
                                 {Array.from(new Set(displayedGrades.map(g => (g.evaluationId as any)?.subject || 'General'))).map(subjectName => {

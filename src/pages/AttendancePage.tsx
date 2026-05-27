@@ -225,7 +225,11 @@ const AttendancePage = () => {
                             <select
                                 className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400 text-xs"
                                 value={selectedCourse}
-                                onChange={e => setSelectedCourse(e.target.value)}
+                                onChange={e => {
+                                    setSelectedCourse(e.target.value);
+                                    setStudents([]);
+                                    setAttendance({});
+                                }}
                                 disabled={isStudentOrGuardian}
                             >
                                 <option value="">Seleccionar Curso</option>
@@ -240,7 +244,11 @@ const AttendancePage = () => {
                                 type="date"
                                 className="w-full px-5 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-black text-slate-700 transition-all group-focus-within:border-blue-400 text-xs"
                                 value={selectedDate}
-                                onChange={e => setSelectedDate(e.target.value)}
+                                onChange={e => {
+                                    setSelectedDate(e.target.value);
+                                    setStudents([]);
+                                    setAttendance({});
+                                }}
                             />
                         </div>
                         <div className="bg-gradient-to-br from-[#11355a] to-[#1e4e83] rounded-3xl p-4 shadow-2xl shadow-blue-900/20 flex items-center justify-around border-2 border-white">
@@ -298,7 +306,11 @@ const AttendancePage = () => {
                                     type="date"
                                     className="px-6 py-3 bg-white border-2 border-slate-100 rounded-xl focus:border-blue-500 outline-none font-black text-slate-700 shadow-sm"
                                     value={selectedDate}
-                                    onChange={e => setSelectedDate(e.target.value)}
+                                    onChange={e => {
+                                        setSelectedDate(e.target.value);
+                                        setStudents([]);
+                                        setAttendance({});
+                                    }}
                                 />
                             </div>
                         )}
@@ -386,7 +398,7 @@ const AttendancePage = () => {
                                                 <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight">{grade} <span className="text-slate-400 ml-2 text-sm font-bold">({gradeStudents.length} ALUMNOS)</span></h2>
                                             </div>
 
-                                            <div className="hidden md:block bg-white rounded-3xl shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
+                                            <div className="hidden md:block print:block bg-white rounded-3xl shadow-2xl shadow-blue-900/5 border border-slate-100 overflow-hidden">
                                                 <table className="min-w-full divide-y divide-slate-100">
                                                     <thead className="bg-slate-50/50">
                                                         <tr>
@@ -475,7 +487,7 @@ const AttendancePage = () => {
                                             </div>
 
                                             {/* Mobile Grid View */}
-                                            <div className="grid gap-4 md:hidden">
+                                            <div className="grid gap-4 md:hidden print:hidden">
                                                 {gradeStudents.map(student => (
                                                     <div
                                                         key={student._id}
