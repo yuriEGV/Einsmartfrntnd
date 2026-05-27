@@ -34,6 +34,15 @@ const DashboardPage = () => {
     const [selectedCitation, setSelectedCitation] = useState<any>(null);
     const [showResponseModal, setShowResponseModal] = useState(false);
 
+    const handleMarkAsRead = async (id: string) => {
+        try {
+            await api.put(`/user-notifications/${id}/read`);
+            setNotifications(prev => prev.filter((n: any) => n._id !== id));
+        } catch (error) {
+            console.error('Error marking notification as read', error);
+        }
+    };
+
     useEffect(() => {
         if (user) {
             fetchDashboardData();
@@ -98,7 +107,7 @@ const DashboardPage = () => {
 
             // Fetch notifications for ALL roles
             const notifRes = await api.get('/user-notifications');
-            setNotifications(notifRes.data.slice(0, 5));
+            setNotifications(notifRes.data.filter((n: any) => !n.isRead).slice(0, 5));
 
             // Fetch updates for ALL roles
             const updateRes = await api.get('/updates/check').catch(() => ({ data: null }));
@@ -110,7 +119,7 @@ const DashboardPage = () => {
             // Non-blocking fallback for notifications if it fails specifically
             if (notifications.length === 0) {
                 api.get('/user-notifications')
-                    .then(res => setNotifications(res.data.slice(0, 5)))
+                    .then(res => setNotifications(res.data.filter((n: any) => !n.isRead).slice(0, 5)))
                     .catch(e => console.warn('Delayed notification fetch failed:', e));
             }
         }
@@ -770,23 +779,34 @@ const DashboardPage = () => {
                         </div>
                         <div className="p-6 md:p-8 space-y-4">
                             {notifications.map((notif: any) => (
-                                <div key={notif._id} className={`flex items-start gap-4 p-4 rounded-[1.5rem] transition-all border-2 group relative ${notif.isRead ? 'bg-white border-transparent hover:border-slate-100' : 'bg-blue-50/50 border-blue-100'}`}>
+                                <div key={notif._id} className="flex items-start gap-4 p-4 rounded-[1.5rem] transition-all border-2 group relative bg-blue-50/50 border-blue-100 hover:border-blue-200">
                                     <div className="bg-blue-50 p-2.5 rounded-xl group-hover:scale-110 transition-transform shrink-0">
                                         <AlertCircle className="text-blue-500" size={20} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-start">
                                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-0.5">{notif.type || 'Sistema'}</p>
-                                            <span className="text-[9px] font-bold text-gray-300">{new Date(notif.createdAt).toLocaleDateString()}</span>
+                                            <span className="text-[9px] font-bold text-gray-300 mr-6">{new Date(notif.createdAt).toLocaleDateString()}</span>
                                         </div>
                                         <h4 className="font-bold text-slate-800 text-sm leading-tight mb-1">{notif.title}</h4>
                                         <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">{notif.message}</p>
                                         {notif.link && (
-                                            <Link to={notif.link} className="inline-block mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline">
+                                            <Link 
+                                                to={notif.link} 
+                                                onClick={() => handleMarkAsRead(notif._id)}
+                                                className="inline-block mt-2 text-[10px] font-black text-blue-600 uppercase tracking-widest hover:underline"
+                                            >
                                                 Ver Detalles →
                                             </Link>
                                         )}
                                     </div>
+                                    <button
+                                        onClick={() => handleMarkAsRead(notif._id)}
+                                        className="absolute top-4 right-4 p-1 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                        title="Descartar notificación"
+                                    >
+                                        <X size={14} />
+                                    </button>
                                 </div>
                             ))}
                             {notifications.length === 0 && (
