@@ -7,7 +7,7 @@ import {
     Building2, Plus, Search, X, Edit, Trash2,
     FileText, Phone, Mail, MapPin, Calendar,
     ShieldCheck, AlertCircle, Clock, CheckCircle2,
-    Briefcase, ChevronDown
+    Briefcase
 } from 'lucide-react';
 
 interface Empresa {
