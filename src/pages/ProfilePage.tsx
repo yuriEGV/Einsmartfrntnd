@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/authService';
 import api from '../services/api';
-import { User, Lock, Save, ShieldCheck, AlertCircle, Eye, EyeOff, BookOpen, Award, FileText, CheckCircle2, TrendingUp, Clock, GraduationCap } from 'lucide-react';
+import { User, Lock, Save, ShieldCheck, AlertCircle, Eye, EyeOff, BookOpen, Award, FileText, TrendingUp, Clock, GraduationCap } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
     const { user } = useAuth();
