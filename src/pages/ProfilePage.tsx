@@ -1,9 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/authService';
 import api from '../services/api';
-import { User, Lock, Save, ShieldCheck, AlertCircle, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, Save, ShieldCheck, AlertCircle, Eye, EyeOff, BookOpen, Award, FileText, CheckCircle2, TrendingUp, Clock, GraduationCap } from 'lucide-react';
 
 const ProfilePage: React.FC = () => {
     const { user } = useAuth();
@@ -25,6 +25,34 @@ const ProfilePage: React.FC = () => {
     const [showNewPin, setShowNewPin] = useState(false);
     const [showConfPin, setShowConfPin] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+
+    const [activeTab, setActiveTab] = useState<'security' | 'academic'>('security');
+    const [studentData, setStudentData] = useState<any>(null);
+    const [loadingData, setLoadingData] = useState(false);
+
+    useEffect(() => {
+        const fetchStudentData = async () => {
+            if (user?.role !== 'student' && user?.role !== 'apoderado') return;
+            if (!user?.profileId) return;
+
+            setLoadingData(true);
+            try {
+                let studentId = user.profileId;
+                if (user.role === 'apoderado') {
+                    const apoRes = await api.get(`/apoderados/${user.profileId}`);
+                    studentId = apoRes.data.estudianteId?._id || apoRes.data.estudianteId;
+                }
+                const res = await api.get(`/reports/student/${studentId}?period=anual`);
+                setStudentData(res.data);
+            } catch (error) {
+                console.error("Error fetching student data:", error);
+            } finally {
+                setLoadingData(false);
+            }
+        };
+
+        fetchStudentData();
+    }, [user]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -102,15 +130,44 @@ const ProfilePage: React.FC = () => {
                         <User size={32} />
                         Mi Perfil
                     </h1>
-                    <p className="text-gray-500 font-medium">Gestiona la seguridad de tu cuenta.</p>
+                    <p className="text-gray-500 font-medium">Gestiona tu cuenta y revisa tu información.</p>
                 </div>
             </div>
 
+            {/* Tabs (Only for student/guardian) */}
+            {(user?.role === 'student' || user?.role === 'apoderado') && (
+                <div className="flex gap-4 mb-8 bg-white p-2 rounded-[1.5rem] border border-slate-100 shadow-sm w-fit">
+                    <button
+                        onClick={() => setActiveTab('security')}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+                            activeTab === 'security'
+                                ? 'bg-blue-50 text-blue-600'
+                                : 'text-slate-400 hover:bg-slate-50'
+                        }`}
+                    >
+                        <ShieldCheck size={16} />
+                        Seguridad
+                    </button>
+                    <button
+                        onClick={() => setActiveTab('academic')}
+                        className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+                            activeTab === 'academic'
+                                ? 'bg-blue-50 text-blue-600'
+                                : 'text-slate-400 hover:bg-slate-50'
+                        }`}
+                    >
+                        <GraduationCap size={16} />
+                        Resumen Académico
+                    </button>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Profile Info Card */}
+                {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-6">
-                    <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
-                        <div className="p-10">
+                    {activeTab === 'security' ? (
+                        <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden">
+                            <div className="p-10">
                             <h2 className="text-xl font-bold text-slate-800 mb-8 flex items-center gap-3">
                                 <ShieldCheck className="text-blue-500" />
                                 Información de la Cuenta
@@ -308,6 +365,159 @@ const ProfilePage: React.FC = () => {
                             </button>
                         </div>
                     </form>
+                    ) : (
+                        // Academic Matrix
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {loadingData ? (
+                                <div className="p-12 text-center text-slate-400 bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                                    <p className="font-bold text-sm">Cargando información académica...</p>
+                                </div>
+                            ) : studentData ? (
+                                <div className="space-y-6">
+                                    {/* Stats Row */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                                            <div className="p-3 bg-blue-50 text-blue-600 rounded-2xl">
+                                                <TrendingUp size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Promedio Global</p>
+                                                <p className="text-2xl font-black text-[#11355a] leading-none mt-1">{studentData.overallAverage?.toFixed(1) || '--'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                                            <div className="p-3 bg-amber-50 text-amber-600 rounded-2xl">
+                                                <Award size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Anotaciones</p>
+                                                <p className="text-2xl font-black text-[#11355a] leading-none mt-1">{studentData.annotations?.length || 0}</p>
+                                            </div>
+                                        </div>
+                                        <div className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex items-center gap-4 hover:shadow-md transition-shadow">
+                                            <div className="p-3 bg-rose-50 text-rose-600 rounded-2xl">
+                                                <Clock size={24} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Atrasos Totales</p>
+                                                <p className="text-2xl font-black text-[#11355a] leading-none mt-1">{studentData.atrasos?.length || 0}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Grades Table */}
+                                    <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                                        <div className="p-6 border-b border-slate-50 bg-slate-50/50">
+                                            <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest flex items-center gap-2">
+                                                <BookOpen size={16} className="text-blue-500" /> Rendimiento por Asignatura
+                                            </h3>
+                                        </div>
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left border-collapse">
+                                                <thead>
+                                                    <tr className="bg-white border-b border-slate-100">
+                                                        <th className="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Asignatura</th>
+                                                        <th className="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Evals.</th>
+                                                        <th className="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Promedio</th>
+                                                        <th className="p-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-center">Progreso</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-slate-50">
+                                                    {studentData.gradesBySubject?.map((sub: any, idx: number) => (
+                                                        <tr key={idx} className="hover:bg-slate-50/30 transition-colors">
+                                                            <td className="p-4 font-black text-[#11355a] text-xs uppercase">{sub.subject}</td>
+                                                            <td className="p-4 text-center text-xs font-bold text-slate-400">{sub.totalEvaluations}</td>
+                                                            <td className="p-4 text-center">
+                                                                <span className={`px-3 py-1 rounded-full font-black text-xs ${
+                                                                    sub.average >= 4.0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'
+                                                                }`}>
+                                                                    {sub.average?.toFixed(1) || '--'}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="w-20 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden">
+                                                                    <div className={`h-full rounded-full ${sub.average >= 4.0 ? 'bg-blue-500' : 'bg-rose-400'}`} style={{ width: `${(sub.average / 7) * 100}%` }}></div>
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {(!studentData.gradesBySubject || studentData.gradesBySubject.length === 0) && (
+                                                        <tr><td colSpan={4} className="p-8 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">Sin calificaciones registradas</td></tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    {/* Split view: Annotations and Tardiness */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Annotations */}
+                                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
+                                            <div className="p-6 border-b border-slate-50 bg-slate-50/50">
+                                                <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest flex items-center gap-2">
+                                                    <FileText size={16} className="text-amber-500" /> Últimas Anotaciones
+                                                </h3>
+                                            </div>
+                                            <div className="p-4 space-y-3 flex-1 overflow-y-auto max-h-80">
+                                                {studentData.annotations?.slice(0, 5).map((a: any, i: number) => (
+                                                    <div key={i} className={`p-4 rounded-2xl border flex flex-col gap-2 ${
+                                                        a.tipo === 'positiva' ? 'border-emerald-100 bg-emerald-50/30' : 'border-rose-100 bg-rose-50/30'
+                                                    }`}>
+                                                        <div className="flex justify-between items-start">
+                                                            <span className="text-xs font-black text-[#11355a] uppercase leading-tight pr-2">{a.titulo}</span>
+                                                            <span className={`text-[8px] px-2 py-0.5 rounded font-black uppercase tracking-widest whitespace-nowrap ${
+                                                                a.tipo === 'positiva' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+                                                            }`}>{a.tipo}</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-500 leading-relaxed">{a.descripcion}</p>
+                                                        <div className="text-[8px] text-slate-400 font-bold uppercase mt-1 flex justify-between">
+                                                            <span>{new Date(a.fecha).toLocaleDateString()}</span>
+                                                            <span>{a.autor}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {(!studentData.annotations || studentData.annotations.length === 0) && (
+                                                    <div className="text-center text-xs text-slate-400 font-bold p-8 uppercase tracking-widest">Sin anotaciones</div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Atrasos */}
+                                        <div className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden flex flex-col h-full">
+                                            <div className="p-6 border-b border-slate-50 bg-slate-50/50">
+                                                <h3 className="text-sm font-black text-[#11355a] uppercase tracking-widest flex items-center gap-2">
+                                                    <Clock size={16} className="text-rose-500" /> Atrasos Recientes
+                                                </h3>
+                                            </div>
+                                            <div className="p-4 space-y-3 flex-1 overflow-y-auto max-h-80">
+                                                {studentData.atrasos?.slice(0, 5).map((a: any, i: number) => (
+                                                    <div key={i} className="p-4 rounded-2xl border border-slate-100 bg-slate-50/50 flex flex-col gap-2">
+                                                        <div className="flex justify-between items-center mb-1">
+                                                            <span className="text-xs font-black text-[#11355a] uppercase">{new Date(a.fecha).toLocaleDateString()}</span>
+                                                            <span className="text-[9px] font-black text-rose-500 uppercase tracking-widest">{a.bloque}</span>
+                                                        </div>
+                                                        <div className="flex justify-between items-end">
+                                                            <span className="text-[10px] font-bold text-slate-500 max-w-[60%] line-clamp-2">{a.motivo || 'Sin justificación'}</span>
+                                                            <span className="text-[10px] font-black text-slate-700 px-2 py-1 bg-white rounded-lg border border-slate-100">{a.minutosAtraso} min</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                                {(!studentData.atrasos || studentData.atrasos.length === 0) && (
+                                                    <div className="text-center text-xs text-slate-400 font-bold p-8 uppercase tracking-widest">Sin atrasos registrados</div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="p-12 text-center text-slate-400 font-bold text-sm bg-white rounded-[2rem] border border-slate-100 shadow-sm">
+                                    <AlertCircle size={32} className="mx-auto text-slate-300 mb-4" />
+                                    No se pudo cargar la información académica.
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 {/* Status Column */}
