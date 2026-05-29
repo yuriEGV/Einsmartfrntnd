@@ -30,22 +30,23 @@ const ProfilePage: React.FC = () => {
     const [studentData, setStudentData] = useState<any>(null);
     const [loadingData, setLoadingData] = useState(false);
 
+    const [academicError, setAcademicError] = useState<string | null>(null);
+
     useEffect(() => {
         const fetchStudentData = async () => {
             if (user?.role !== 'student' && user?.role !== 'apoderado') return;
-            if (!user?.profileId) return;
 
             setLoadingData(true);
+            setAcademicError(null);
             try {
-                let studentId = user.profileId;
-                if (user.role === 'apoderado') {
-                    const apoRes = await api.get(`/apoderados/${user.profileId}`);
-                    studentId = apoRes.data.estudianteId?._id || apoRes.data.estudianteId;
-                }
-                const res = await api.get(`/reports/student/${studentId}?period=anual`);
+                // Use /my-summary which auto-resolves the student from the JWT
+                // (works even if profileId is not set — falls back to email lookup)
+                const res = await api.get(`/reports/my-summary?period=anual`);
                 setStudentData(res.data);
-            } catch (error) {
-                console.error("Error fetching student data:", error);
+            } catch (error: any) {
+                console.error('Error fetching student academic data:', error);
+                const msg = error.response?.data?.message || 'No se pudo cargar la información académica.';
+                setAcademicError(msg);
             } finally {
                 setLoadingData(false);
             }
@@ -53,6 +54,7 @@ const ProfilePage: React.FC = () => {
 
         fetchStudentData();
     }, [user]);
+
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -513,9 +515,10 @@ const ProfilePage: React.FC = () => {
                             ) : (
                                 <div className="p-12 text-center text-slate-400 font-bold text-sm bg-white rounded-[2rem] border border-slate-100 shadow-sm">
                                     <AlertCircle size={32} className="mx-auto text-slate-300 mb-4" />
-                                    No se pudo cargar la información académica.
+                                    {academicError || 'No se pudo cargar la información académica.'}
                                 </div>
                             )}
+
                         </div>
                     )}
                 </div>
