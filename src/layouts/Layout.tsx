@@ -422,7 +422,7 @@ const Layout = () => {
                 {/* Premium Profile Section */}
                 <div className={`p-4 border-t border-white/5 bg-black/20 relative z-20 ${isCollapsed ? 'flex flex-col items-center gap-3' : ''}`}>
                     <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-3 mb-5'}`}>
-                        <Link to="/" className="relative group shrink-0">
+                        <Link to="/profile" className="relative group shrink-0">
                             <div className="w-10 h-10 rounded-[1rem] bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center font-black text-lg uppercase shadow-2xl border-2 border-white/20 ring-4 ring-black/10 group-hover:rotate-6 transition-all">
                                 {user?.name?.substring(0, 1) || <User size={18} />}
                             </div>
