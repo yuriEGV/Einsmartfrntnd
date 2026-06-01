@@ -40,6 +40,7 @@ import HojaDeVidaPage from './pages/HojaDeVidaPage';
 import SecretariaPage from './pages/SecretariaPage';
 import AtrasosPage from './pages/AtrasosPage';
 import AlternanciasPage from './pages/AlternanciasPage';
+import EmpresasPage from './pages/EmpresasPage';
 import GoogleWorkspacePage from './pages/GoogleWorkspacePage';
 import SubjectsPage from './pages/SubjectsPage';
 import MedicalLicensesPage from './pages/MedicalLicensesPage';

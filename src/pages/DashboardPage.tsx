@@ -321,17 +321,17 @@ const DashboardPage = () => {
                                     <button
                                         onClick={async () => {
                                             const confirmed = await confirm({
-                                                title: '¿Eliminar Citación?',
-                                                message: '¿Está seguro de que desea eliminar esta citación?',
-                                                confirmText: 'Eliminar',
-                                                isDanger: true
+                                                title: '¿Ocultar Citación?',
+                                                message: '¿Está seguro de que desea ocultar esta citación de su escritorio? El profesor aún la podrá ver.',
+                                                confirmText: 'Ocultar',
+                                                isDanger: false
                                             });
                                             if (confirmed) {
-                                                await api.delete(`/citaciones/${cit._id}`);
+                                                await api.patch(`/citaciones/${cit._id}/dismiss`);
                                                 window.location.reload();
                                             }
                                         }}
-                                        className="p-1 hover:bg-rose-50 text-rose-400 rounded-lg transition-colors"
+                                        className="p-1 hover:bg-slate-100 text-slate-400 rounded-lg transition-colors"
                                     >
                                         <X size={14} />
                                     </button>
@@ -372,17 +372,17 @@ const DashboardPage = () => {
                                     <button
                                         onClick={async () => {
                                             const confirmed = await confirm({
-                                                title: '¿Eliminar Petición?',
-                                                message: '¿Está seguro de que desea eliminar esta petición?',
-                                                confirmText: 'Eliminar',
-                                                isDanger: true
+                                                title: '¿Ocultar Petición?',
+                                                message: '¿Está seguro de que desea ocultar esta petición de su escritorio?',
+                                                confirmText: 'Ocultar',
+                                                isDanger: false
                                             });
                                             if (confirmed) {
-                                                await api.delete(`/citaciones/${cit._id}`);
+                                                await api.patch(`/citaciones/${cit._id}/dismiss`);
                                                 window.location.reload();
                                             }
                                         }}
-                                        className="p-1 hover:bg-rose-50 text-rose-400 rounded-lg transition-colors"
+                                        className="p-1 hover:bg-slate-100 text-slate-400 rounded-lg transition-colors"
                                     >
                                         <X size={14} />
                                     </button>

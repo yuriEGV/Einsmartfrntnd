@@ -260,11 +260,36 @@ const UnifiedClassBook = () => {
         let interval: any;
         if (isTimerRunning && !isTimerPaused) {
             interval = setInterval(() => {
-                setEffectiveDuration(prev => prev + 1);
+                setEffectiveDuration(prev => {
+                    const nextVal = prev + 1;
+                    if (nextVal >= 2700) { // 45 minutes
+                        clearInterval(interval);
+                        setIsTimerRunning(false);
+                        
+                        // Clear persistent timer for this block
+                        if (selectedCourse && selectedSubject && selectedBlock) {
+                            const key = `aula_timer_${selectedCourse}_${selectedSubject}_${selectedBlock}`;
+                            localStorage.removeItem(key);
+                        }
+                        
+                        // Show visual alert
+                        alert('Atención: El bloque de 45 minutos ha finalizado. Por favor, firme el leccionario para no adulterar las estadísticas.');
+                        
+                        // Optional: Create an internal notification
+                        api.post('/user-notifications', {
+                            title: 'Cierre de Clase Requerido',
+                            message: `El tiempo para el ${selectedBlock} ha concluido. Recuerde firmar la clase.`,
+                            type: 'alert'
+                        }).catch(e => console.error('Failed to send timer notification', e));
+                        
+                        return 2700;
+                    }
+                    return nextVal;
+                });
             }, 1000);
         }
         return () => clearInterval(interval);
-    }, [isTimerRunning, isTimerPaused]);
+    }, [isTimerRunning, isTimerPaused, selectedCourse, selectedSubject, selectedBlock]);
 
     // Warning before unloading/leaving the class book if timer is running
     useEffect(() => {

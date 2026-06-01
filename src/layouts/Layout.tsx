@@ -341,6 +341,10 @@ const Layout = () => {
                         </>
                     )}
 
+                    {['director', 'utp', 'jefe_carrera', 'admin', 'sostenedor'].includes(user?.role) && (
+                        <NavLink to="/empresas" icon={Building}>{!isCollapsed && "Empresas y Convenios"}</NavLink>
+                    )}
+
                     {/* Redefine messages visibility: Only staff and tutors */}
                     {(permissions.isStaff || permissions.isTutor) && (
                         <NavLink to="/messages" icon={FileText}>{!isCollapsed && "Mensajes"}</NavLink>
