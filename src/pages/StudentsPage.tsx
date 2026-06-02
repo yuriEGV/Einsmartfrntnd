@@ -262,6 +262,30 @@ const StudentsPage = () => {
                 )}
             </div>
 
+            {/* Statistics Section */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-blue-50 flex items-center gap-4 border-l-4 border-l-blue-500">
+                    <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+                        <Users size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total Alumnos</p>
+                        <p className="text-2xl md:text-3xl font-black text-slate-800">{students.length}</p>
+                    </div>
+                </div>
+                <div className="bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-emerald-50 flex items-center gap-4 border-l-4 border-l-emerald-500">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                        <School size={24} />
+                    </div>
+                    <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Alumnos Activos</p>
+                        <p className="text-2xl md:text-3xl font-black text-slate-800">
+                            {students.filter(s => s.estado === 'Activo' || !s.estado).length}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
             {/* Enhanced Search Bar */}
             <div className="bg-white p-2 rounded-[1.5rem] shadow-xl shadow-blue-900/5 border border-slate-50 flex items-center gap-2 group focus-within:ring-4 focus-within:ring-blue-500/5 transition-all">
                 <div className="p-4 text-slate-400 group-focus-within:text-blue-500 transition-colors">

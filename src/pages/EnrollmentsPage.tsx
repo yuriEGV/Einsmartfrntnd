@@ -57,8 +57,23 @@ const EnrollmentsPage = () => {
         notes: '',
         metodoPago: 'transferencia',
         // Direct creation data
-        newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '' },
-        newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
+        newStudent: { 
+            nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '',
+            nacionalidad: 'Chilena', tipoIdentificador: 'RUT', identificador: '',
+            salud: { seguro: '', grupoSanguineo: '', vacunasAlDia: true, alergias: [], cronicas: [], medicamentos: [], observaciones: '' },
+            fichaFamiliar: { cantidadIntegrantes: 0, ingresoFamiliar: '', contactoEmergencia: { nombre: '', telefono: '', parentesco: '' } }
+        },
+        newGuardian: { 
+            nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre',
+            nacionalidad: 'Chilena', tipoIdentificador: 'RUT', identificador: ''
+        },
+        documentacionAportada: {
+            identidadEstudiante: false,
+            identidadApoderado: false,
+            antecedentesAcademicos: false,
+            comprobanteSAE: false,
+            poderSimple: false
+        }
     });
 
     useEffect(() => {
@@ -414,45 +429,101 @@ const EnrollmentsPage = () => {
                                                 className="absolute inset-0 opacity-0 cursor-pointer" 
                                             />
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-                                            <input
-                                                placeholder="Nombres"
-                                                maxLength={50}
-                                                required
-                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                                value={formData.newStudent.nombres}
-                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nombres: e.target.value } })}
-                                            />
-                                            <input
-                                                placeholder="Apellidos"
-                                                maxLength={50}
-                                                required
-                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                                value={formData.newStudent.apellidos}
-                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, apellidos: e.target.value } })}
-                                            />
-                                            <input
-                                                placeholder="RUT (ej: 12.345.678-9)"
-                                                maxLength={12}
-                                                required
-                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                                value={formData.newStudent.rut}
-                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: formatRut(e.target.value) } })}
-                                            />
-                                            <input
-                                                type="email"
-                                                placeholder="Email del Alumno"
-                                                required
-                                                className="w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                                value={formData.newStudent.email}
-                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
-                                            />
-                                            <input
-                                                placeholder="Dirección del Alumno"
-                                                className="md:col-span-2 w-full px-4 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                                value={formData.newStudent.direccion || ''}
-                                                onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
-                                            />
+                                        <div className="flex-1 space-y-4">
+                                            {/* Identidad */}
+                                            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                                <h4 className="text-xs font-black text-blue-900 uppercase tracking-widest mb-3">Identidad</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <input
+                                                        placeholder="Nombres"
+                                                        maxLength={50}
+                                                        required
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.nombres}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nombres: e.target.value } })}
+                                                    />
+                                                    <input
+                                                        placeholder="Apellidos"
+                                                        maxLength={50}
+                                                        required
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.apellidos}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, apellidos: e.target.value } })}
+                                                    />
+                                                    <select
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.nacionalidad}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, nacionalidad: e.target.value } })}
+                                                    >
+                                                        <option value="Chilena">Chilena</option>
+                                                        <option value="Extranjera">Extranjera</option>
+                                                    </select>
+                                                    <select
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.tipoIdentificador}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, tipoIdentificador: e.target.value } })}
+                                                    >
+                                                        <option value="RUT">RUT</option>
+                                                        <option value="IPE">IPE (Identificador Provisorio Escolar)</option>
+                                                        <option value="Pasaporte">Pasaporte</option>
+                                                        <option value="Otro">Otro</option>
+                                                    </select>
+                                                    <input
+                                                        placeholder={formData.newStudent.tipoIdentificador === 'RUT' ? 'RUT (ej: 12.345.678-9)' : 'Número de Identificador'}
+                                                        maxLength={20}
+                                                        required
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold md:col-span-2"
+                                                        value={formData.newStudent.tipoIdentificador === 'RUT' ? formData.newStudent.rut : formData.newStudent.identificador}
+                                                        onChange={e => {
+                                                            if (formData.newStudent.tipoIdentificador === 'RUT') {
+                                                                setFormData({ ...formData, newStudent: { ...formData.newStudent, rut: formatRut(e.target.value), identificador: formatRut(e.target.value) } })
+                                                            } else {
+                                                                setFormData({ ...formData, newStudent: { ...formData.newStudent, identificador: e.target.value, rut: '' } })
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Contacto */}
+                                            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                                <h4 className="text-xs font-black text-blue-900 uppercase tracking-widest mb-3">Contacto</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <input
+                                                        type="email"
+                                                        placeholder="Email del Alumno"
+                                                        required
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.email}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, email: e.target.value.trim().toLowerCase() } })}
+                                                    />
+                                                    <input
+                                                        placeholder="Dirección del Alumno"
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                                        value={formData.newStudent.direccion || ''}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, direccion: e.target.value } })}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Salud (MINEDUC) */}
+                                            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                                <h4 className="text-xs font-black text-blue-900 uppercase tracking-widest mb-3">Salud y Emergencia</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <input
+                                                        placeholder="Sistema de Salud (Fonasa, Isapre, etc.)"
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                                        value={formData.newStudent.salud.seguro}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, salud: { ...formData.newStudent.salud, seguro: e.target.value } } })}
+                                                    />
+                                                    <input
+                                                        placeholder="Alergias (separadas por coma)"
+                                                        className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500"
+                                                        value={formData.newStudent.salud.alergias.join(', ')}
+                                                        onChange={e => setFormData({ ...formData, newStudent: { ...formData.newStudent, salud: { ...formData.newStudent.salud, alergias: e.target.value.split(',').map(s=>s.trim()) } } })}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -526,19 +597,43 @@ const EnrollmentsPage = () => {
                                             value={formData.newGuardian.apellidos}
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, apellidos: e.target.value } })}
                                         />
+                                        <select
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newGuardian.nacionalidad}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, nacionalidad: e.target.value } })}
+                                        >
+                                            <option value="Chilena">Chilena</option>
+                                            <option value="Extranjera">Extranjera</option>
+                                        </select>
+                                        <select
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            value={formData.newGuardian.tipoIdentificador}
+                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, tipoIdentificador: e.target.value } })}
+                                        >
+                                            <option value="RUT">RUT</option>
+                                            <option value="IPA">IPA (Identificador Provisorio Apoderado)</option>
+                                            <option value="Pasaporte">Pasaporte</option>
+                                            <option value="Otro">Otro</option>
+                                        </select>
+                                        <input
+                                            placeholder={formData.newGuardian.tipoIdentificador === 'RUT' ? 'RUT del Apoderado' : 'Número de Identificador'}
+                                            maxLength={20}
+                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold md:col-span-2"
+                                            value={formData.newGuardian.tipoIdentificador === 'RUT' ? formData.newGuardian.rut : formData.newGuardian.identificador}
+                                            onChange={e => {
+                                                if (formData.newGuardian.tipoIdentificador === 'RUT') {
+                                                    setFormData({ ...formData, newGuardian: { ...formData.newGuardian, rut: formatRut(e.target.value), identificador: formatRut(e.target.value) } })
+                                                } else {
+                                                    setFormData({ ...formData, newGuardian: { ...formData.newGuardian, identificador: e.target.value, rut: '' } })
+                                                }
+                                            }}
+                                        />
                                         <input
                                             type="email"
                                             placeholder="Email (Recibirá calificaciones)"
                                             className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold text-blue-600"
                                             value={formData.newGuardian.correo}
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, correo: e.target.value.trim().toLowerCase() } })}
-                                        />
-                                        <input
-                                            placeholder="RUT del Apoderado"
-                                            maxLength={12}
-                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
-                                            value={formData.newGuardian.rut || ''}
-                                            onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, rut: formatRut(e.target.value) } })}
                                         />
                                         <input
                                             placeholder="Teléfono"
@@ -549,7 +644,7 @@ const EnrollmentsPage = () => {
                                         />
                                         <input
                                             placeholder="Dirección del Apoderado"
-                                            className="w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
+                                            className="md:col-span-2 w-full px-4 py-2 bg-gray-50 border-2 border-gray-100 rounded-xl outline-none focus:border-blue-500 font-bold"
                                             value={formData.newGuardian.direccion || ''}
                                             onChange={e => setFormData({ ...formData, newGuardian: { ...formData.newGuardian, direccion: e.target.value } })}
                                         />
@@ -693,6 +788,39 @@ const EnrollmentsPage = () => {
                                     </div>
                                 </div>
                             )}
+
+                            {/* Checklist MINEDUC */}
+                            <div className="mt-8 pt-8 border-t border-dashed border-gray-200">
+                                <h3 className="text-sm font-black text-gray-800 uppercase tracking-widest flex items-center gap-2 mb-4">
+                                    <ShieldAlert size={16} className="text-gray-500" />
+                                    Checklist Documentación (MINEDUC)
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {Object.entries({
+                                        identidadEstudiante: 'Cédula/Cert. Nacimiento Estudiante',
+                                        identidadApoderado: 'Cédula Identidad Apoderado',
+                                        antecedentesAcademicos: 'Historial Académico',
+                                        comprobanteSAE: 'Comprobante SAE',
+                                        poderSimple: 'Poder Simple (Terceros)'
+                                    }).map(([key, label]) => (
+                                        <label key={key} className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 cursor-pointer hover:bg-gray-100 transition-colors">
+                                            <input
+                                                type="checkbox"
+                                                className="w-5 h-5 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
+                                                checked={formData.documentacionAportada[key as keyof typeof formData.documentacionAportada]}
+                                                onChange={e => setFormData({
+                                                    ...formData,
+                                                    documentacionAportada: {
+                                                        ...formData.documentacionAportada,
+                                                        [key]: e.target.checked
+                                                    }
+                                                })}
+                                            />
+                                            <span className="text-sm font-bold text-gray-700">{label}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
