@@ -28,6 +28,7 @@ interface Student {
         direccion?: string;
         rut?: string;
     };
+    estado?: string;
 }
 
 const StudentsPage = () => {

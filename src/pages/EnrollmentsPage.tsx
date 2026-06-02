@@ -60,7 +60,7 @@ const EnrollmentsPage = () => {
         newStudent: { 
             nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '',
             nacionalidad: 'Chilena', tipoIdentificador: 'RUT', identificador: '',
-            salud: { seguro: '', grupoSanguineo: '', vacunasAlDia: true, alergias: [], cronicas: [], medicamentos: [], observaciones: '' },
+            salud: { seguro: '', grupoSanguineo: '', vacunasAlDia: true, alergias: [] as string[], cronicas: [] as string[], medicamentos: [] as string[], observaciones: '' },
             fichaFamiliar: { cantidadIntegrantes: 0, ingresoFamiliar: '', contactoEmergencia: { nombre: '', telefono: '', parentesco: '' } }
         },
         newGuardian: { 
@@ -251,8 +251,23 @@ const EnrollmentsPage = () => {
                 fee: 0,
                 notes: '',
                 metodoPago: 'transferencia',
-                newStudent: { nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '' },
-                newGuardian: { nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre' }
+                newStudent: { 
+                    nombres: '', apellidos: '', rut: '', email: '', grado: '', edad: 0, direccion: '', photoUrl: '',
+                    nacionalidad: 'Chilena', tipoIdentificador: 'RUT', identificador: '',
+                    salud: { seguro: '', grupoSanguineo: '', vacunasAlDia: true, alergias: [] as string[], cronicas: [] as string[], medicamentos: [] as string[], observaciones: '' },
+                    fichaFamiliar: { cantidadIntegrantes: 0, ingresoFamiliar: '', contactoEmergencia: { nombre: '', telefono: '', parentesco: '' } }
+                },
+                newGuardian: { 
+                    nombre: '', apellidos: '', rut: '', correo: '', telefono: '', direccion: '', parentesco: 'Padre',
+                    nacionalidad: 'Chilena', tipoIdentificador: 'RUT', identificador: ''
+                },
+                documentacionAportada: {
+                    identidadEstudiante: false,
+                    identidadApoderado: false,
+                    antecedentesAcademicos: false,
+                    comprobanteSAE: false,
+                    poderSimple: false
+                }
             });
             setSearchTermStudent('');
             setActiveTab('list');
