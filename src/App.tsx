@@ -49,7 +49,6 @@ import ClassroomEfficiencyPage from './pages/ClassroomEfficiencyPage';
 import GlobalAcademicPerformancePage from './pages/GlobalAcademicPerformancePage';
 import SystemSettingsPage from './pages/SystemSettingsPage';
 import StudentReportPage from './pages/StudentReportPage';
-import EmpresasPage from './pages/EmpresasPage';
 
 function App() {
   return (
