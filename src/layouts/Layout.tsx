@@ -337,7 +337,6 @@ const Layout = () => {
                     {permissions.canManageAlternancias && (
                         <>
                             <NavLink to="/alternancias" icon={Briefcase}>{!isCollapsed && "Alternancias (TP)"}</NavLink>
-                            <NavLink to="/empresas" icon={Building}>{!isCollapsed && "Empresas y Convenios"}</NavLink>
                         </>
                     )}
 
